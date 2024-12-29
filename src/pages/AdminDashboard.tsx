@@ -7,10 +7,13 @@ import ExerciseManager from "@/components/admin/ExerciseManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDays, isWithinInterval } from "date-fns";
-import Navbar from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const { data: session } = useQuery({
     queryKey: ["session"],
@@ -61,11 +64,29 @@ const AdminDashboard = () => {
     },
   });
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/admin/login");
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of the admin dashboard",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     if (session === null) {
       navigate("/admin/login");
     } else if (isAdmin === false) {
-      navigate("/");
+      navigate("/admin/login");
     }
   }, [session, isAdmin, navigate]);
 
@@ -86,9 +107,23 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+            <div className="mt-4">
+              <img
+                src="https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7"
+                alt="Admin Dashboard Logo"
+                className="h-16 w-auto object-contain rounded-lg"
+              />
+            </div>
+          </div>
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
 
         <div className="grid gap-4 md:grid-cols-3 mb-8">
           <Card>

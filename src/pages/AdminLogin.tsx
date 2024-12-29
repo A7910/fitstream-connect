@@ -48,8 +48,8 @@ const AdminLogin = () => {
       console.log("Is admin user:", isAdminUser);
       return isAdminUser;
     },
-    retry: false, // Don't retry if the query fails
-    staleTime: 1000 * 60 * 5, // Cache the result for 5 minutes
+    retry: false,
+    staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {
@@ -64,7 +64,6 @@ const AdminLogin = () => {
         }
 
         try {
-          // Check if the user is an admin
           const { data, error } = await supabase
             .from("admin_users")
             .select("*")
@@ -126,7 +125,7 @@ const AdminLogin = () => {
           <h1 className="text-2xl font-bold text-center mb-6">Admin Login</h1>
           <Alert className="mb-6">
             <AlertDescription>
-              This page is for admin users only. If you're a regular user, please use the regular login page.
+              This page is for admin users only.
             </AlertDescription>
           </Alert>
           {authError && (
