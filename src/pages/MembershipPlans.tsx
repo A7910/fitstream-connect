@@ -78,6 +78,17 @@ const MembershipPlans = () => {
     );
   }
 
+  const parseFeatures = (featuresStr: string | null): string[] => {
+    if (!featuresStr) return [];
+    try {
+      const parsed = JSON.parse(featuresStr);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.error("Error parsing features:", e);
+      return [];
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold text-center mb-8">Membership Plans</h1>
@@ -91,13 +102,12 @@ const MembershipPlans = () => {
             <CardContent className="flex-grow">
               <div className="text-3xl font-bold mb-4">${plan.price}</div>
               <div className="space-y-2">
-                {plan.features && Array.isArray(JSON.parse(plan.features as string)) && 
-                  JSON.parse(plan.features as string).map((feature: string, index: number) => (
-                    <div key={index} className="flex items-center">
-                      <span className="mr-2">•</span>
-                      {feature}
-                    </div>
-                  ))}
+                {parseFeatures(plan.features as string).map((feature, index) => (
+                  <div key={index} className="flex items-center">
+                    <span className="mr-2">•</span>
+                    {feature}
+                  </div>
+                ))}
               </div>
             </CardContent>
             <CardFooter>
