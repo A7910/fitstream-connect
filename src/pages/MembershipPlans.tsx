@@ -70,6 +70,10 @@ const MembershipPlans = () => {
     navigate("/profile");
   };
 
+  const formatPrice = (price: number) => {
+    return `Rs. ${price.toLocaleString('en-PK')}`;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -100,7 +104,7 @@ const MembershipPlans = () => {
               <CardDescription>{plan.description}</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">
-              <div className="text-3xl font-bold mb-4">${plan.price}</div>
+              <div className="text-3xl font-bold mb-4">{formatPrice(plan.price)}</div>
               <div className="space-y-2">
                 {parseFeatures(plan.features as string).map((feature, index) => (
                   <div key={index} className="flex items-center">

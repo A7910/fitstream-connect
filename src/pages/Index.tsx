@@ -35,11 +35,14 @@ const Index = () => {
     navigate("/login");
   };
 
+  const formatPrice = (price: number) => {
+    return `Rs. ${price.toLocaleString('en-PK')}`;
+  };
+
   const renderFeatures = (features: unknown) => {
     try {
       if (!features) return null;
       
-      // If features is already an array, use it directly
       if (Array.isArray(features)) {
         return features.map((feature: string, index: number) => (
           <div key={index} className="flex items-center">
@@ -49,7 +52,6 @@ const Index = () => {
         ));
       }
       
-      // If features is a string, try to parse it
       if (typeof features === 'string') {
         const parsedFeatures = JSON.parse(features);
         if (Array.isArray(parsedFeatures)) {
@@ -97,7 +99,7 @@ const Index = () => {
                   <CardDescription>{plan.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">
-                  <div className="text-3xl font-bold mb-4">${plan.price}</div>
+                  <div className="text-3xl font-bold mb-4">{formatPrice(plan.price)}</div>
                   <div className="space-y-2">
                     {renderFeatures(plan.features)}
                   </div>
