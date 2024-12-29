@@ -5,11 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addDays, isWithinInterval, subDays } from "date-fns";
+import { addDays, isWithinInterval } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
-import AnalyticsChart from "@/components/admin/AnalyticsChart";
 import UserManagement from "@/components/admin/UserManagement";
 
 const AdminDashboard = () => {
@@ -62,22 +61,6 @@ const AdminDashboard = () => {
     },
   });
 
-  const { data: analytics } = useQuery({
-    queryKey: ["analytics"],
-    enabled: !!isAdmin,
-    queryFn: async () => {
-      const thirtyDaysAgo = subDays(new Date(), 30);
-      const { data, error } = await supabase
-        .from("analytics_daily")
-        .select("*")
-        .gte("date", thirtyDaysAgo.toISOString())
-        .order("date", { ascending: true });
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -119,18 +102,6 @@ const AdminDashboard = () => {
     });
   })?.length || 0;
 
-  // Calculate trends
-  const latestDay = analytics?.[analytics.length - 1];
-  const previousDay = analytics?.[analytics.length - 2];
-  
-  const visitsChange = latestDay && previousDay
-    ? ((latestDay.total_visits - previousDay.total_visits) / previousDay.total_visits) * 100
-    : 0;
-  
-  const membershipsChange = latestDay && previousDay
-    ? ((latestDay.new_memberships - previousDay.new_memberships) / previousDay.new_memberships) * 100
-    : 0;
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -140,13 +111,11 @@ const AdminDashboard = () => {
           activeMembers={activeMembers}
           inactiveMembers={inactiveMembers}
           expiringMembers={expiringMembers}
-          latestVisits={latestDay?.total_visits || 0}
-          visitsChange={visitsChange}
-          latestNewMemberships={latestDay?.new_memberships || 0}
-          membershipsChange={membershipsChange}
+          latestVisits={0}
+          visitsChange={0}
+          latestNewMemberships={0}
+          membershipsChange={0}
         />
-
-        <AnalyticsChart data={analytics || []} />
 
         <Tabs defaultValue="users" className="space-y-4">
           <TabsList>
