@@ -41,7 +41,7 @@ const AdminDashboard = () => {
         .from("user_memberships")
         .select(`
           *,
-          profiles:user_id (
+          profile:user_id (
             full_name,
             phone_number
           )
@@ -124,7 +124,7 @@ const AdminDashboard = () => {
                   {memberships?.map((membership) => (
                     <div key={membership.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
-                        <p className="font-medium">{membership.profiles?.full_name}</p>
+                        <p className="font-medium">{membership.profile?.full_name}</p>
                         <p className="text-sm text-muted-foreground">
                           Status: {membership.status}
                         </p>
@@ -133,7 +133,7 @@ const AdminDashboard = () => {
                         </p>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {membership.profiles?.phone_number}
+                        {membership.profile?.phone_number}
                       </div>
                     </div>
                   ))}
