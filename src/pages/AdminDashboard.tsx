@@ -37,18 +37,27 @@ const AdminDashboard = () => {
     queryKey: ["all-memberships"],
     enabled: !!isAdmin,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get all memberships
+      const { data: membershipData, error: membershipError } = await supabase
         .from("user_memberships")
-        .select(`
-          *,
-          profile:user_id (
-            full_name,
-            phone_number
-          )
-        `);
+        .select("*");
       
-      if (error) throw error;
-      return data;
+      if (membershipError) throw membershipError;
+
+      // Then get all profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*");
+      
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const combinedData = membershipData.map(membership => ({
+        ...membership,
+        profile: profilesData.find(profile => profile.id === membership.user_id)
+      }));
+
+      return combinedData;
     },
   });
 
