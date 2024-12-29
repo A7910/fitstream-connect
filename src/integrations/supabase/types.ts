@@ -42,6 +42,7 @@ export type Database = {
           id: string
           muscle_group: string
           name: string
+          sets: number
         }
         Insert: {
           created_at?: string
@@ -51,6 +52,7 @@ export type Database = {
           id?: string
           muscle_group: string
           name: string
+          sets?: number
         }
         Update: {
           created_at?: string
@@ -60,6 +62,7 @@ export type Database = {
           id?: string
           muscle_group?: string
           name?: string
+          sets?: number
         }
         Relationships: [
           {
