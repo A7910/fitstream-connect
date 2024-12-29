@@ -7,10 +7,12 @@ import ExerciseManager from "@/components/admin/ExerciseManager";
 import AdminLogo from "@/components/admin/AdminLogo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { addDays, isWithinInterval } from "date-fns";
+import { addDays, isWithinInterval, subDays } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, TrendingUp, TrendingDown, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -62,6 +64,22 @@ const AdminDashboard = () => {
     },
   });
 
+  const { data: analytics } = useQuery({
+    queryKey: ["analytics"],
+    enabled: !!isAdmin,
+    queryFn: async () => {
+      const thirtyDaysAgo = subDays(new Date(), 30);
+      const { data, error } = await supabase
+        .from("analytics_daily")
+        .select("*")
+        .gte("date", thirtyDaysAgo.toISOString())
+        .order("date", { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -103,6 +121,18 @@ const AdminDashboard = () => {
     });
   })?.length || 0;
 
+  // Calculate trends
+  const latestDay = analytics?.[analytics.length - 1];
+  const previousDay = analytics?.[analytics.length - 2];
+  
+  const visitsChange = latestDay && previousDay
+    ? ((latestDay.total_visits - previousDay.total_visits) / previousDay.total_visits) * 100
+    : 0;
+  
+  const membershipsChange = latestDay && previousDay
+    ? ((latestDay.new_memberships - previousDay.new_memberships) / previousDay.new_memberships) * 100
+    : 0;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -122,7 +152,10 @@ const AdminDashboard = () => {
         <div className="grid gap-4 md:grid-cols-3 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Members</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Active Members
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{activeMembers}</div>
@@ -130,21 +163,85 @@ const AdminDashboard = () => {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inactive Members</CardTitle>
+              <CardTitle className="text-sm font-medium">Daily Visits</CardTitle>
+              {visitsChange >= 0 ? (
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-500" />
+              )}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{inactiveMembers}</div>
+              <div className="text-2xl font-bold">{latestDay?.total_visits || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                {visitsChange > 0 ? "+" : ""}{visitsChange.toFixed(1)}% from yesterday
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+              <CardTitle className="text-sm font-medium">New Memberships</CardTitle>
+              {membershipsChange >= 0 ? (
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-500" />
+              )}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{expiringMembers}</div>
+              <div className="text-2xl font-bold">{latestDay?.new_memberships || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                {membershipsChange > 0 ? "+" : ""}{membershipsChange.toFixed(1)}% from yesterday
+              </p>
             </CardContent>
           </Card>
         </div>
+
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>30 Day Analytics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ChartContainer>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={analytics}>
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={(date) => new Date(date).toLocaleDateString()}
+                      stroke="#888888"
+                      fontSize={12}
+                    />
+                    <YAxis stroke="#888888" fontSize={12} />
+                    <ChartTooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="total_visits"
+                      stroke="#8884d8"
+                      fill="#8884d8"
+                      fillOpacity={0.2}
+                      name="Daily Visits"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="active_members"
+                      stroke="#82ca9d"
+                      fill="#82ca9d"
+                      fillOpacity={0.2}
+                      name="Active Members"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="new_memberships"
+                      stroke="#ffc658"
+                      fill="#ffc658"
+                      fillOpacity={0.2}
+                      name="New Memberships"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="users" className="space-y-4">
           <TabsList>

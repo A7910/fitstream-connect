@@ -45,6 +45,33 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_daily: {
+        Row: {
+          active_members: number
+          created_at: string
+          date: string
+          id: string
+          new_memberships: number
+          total_visits: number
+        }
+        Insert: {
+          active_members?: number
+          created_at?: string
+          date: string
+          id?: string
+          new_memberships?: number
+          total_visits?: number
+        }
+        Update: {
+          active_members?: number
+          created_at?: string
+          date?: string
+          id?: string
+          new_memberships?: number
+          total_visits?: number
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           check_in: string
@@ -296,7 +323,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_daily_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
