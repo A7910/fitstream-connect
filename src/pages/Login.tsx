@@ -3,14 +3,46 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { useQuery } from "@tanstack/react-query";
 
 const Login = () => {
   const navigate = useNavigate();
 
+  // Check if user is admin
+  const { data: isAdmin } = useQuery({
+    queryKey: ["isAdmin"],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
+
+      const { data } = await supabase
+        .from("admin_users")
+        .select()
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+      
+      return !!data;
+    },
+    enabled: false, // Only run when needed
+  });
+
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        navigate("/");
+        // Check if the user is an admin
+        const { data } = await supabase
+          .from("admin_users")
+          .select()
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+
+        if (data) {
+          // If admin, redirect to admin dashboard
+          navigate("/admin");
+        } else {
+          // If regular user, redirect to home
+          navigate("/");
+        }
       }
     });
 

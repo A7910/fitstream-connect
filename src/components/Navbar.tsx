@@ -13,7 +13,6 @@ const Navbar = () => {
     queryKey: ["session"],
     queryFn: async () => {
       try {
-        // First try to get the current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -29,14 +28,27 @@ const Navbar = () => {
         return session;
       } catch (error) {
         console.error("Error fetching session:", error);
-        // Clear any invalid session data
         await supabase.auth.signOut();
         throw error;
       }
     },
     retry: false,
-    staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
-    gcTime: 1000 * 60 * 30, // Keep session data in cache for 30 minutes (renamed from cacheTime)
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+  });
+
+  // Check if user is admin
+  const { data: isAdmin } = useQuery({
+    queryKey: ["isAdmin", session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("admin_users")
+        .select()
+        .eq("user_id", session?.user?.id)
+        .maybeSingle();
+      return !!data;
+    },
   });
 
   const handleLogout = async () => {
@@ -61,7 +73,6 @@ const Navbar = () => {
     }
   };
 
-  // If there's a session error or no session, show the logged-out state
   if (isError || !session) {
     console.log("No valid session, showing logged-out state");
     return (
@@ -100,11 +111,16 @@ const Navbar = () => {
             <Link to="/membership-plans">
               <Button variant="ghost">Membership Plans</Button>
             </Link>
-            {session ? (
+            {session && (
               <>
                 <Link to="/workout-plan">
                   <Button variant="ghost">Workout Plan</Button>
                 </Link>
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="ghost">Admin Dashboard</Button>
+                  </Link>
+                )}
                 <Link to="/profile">
                   <Button variant="ghost">Profile</Button>
                 </Link>
@@ -112,10 +128,6 @@ const Navbar = () => {
                   Logout
                 </Button>
               </>
-            ) : (
-              <Link to="/login">
-                <Button>Login</Button>
-              </Link>
             )}
           </div>
         </div>
