@@ -12,14 +12,31 @@ const Navbar = () => {
   const { data: session, isError, refetch } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Session error:", error);
+      try {
+        // First try to get the current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          throw sessionError;
+        }
+
+        if (!session) {
+          console.log("No active session found");
+          return null;
+        }
+
+        return session;
+      } catch (error) {
+        console.error("Error fetching session:", error);
+        // Clear any invalid session data
+        await supabase.auth.signOut();
         throw error;
       }
-      return session;
     },
     retry: false,
+    staleTime: 1000 * 60 * 5, // Consider session data fresh for 5 minutes
+    cacheTime: 1000 * 60 * 30, // Keep session data in cache for 30 minutes
   });
 
   const handleLogout = async () => {
@@ -27,7 +44,7 @@ const Navbar = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      await refetch(); // Refetch session after logout
+      await refetch();
       navigate("/");
       
       toast({
@@ -44,9 +61,9 @@ const Navbar = () => {
     }
   };
 
-  // If there's a session error, we treat it as not authenticated
-  if (isError) {
-    console.log("Session error detected, treating as logged out");
+  // If there's a session error or no session, show the logged-out state
+  if (isError || !session) {
+    console.log("No valid session, showing logged-out state");
     return (
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
