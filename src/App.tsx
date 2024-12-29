@@ -11,22 +11,24 @@ import WorkoutPlan from "./pages/WorkoutPlan";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/membership-plans" element={<MembershipPlans />} />
-          <Route path="/workout-plan" element={<WorkoutPlan />} />
-        </Routes>
+        <TooltipProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/membership-plans" element={<MembershipPlans />} />
+            <Route path="/workout-plan" element={<WorkoutPlan />} />
+          </Routes>
+          <Toaster />
+          <Sonner />
+        </TooltipProvider>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+};
 
 export default App;
