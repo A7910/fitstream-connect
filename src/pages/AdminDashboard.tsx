@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
+import AdminLogo from "@/components/admin/AdminLogo";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDays, isWithinInterval } from "date-fns";
@@ -40,21 +41,18 @@ const AdminDashboard = () => {
     queryKey: ["all-memberships"],
     enabled: !!isAdmin,
     queryFn: async () => {
-      // First get all memberships
       const { data: membershipData, error: membershipError } = await supabase
         .from("user_memberships")
         .select("*");
       
       if (membershipError) throw membershipError;
 
-      // Then get all profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select("*");
       
       if (profilesError) throw profilesError;
 
-      // Combine the data
       const combinedData = membershipData.map(membership => ({
         ...membership,
         profile: profilesData.find(profile => profile.id === membership.user_id)
@@ -112,11 +110,7 @@ const AdminDashboard = () => {
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <div className="mt-4">
-              <img
-                src="https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7"
-                alt="Admin Dashboard Logo"
-                className="h-16 w-auto object-contain rounded-lg"
-              />
+              <AdminLogo />
             </div>
           </div>
           <Button variant="outline" onClick={handleLogout}>
