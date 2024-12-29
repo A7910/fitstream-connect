@@ -14,6 +14,22 @@ import { useToast } from "@/components/ui/use-toast";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
+// Chart configuration
+const chartConfig = {
+  visits: {
+    label: "Daily Visits",
+    color: "#8884d8",
+  },
+  members: {
+    label: "Active Members",
+    color: "#82ca9d",
+  },
+  newMemberships: {
+    label: "New Memberships",
+    color: "#ffc658",
+  },
+};
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -201,7 +217,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
-              <ChartContainer>
+              <ChartContainer config={chartConfig}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={analytics}>
                     <XAxis
@@ -215,24 +231,24 @@ const AdminDashboard = () => {
                     <Area
                       type="monotone"
                       dataKey="total_visits"
-                      stroke="#8884d8"
-                      fill="#8884d8"
+                      stroke={chartConfig.visits.color}
+                      fill={chartConfig.visits.color}
                       fillOpacity={0.2}
                       name="Daily Visits"
                     />
                     <Area
                       type="monotone"
                       dataKey="active_members"
-                      stroke="#82ca9d"
-                      fill="#82ca9d"
+                      stroke={chartConfig.members.color}
+                      fill={chartConfig.members.color}
                       fillOpacity={0.2}
                       name="Active Members"
                     />
                     <Area
                       type="monotone"
                       dataKey="new_memberships"
-                      stroke="#ffc658"
-                      fill="#ffc658"
+                      stroke={chartConfig.newMemberships.color}
+                      fill={chartConfig.newMemberships.color}
                       fillOpacity={0.2}
                       name="New Memberships"
                     />
