@@ -10,10 +10,10 @@ import { Loader2 } from "lucide-react";
 const Index = () => {
   const navigate = useNavigate();
 
-  const { data: plans, isLoading } = useQuery({
+  const { data: plans, isLoading, error } = useQuery({
     queryKey: ["membership-plans"],
     queryFn: async () => {
-      console.log("Fetching membership plans...");
+      console.log("Starting to fetch membership plans...");
       const { data, error } = await supabase
         .from("membership_plans")
         .select("*")
@@ -23,14 +23,21 @@ const Index = () => {
         console.error("Error fetching plans:", error);
         throw error;
       }
-      console.log("Fetched plans:", data);
+      
+      console.log("Raw response from Supabase:", { data, error });
       return data;
     }
   });
 
+  console.log("Current plans state:", plans);
+
   const handleSubscribe = (planId: string) => {
     navigate("/login");
   };
+
+  if (error) {
+    console.error("Query error:", error);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,9 +50,13 @@ const Index = () => {
           <div className="flex justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
-        ) : (
+        ) : error ? (
+          <div className="text-center text-red-600">
+            Error loading membership plans. Please try again later.
+          </div>
+        ) : plans && plans.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans?.map((plan) => (
+            {plans.map((plan) => (
               <Card key={plan.id} className="flex flex-col">
                 <CardHeader>
                   <CardTitle>{plan.name}</CardTitle>
@@ -73,6 +84,10 @@ const Index = () => {
                 </CardFooter>
               </Card>
             ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-600">
+            No membership plans available at the moment.
           </div>
         )}
       </div>
