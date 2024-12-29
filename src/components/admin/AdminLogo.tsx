@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import type { Database } from "@/integrations/supabase/types";
+
+type AdminConfig = Database['public']['Tables']['admin_config']['Row'];
 
 const AdminLogo = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -11,7 +14,7 @@ const AdminLogo = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: logoConfig } = useQuery({
+  const { data: logoConfig } = useQuery<AdminConfig>({
     queryKey: ["adminConfig"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -69,7 +72,7 @@ const AdminLogo = () => {
   return (
     <div className="space-y-4">
       <img
-        src={logoConfig?.logo_url}
+        src={logoConfig?.logo_url || ""}
         alt="Admin Dashboard Logo"
         className="h-12 w-12 object-cover rounded-full"
       />
