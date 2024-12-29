@@ -1,5 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Users } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { useState } from "react";
 
 interface StatsCardsProps {
   activeMembers: number;
@@ -9,6 +15,7 @@ interface StatsCardsProps {
   visitsChange: number;
   latestNewMemberships: number;
   membershipsChange: number;
+  onDateChange?: (date: Date) => void;
 }
 
 const StatsCards = ({
@@ -17,7 +24,17 @@ const StatsCards = ({
   visitsChange,
   latestNewMemberships,
   membershipsChange,
+  onDateChange,
 }: StatsCardsProps) => {
+  const [date, setDate] = useState<Date>();
+
+  const handleSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate) {
+      setDate(selectedDate);
+      onDateChange?.(selectedDate);
+    }
+  };
+
   return (
     <div className="grid gap-4 md:grid-cols-3 mb-8">
       <Card>
@@ -48,7 +65,31 @@ const StatsCards = ({
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">New Memberships</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            New Memberships
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "ml-2 h-8 w-8 p-0 hover:bg-muted",
+                    date && "text-primary"
+                  )}
+                >
+                  <span className="sr-only">Open date picker</span>
+                  📅
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={handleSelect}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </CardTitle>
           {membershipsChange >= 0 ? (
             <TrendingUp className="h-4 w-4 text-green-500" />
           ) : (
@@ -59,7 +100,8 @@ const StatsCards = ({
           <div className="text-2xl font-bold">{latestNewMemberships}</div>
           <p className="text-xs text-muted-foreground">
             {membershipsChange > 0 ? "+" : ""}
-            {membershipsChange.toFixed(1)}% from yesterday
+            {membershipsChange.toFixed(1)}% from{" "}
+            {date ? format(date, "MMM dd, yyyy") : "yesterday"}
           </p>
         </CardContent>
       </Card>

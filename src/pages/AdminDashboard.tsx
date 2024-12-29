@@ -1,11 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addDays, isWithinInterval } from "date-fns";
+import { addDays, isWithinInterval, startOfDay } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
@@ -14,6 +14,9 @@ import UserManagement from "@/components/admin/UserManagement";
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [compareDate, setCompareDate] = useState<Date>(
+    startOfDay(new Date(Date.now() - 86400000))
+  ); // yesterday
 
   const { data: session } = useQuery({
     queryKey: ["session"],
@@ -102,6 +105,41 @@ const AdminDashboard = () => {
     });
   })?.length || 0;
 
+  const { data: membershipsComparison } = useQuery({
+    queryKey: ["memberships-comparison", compareDate],
+    enabled: !!isAdmin,
+    queryFn: async () => {
+      const today = startOfDay(new Date());
+      
+      // Get today's memberships
+      const { data: todayData, error: todayError } = await supabase
+        .from("user_memberships")
+        .select("created_at")
+        .gte("created_at", today.toISOString())
+        .lt("created_at", new Date().toISOString());
+
+      if (todayError) throw todayError;
+
+      // Get memberships from compare date
+      const { data: compareData, error: compareError } = await supabase
+        .from("user_memberships")
+        .select("created_at")
+        .gte("created_at", compareDate.toISOString())
+        .lt("created_at", addDays(compareDate, 1).toISOString());
+
+      if (compareError) throw compareError;
+
+      return {
+        today: todayData.length,
+        compareDay: compareData.length
+      };
+    },
+  });
+
+  const membershipsChange = membershipsComparison?.compareDay
+    ? ((membershipsComparison.today - membershipsComparison.compareDay) / membershipsComparison.compareDay) * 100
+    : 0;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -113,8 +151,9 @@ const AdminDashboard = () => {
           expiringMembers={expiringMembers}
           latestVisits={0}
           visitsChange={0}
-          latestNewMemberships={0}
-          membershipsChange={0}
+          latestNewMemberships={membershipsComparison?.today || 0}
+          membershipsChange={membershipsChange}
+          onDateChange={setCompareDate}
         />
 
         <Tabs defaultValue="users" className="space-y-4">
