@@ -33,6 +33,44 @@ export type Database = {
         }
         Relationships: []
       }
+      exercises: {
+        Row: {
+          created_at: string
+          description: string | null
+          difficulty_level: string
+          goal_id: string
+          id: string
+          muscle_group: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          difficulty_level: string
+          goal_id: string
+          id?: string
+          muscle_group: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string
+          goal_id?: string
+          id?: string
+          muscle_group?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "workout_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_plans: {
         Row: {
           created_at: string
@@ -128,6 +166,35 @@ export type Database = {
           },
         ]
       }
+      user_workout_goals: {
+        Row: {
+          created_at: string
+          goal_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          goal_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_workout_goals_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "workout_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
           category: string
@@ -161,6 +228,27 @@ export type Database = {
           thumbnail_url?: string | null
           title?: string
           url?: string
+        }
+        Relationships: []
+      }
+      workout_goals: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }

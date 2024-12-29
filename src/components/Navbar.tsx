@@ -35,6 +35,9 @@ const Navbar = () => {
             </Link>
             {session ? (
               <>
+                <Link to="/workout-plan">
+                  <Button variant="ghost">Workout Plan</Button>
+                </Link>
                 <Link to="/profile">
                   <Button variant="ghost">Profile</Button>
                 </Link>
