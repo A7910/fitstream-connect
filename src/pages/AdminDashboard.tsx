@@ -16,7 +16,7 @@ const AdminDashboard = () => {
   const { toast } = useToast();
   const [compareDate, setCompareDate] = useState<Date>(
     startOfDay(new Date(Date.now() - 86400000))
-  ); // yesterday
+  );
 
   const { data: session } = useQuery({
     queryKey: ["session"],
@@ -39,7 +39,7 @@ const AdminDashboard = () => {
     },
   });
 
-  const { data: memberships } = useQuery({
+  const { data: memberships = [] } = useQuery({
     queryKey: ["all-memberships"],
     enabled: !!isAdmin,
     queryFn: async () => {
@@ -55,12 +55,39 @@ const AdminDashboard = () => {
       
       if (profilesError) throw profilesError;
 
-      const combinedData = membershipData.map(membership => ({
+      return membershipData.map(membership => ({
         ...membership,
         profile: profilesData.find(profile => profile.id === membership.user_id)
       }));
+    },
+  });
 
-      return combinedData;
+  const { data: membershipsComparison = { today: 0, compareDay: 0 } } = useQuery({
+    queryKey: ["memberships-comparison", compareDate],
+    enabled: !!isAdmin,
+    queryFn: async () => {
+      const today = startOfDay(new Date());
+      
+      const { data: todayData, error: todayError } = await supabase
+        .from("user_memberships")
+        .select("created_at")
+        .gte("created_at", today.toISOString())
+        .lt("created_at", new Date().toISOString());
+
+      if (todayError) throw todayError;
+
+      const { data: compareData, error: compareError } = await supabase
+        .from("user_memberships")
+        .select("created_at")
+        .gte("created_at", compareDate.toISOString())
+        .lt("created_at", addDays(compareDate, 1).toISOString());
+
+      if (compareError) throw compareError;
+
+      return {
+        today: todayData.length,
+        compareDay: compareData.length
+      };
     },
   });
 
@@ -83,60 +110,28 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    if (session === null) {
-      navigate("/admin/login");
-    } else if (isAdmin === false) {
+    if (session === null || isAdmin === false) {
       navigate("/admin/login");
     }
   }, [session, isAdmin, navigate]);
 
-  if (!session || !isAdmin) return null;
+  if (!session || isAdmin === undefined) return null;
+  if (!isAdmin) return null;
 
   const today = new Date();
   const threeDaysFromNow = addDays(today, 3);
 
-  const activeMembers = memberships?.filter(m => m.status === "active")?.length || 0;
-  const inactiveMembers = memberships?.filter(m => m.status !== "active")?.length || 0;
-  const expiringMembers = memberships?.filter(m => {
+  const activeMembers = memberships.filter(m => m.status === "active").length;
+  const inactiveMembers = memberships.filter(m => m.status !== "active").length;
+  const expiringMembers = memberships.filter(m => {
     const endDate = new Date(m.end_date);
     return m.status === "active" && isWithinInterval(endDate, {
       start: today,
       end: threeDaysFromNow
     });
-  })?.length || 0;
+  }).length;
 
-  const { data: membershipsComparison } = useQuery({
-    queryKey: ["memberships-comparison", compareDate],
-    enabled: !!isAdmin,
-    queryFn: async () => {
-      const today = startOfDay(new Date());
-      
-      // Get today's memberships
-      const { data: todayData, error: todayError } = await supabase
-        .from("user_memberships")
-        .select("created_at")
-        .gte("created_at", today.toISOString())
-        .lt("created_at", new Date().toISOString());
-
-      if (todayError) throw todayError;
-
-      // Get memberships from compare date
-      const { data: compareData, error: compareError } = await supabase
-        .from("user_memberships")
-        .select("created_at")
-        .gte("created_at", compareDate.toISOString())
-        .lt("created_at", addDays(compareDate, 1).toISOString());
-
-      if (compareError) throw compareError;
-
-      return {
-        today: todayData.length,
-        compareDay: compareData.length
-      };
-    },
-  });
-
-  const membershipsChange = membershipsComparison?.compareDay
+  const membershipsChange = membershipsComparison.compareDay
     ? ((membershipsComparison.today - membershipsComparison.compareDay) / membershipsComparison.compareDay) * 100
     : 0;
 
@@ -151,7 +146,7 @@ const AdminDashboard = () => {
           expiringMembers={expiringMembers}
           latestVisits={0}
           visitsChange={0}
-          latestNewMemberships={membershipsComparison?.today || 0}
+          latestNewMemberships={membershipsComparison.today}
           membershipsChange={membershipsChange}
           onDateChange={setCompareDate}
         />
@@ -163,7 +158,7 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
-            <UserManagement memberships={memberships || []} />
+            <UserManagement memberships={memberships} />
           </TabsContent>
 
           <TabsContent value="workout" className="space-y-4">
