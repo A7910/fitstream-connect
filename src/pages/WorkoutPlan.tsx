@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,20 +9,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
+import ExerciseCard from "@/components/workout/ExerciseCard";
+import GoalSelector from "@/components/workout/GoalSelector";
+import MuscleGroupFilter from "@/components/workout/MuscleGroupFilter";
 
 const WorkoutPlan = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>(null);
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("all");
 
   // Check if user is authenticated
   const { data: session } = useQuery({
@@ -80,7 +75,7 @@ const WorkoutPlan = () => {
         .select("*")
         .eq("goal_id", userGoal.goal_id);
 
-      if (selectedMuscleGroup) {
+      if (selectedMuscleGroup && selectedMuscleGroup !== "all") {
         query = query.eq("muscle_group", selectedMuscleGroup);
       }
 
@@ -160,80 +155,30 @@ const WorkoutPlan = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Select Your Goal</label>
-                  <Select
-                    value={userGoal?.goal_id}
-                    onValueChange={handleGoalChange}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose a goal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {workoutGoals?.map((goal) => (
-                        <SelectItem key={goal.id} value={goal.id}>
-                          {goal.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <GoalSelector
+                  value={userGoal?.goal_id}
+                  onValueChange={handleGoalChange}
+                  workoutGoals={workoutGoals}
+                />
 
                 {userGoal && (
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Filter by Muscle Group</label>
-                      <Select
-                        value={selectedMuscleGroup || ""}
-                        onValueChange={(value) => setSelectedMuscleGroup(value || null)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="All muscle groups" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="">All muscle groups</SelectItem>
-                          {muscleGroups.map((group) => (
-                            <SelectItem key={group} value={group}>
-                              {group}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <MuscleGroupFilter
+                      value={selectedMuscleGroup}
+                      onValueChange={setSelectedMuscleGroup}
+                      muscleGroups={muscleGroups}
+                    />
 
                     <h3 className="text-lg font-semibold">
                       Recommended Exercises for {userGoal.workout_goals.name}
                     </h3>
                     <div className="grid gap-4 md:grid-cols-2">
                       {exercises?.map((exercise) => (
-                        <Card key={exercise.id}>
-                          <div className="relative h-48 w-full">
-                            <img
-                              src={getExerciseImage(exercise.muscle_group)}
-                              alt={exercise.name}
-                              className="w-full h-full object-cover rounded-t-lg"
-                            />
-                          </div>
-                          <CardHeader>
-                            <CardTitle className="text-lg">{exercise.name}</CardTitle>
-                            <CardDescription>
-                              Muscle Group: {exercise.muscle_group}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              {exercise.description}
-                            </p>
-                            <div className="flex justify-between items-center mt-4">
-                              <p className="text-sm">
-                                Difficulty: {exercise.difficulty_level}
-                              </p>
-                              <p className="text-sm font-semibold">
-                                Sets: {exercise.sets}
-                              </p>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <ExerciseCard
+                          key={exercise.id}
+                          exercise={exercise}
+                          getExerciseImage={getExerciseImage}
+                        />
                       ))}
                     </div>
                   </div>
