@@ -35,7 +35,7 @@ const AdminLogin = () => {
       console.log("Checking admin status for user:", session?.user?.id);
       const { data, error } = await supabase
         .from("admin_users")
-        .select()
+        .select("*")
         .eq("user_id", session?.user?.id)
         .maybeSingle();
       
@@ -48,6 +48,8 @@ const AdminLogin = () => {
       console.log("Is admin user:", isAdminUser);
       return isAdminUser;
     },
+    retry: false, // Don't retry if the query fails
+    staleTime: 1000 * 60 * 5, // Cache the result for 5 minutes
   });
 
   useEffect(() => {
@@ -65,7 +67,7 @@ const AdminLogin = () => {
           // Check if the user is an admin
           const { data, error } = await supabase
             .from("admin_users")
-            .select()
+            .select("*")
             .eq("user_id", session.user.id)
             .maybeSingle();
 
