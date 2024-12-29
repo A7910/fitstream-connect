@@ -12,108 +12,110 @@ const AdminLogin = () => {
   const { toast } = useToast();
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Check if user is admin with better error handling
-  const { data: isAdmin, isError } = useQuery({
-    queryKey: ["isAdmin"],
+  // Check if user is authenticated
+  const { data: session, isLoading: sessionLoading } = useQuery({
+    queryKey: ["session"],
     queryFn: async () => {
-      try {
-        console.log("Checking if user is admin...");
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          throw sessionError;
-        }
-
-        if (!session) {
-          console.log("No session found");
-          return false;
-        }
-
-        console.log("Session found, checking admin status for user:", session.user.id);
-        const { data, error } = await supabase
-          .from("admin_users")
-          .select()
-          .eq("user_id", session.user.id)
-          .maybeSingle();
-        
-        if (error) {
-          console.error("Error checking admin status:", error);
-          throw error;
-        }
-
-        console.log("Admin check result:", !!data);
-        return !!data;
-      } catch (error) {
-        console.error("Error in admin check:", error);
-        setAuthError("Error checking admin status. Please try again.");
-        return false;
+      console.log("Checking session...");
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session error:", error);
+        throw error;
       }
+      console.log("Session status:", session ? "Found" : "Not found");
+      return session;
     },
-    retry: false,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+
+  // Check if user is admin
+  const { data: isAdmin, isLoading: adminLoading } = useQuery({
+    queryKey: ["isAdmin", session?.user?.id],
+    enabled: !!session?.user?.id,
+    queryFn: async () => {
+      console.log("Checking admin status for user:", session?.user?.id);
+      const { data, error } = await supabase
+        .from("admin_users")
+        .select()
+        .eq("user_id", session?.user?.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Admin check error:", error);
+        throw error;
+      }
+      
+      const isAdminUser = !!data;
+      console.log("Is admin user:", isAdminUser);
+      return isAdminUser;
+    },
   });
 
   useEffect(() => {
-    let isSubscribed = true;
+    const setupAuthListener = () => {
+      console.log("Setting up auth listener");
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
+        
+        if (!session) {
+          console.log("No session found in auth change");
+          return;
+        }
 
-    const setupAuthListener = async () => {
-      try {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log("Auth state changed:", event, session?.user?.id);
-          
-          if (!session || !isSubscribed) return;
+        try {
+          // Check if the user is an admin
+          const { data, error } = await supabase
+            .from("admin_users")
+            .select()
+            .eq("user_id", session.user.id)
+            .maybeSingle();
 
-          try {
-            // Check if the user is an admin
-            const { data, error } = await supabase
-              .from("admin_users")
-              .select()
-              .eq("user_id", session.user.id)
-              .maybeSingle();
-
-            if (error) {
-              console.error("Error checking admin status:", error);
-              setAuthError("Error verifying admin status. Please try again.");
-              return;
-            }
-
-            if (data) {
-              console.log("Admin user confirmed, redirecting to dashboard");
-              toast({
-                title: "Login successful",
-                description: "Welcome back, admin!",
-              });
-              navigate("/admin");
-            } else {
-              console.log("Non-admin user detected");
-              toast({
-                title: "Access denied",
-                description: "This account does not have admin privileges",
-                variant: "destructive",
-              });
-              // Sign out the non-admin user
-              await supabase.auth.signOut();
-              navigate("/");
-            }
-          } catch (error) {
-            console.error("Error in auth state change handler:", error);
-            setAuthError("An error occurred during authentication. Please try again.");
+          if (error) {
+            console.error("Error checking admin status:", error);
+            setAuthError("Error verifying admin status");
+            return;
           }
-        });
 
-        return () => {
-          isSubscribed = false;
-          subscription.unsubscribe();
-        };
-      } catch (error) {
-        console.error("Error setting up auth listener:", error);
-        setAuthError("Error setting up authentication. Please refresh the page.");
-      }
+          if (data) {
+            console.log("Admin verified, redirecting to dashboard");
+            toast({
+              title: "Login successful",
+              description: "Welcome back, admin!",
+            });
+            navigate("/admin");
+          } else {
+            console.log("Non-admin user detected");
+            toast({
+              title: "Access denied",
+              description: "This account does not have admin privileges",
+              variant: "destructive",
+            });
+            await supabase.auth.signOut();
+          }
+        } catch (error) {
+          console.error("Error in auth state change handler:", error);
+          setAuthError("An error occurred during authentication");
+        }
+      });
+
+      return () => {
+        console.log("Cleaning up auth listener");
+        subscription.unsubscribe();
+      };
     };
 
-    setupAuthListener();
+    const cleanup = setupAuthListener();
+    return () => {
+      if (cleanup) cleanup();
+    };
   }, [navigate, toast]);
+
+  // Redirect if already authenticated and is admin
+  useEffect(() => {
+    if (!sessionLoading && !adminLoading && session && isAdmin) {
+      console.log("User is authenticated and is admin, redirecting to dashboard");
+      navigate("/admin");
+    }
+  }, [session, isAdmin, sessionLoading, adminLoading, navigate]);
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-gray-50">
