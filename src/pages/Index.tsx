@@ -35,6 +35,40 @@ const Index = () => {
     navigate("/login");
   };
 
+  const renderFeatures = (features: unknown) => {
+    try {
+      if (!features) return null;
+      
+      // If features is already an array, use it directly
+      if (Array.isArray(features)) {
+        return features.map((feature: string, index: number) => (
+          <div key={index} className="flex items-center">
+            <span className="mr-2">•</span>
+            {feature}
+          </div>
+        ));
+      }
+      
+      // If features is a string, try to parse it
+      if (typeof features === 'string') {
+        const parsedFeatures = JSON.parse(features);
+        if (Array.isArray(parsedFeatures)) {
+          return parsedFeatures.map((feature: string, index: number) => (
+            <div key={index} className="flex items-center">
+              <span className="mr-2">•</span>
+              {feature}
+            </div>
+          ));
+        }
+      }
+      
+      return null;
+    } catch (err) {
+      console.error("Error parsing features:", err);
+      return null;
+    }
+  };
+
   if (error) {
     console.error("Query error:", error);
   }
@@ -65,13 +99,7 @@ const Index = () => {
                 <CardContent className="flex-grow">
                   <div className="text-3xl font-bold mb-4">${plan.price}</div>
                   <div className="space-y-2">
-                    {plan.features && Array.isArray(JSON.parse(plan.features as string)) && 
-                      JSON.parse(plan.features as string).map((feature: string, index: number) => (
-                        <div key={index} className="flex items-center">
-                          <span className="mr-2">•</span>
-                          {feature}
-                        </div>
-                      ))}
+                    {renderFeatures(plan.features)}
                   </div>
                 </CardContent>
                 <CardFooter>
