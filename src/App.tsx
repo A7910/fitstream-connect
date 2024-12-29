@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import MembershipPlans from "./pages/MembershipPlans";
 import WorkoutPlan from "./pages/WorkoutPlan";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/membership-plans" element={<MembershipPlans />} />
             <Route path="/workout-plan" element={<WorkoutPlan />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
           <Toaster />
           <Sonner />
