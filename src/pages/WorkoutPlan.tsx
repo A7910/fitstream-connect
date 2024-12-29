@@ -67,23 +67,23 @@ const WorkoutPlan = () => {
 
   // Fetch exercises based on selected goal
   const { data: exercises } = useQuery({
-    queryKey: ["exercises", userGoal?.goal_id, selectedMuscleGroup],
+    queryKey: ["exercises", userGoal?.goal_id],
     enabled: !!userGoal?.goal_id,
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("exercises")
         .select("*")
         .eq("goal_id", userGoal.goal_id);
 
-      if (selectedMuscleGroup && selectedMuscleGroup !== "all") {
-        query = query.eq("muscle_group", selectedMuscleGroup);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
   });
+
+  // Filter exercises based on selected muscle group
+  const filteredExercises = exercises?.filter(exercise => 
+    selectedMuscleGroup === "all" || exercise.muscle_group === selectedMuscleGroup
+  );
 
   // Get unique muscle groups from exercises
   const muscleGroups = [...new Set(exercises?.map(ex => ex.muscle_group) || [])];
@@ -173,7 +173,7 @@ const WorkoutPlan = () => {
                       Recommended Exercises for {userGoal.workout_goals.name}
                     </h3>
                     <div className="grid gap-4 md:grid-cols-2">
-                      {exercises?.map((exercise) => (
+                      {filteredExercises?.map((exercise) => (
                         <ExerciseCard
                           key={exercise.id}
                           exercise={exercise}
