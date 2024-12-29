@@ -91,6 +91,30 @@ const AdminDashboard = () => {
     },
   });
 
+  const { data: visitsData = { today: 0, yesterday: 0 } } = useQuery({
+    queryKey: ["daily-visits"],
+    enabled: !!isAdmin,
+    queryFn: async () => {
+      const today = startOfDay(new Date());
+      const yesterday = startOfDay(new Date(Date.now() - 86400000));
+      
+      const { data, error } = await supabase
+        .from("analytics_daily")
+        .select("date, total_visits")
+        .in("date", [today.toISOString(), yesterday.toISOString()]);
+
+      if (error) throw error;
+
+      const todayVisits = data.find(d => d.date === today.toISOString())?.total_visits || 0;
+      const yesterdayVisits = data.find(d => d.date === yesterday.toISOString())?.total_visits || 0;
+
+      return {
+        today: todayVisits,
+        yesterday: yesterdayVisits
+      };
+    },
+  });
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -135,6 +159,10 @@ const AdminDashboard = () => {
     ? ((membershipsComparison.today - membershipsComparison.compareDay) / membershipsComparison.compareDay) * 100
     : 0;
 
+  const visitsChange = visitsData.yesterday
+    ? ((visitsData.today - visitsData.yesterday) / visitsData.yesterday) * 100
+    : 0;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -144,8 +172,8 @@ const AdminDashboard = () => {
           activeMembers={activeMembers}
           inactiveMembers={inactiveMembers}
           expiringMembers={expiringMembers}
-          latestVisits={0}
-          visitsChange={0}
+          latestVisits={visitsData.today}
+          visitsChange={visitsChange}
           latestNewMemberships={membershipsComparison.today}
           membershipsChange={membershipsChange}
           onDateChange={setCompareDate}
