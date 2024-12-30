@@ -140,28 +140,37 @@ export type Database = {
       membership_plans: {
         Row: {
           created_at: string
+          custom_duration: boolean | null
           description: string | null
           duration_months: number
           features: Json | null
           id: string
+          max_duration_months: number | null
+          min_duration_months: number | null
           name: string
           price: number
         }
         Insert: {
           created_at?: string
+          custom_duration?: boolean | null
           description?: string | null
           duration_months: number
           features?: Json | null
           id?: string
+          max_duration_months?: number | null
+          min_duration_months?: number | null
           name: string
           price: number
         }
         Update: {
           created_at?: string
+          custom_duration?: boolean | null
           description?: string | null
           duration_months?: number
           features?: Json | null
           id?: string
+          max_duration_months?: number | null
+          min_duration_months?: number | null
           name?: string
           price?: number
         }
