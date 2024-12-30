@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { Trash2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -64,6 +65,32 @@ const WorkoutGoalManager = () => {
     },
   });
 
+  const deleteGoal = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("workout_goals")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Workout goal deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["workoutGoals"] });
+    },
+    onError: (error) => {
+      console.error("Error deleting workout goal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete workout goal",
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -108,8 +135,19 @@ const WorkoutGoalManager = () => {
                     key={goal.id}
                     className="p-4 border rounded-lg"
                   >
-                    <h4 className="font-medium">{goal.name}</h4>
-                    <p className="text-sm text-muted-foreground">{goal.description}</p>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium">{goal.name}</h4>
+                        <p className="text-sm text-muted-foreground">{goal.description}</p>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => deleteGoal.mutate(goal.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
