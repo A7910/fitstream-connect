@@ -28,16 +28,32 @@ interface UserListProps {
 const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps) => {
   const [selectedDates, setSelectedDates] = useState<{ [key: string]: { start: Date | undefined; end: Date | undefined } }>({});
 
-  const getMembershipStatusColor = (status: string, endDate: string) => {
+  const getMembershipStatusColor = (membership: any) => {
+    if (!membership) return "red";
+    
     const today = new Date();
-    const end = new Date(endDate);
-    const daysUntilExpiry = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const endDate = new Date(membership.end_date);
+    const daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (status === "active") {
-      if (daysUntilExpiry <= 3) return "yellow";
+    if (membership.status === "active") {
+      if (daysUntilExpiry <= 3 && daysUntilExpiry > 0) return "yellow";
+      if (daysUntilExpiry <= 0) return "red";
       return "green";
     }
     return "red";
+  };
+
+  const getMembershipStatus = (membership: any) => {
+    if (!membership) return "inactive";
+    
+    const today = new Date();
+    const endDate = new Date(membership.end_date);
+    
+    if (membership.status === "active" && endDate < today) {
+      return "expired";
+    }
+    
+    return membership.status;
   };
 
   const renderDateSelector = (userId: string) => {
@@ -101,7 +117,9 @@ const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps)
   };
 
   const renderMembershipActions = (userId: string, membership: any) => {
-    if (!membership || membership.status === "inactive" || membership.status === "expired") {
+    const currentStatus = getMembershipStatus(membership);
+    
+    if (!membership || currentStatus === "inactive" || currentStatus === "expired") {
       return (
         <div className="space-y-2">
           <DropdownMenu>
@@ -149,12 +167,8 @@ const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps)
   return (
     <div className="space-y-4">
       {users.map((user) => {
-        const statusColor = user.membership
-          ? getMembershipStatusColor(
-              user.membership.status,
-              user.membership.end_date
-            )
-          : "red";
+        const status = getMembershipStatus(user.membership);
+        const statusColor = getMembershipStatusColor(user.membership);
 
         return (
           <div
@@ -167,7 +181,7 @@ const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps)
                 <Badge
                   variant={statusColor === "red" ? "destructive" : "outline"}
                 >
-                  {user.membership?.status || "inactive"}
+                  {status}
                 </Badge>
                 {statusColor === "yellow" && (
                   <span className="text-xs text-yellow-600">

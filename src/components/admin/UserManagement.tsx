@@ -87,7 +87,10 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
         description: `The user's membership has been ${action === 'activate' ? 'activated' : 'deactivated'}.`,
       });
 
+      // Invalidate both queries to ensure UI is updated
       queryClient.invalidateQueries({ queryKey: ["all-memberships"] });
+      await new Promise(resolve => setTimeout(resolve, 500)); // Small delay to ensure DB update is complete
+      queryClient.invalidateQueries({ queryKey: ["all-users"] });
     } catch (error) {
       console.error(`Error ${action}ing membership:`, error);
       toast({
