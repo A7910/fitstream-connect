@@ -61,13 +61,15 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
           return;
         }
 
+        console.log("Activating membership with dates:", { startDate, endDate });
+
         const { error } = await supabase
           .from("user_memberships")
           .insert({
             user_id: userId,
             plan_id: planId,
-            start_date: startDate.toISOString(),
-            end_date: endDate.toISOString(),
+            start_date: startDate.toISOString().split('T')[0],
+            end_date: endDate.toISOString().split('T')[0],
             status: "active"
           });
 
@@ -87,10 +89,10 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
         description: `The user's membership has been ${action === 'activate' ? 'activated' : 'deactivated'}.`,
       });
 
-      // Invalidate both queries to ensure UI is updated
-      queryClient.invalidateQueries({ queryKey: ["all-memberships"] });
-      await new Promise(resolve => setTimeout(resolve, 500)); // Small delay to ensure DB update is complete
-      queryClient.invalidateQueries({ queryKey: ["all-users"] });
+      // Invalidate queries to refresh the data
+      await queryClient.invalidateQueries({ queryKey: ["all-memberships"] });
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Increased delay to ensure DB update is complete
+      await queryClient.invalidateQueries({ queryKey: ["all-users"] });
     } catch (error) {
       console.error(`Error ${action}ing membership:`, error);
       toast({
