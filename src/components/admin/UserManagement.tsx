@@ -63,7 +63,7 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
 
         console.log("Activating membership with dates:", { startDate, endDate });
 
-        // First deactivate any existing active memberships
+        // First deactivate any existing active memberships for this specific user
         const { error: deactivateError } = await supabase
           .from("user_memberships")
           .update({ status: "inactive" })
@@ -85,6 +85,7 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
 
         if (activateError) throw activateError;
       } else {
+        // Deactivate only the specific user's membership
         const { error } = await supabase
           .from("user_memberships")
           .update({ status: "inactive" })
@@ -100,14 +101,18 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
       // Wait for the database to update
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Refetch the memberships
+      // Refetch only the specific user's memberships
       const { data: updatedMemberships } = await supabase
         .from("user_memberships")
         .select("*")
         .eq("user_id", userId);
 
-      // Force refresh the UI
-      queryClient.setQueryData(["all-memberships"], updatedMemberships);
+      // Force refresh the UI with the updated data
+      queryClient.setQueryData(["all-memberships"], (oldData: any[]) => {
+        if (!oldData) return updatedMemberships;
+        // Update only the memberships for the specific user
+        return oldData.filter(m => m.user_id !== userId).concat(updatedMemberships || []);
+      });
 
       toast({
         title: `Membership ${action === 'activate' ? 'activated' : 'deactivated'} successfully`,
