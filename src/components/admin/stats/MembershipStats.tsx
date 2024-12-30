@@ -1,15 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
+type Membership = Database['public']['Tables']['user_memberships']['Row'];
 
 interface MembershipStatsProps {
-  users: any[];
-  memberships: any[];
+  users: Profile[];
+  memberships: Membership[];
 }
 
-export const MembershipStats = ({ users, memberships }: MembershipStatsProps) => {
-  // Calculate membership statistics
-  const usersWithMembership = users.map(user => {
-    const userMemberships = memberships?.filter(m => m.user_id === user.id) || [];
+export const MembershipStats = ({ users = [], memberships = [] }: MembershipStatsProps) => {
+  // Calculate membership statistics with null checks
+  const usersWithMembership = users.filter(user => user?.id).map(user => {
+    const userMemberships = memberships?.filter(m => m?.user_id === user.id) || [];
     // Sort memberships by created_at in descending order and get the latest one
     const latestMembership = userMemberships.sort((a, b) => 
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
