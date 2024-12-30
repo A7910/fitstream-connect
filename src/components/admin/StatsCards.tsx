@@ -35,6 +35,12 @@ const StatsCards = ({
     }
   };
 
+  // Helper function to format percentage changes
+  const formatPercentage = (value: number) => {
+    if (isNaN(value) || !isFinite(value)) return "0.0";
+    return value.toFixed(1);
+  };
+
   return (
     <div className="grid gap-4 md:grid-cols-3 mb-8">
       <Card>
@@ -59,7 +65,7 @@ const StatsCards = ({
           <div className="text-2xl font-bold">{latestVisits}</div>
           <p className="text-xs text-muted-foreground">
             {visitsChange > 0 ? "+" : ""}
-            {visitsChange.toFixed(1)}% from yesterday
+            {formatPercentage(visitsChange)}% from yesterday
           </p>
         </CardContent>
       </Card>
@@ -100,7 +106,7 @@ const StatsCards = ({
           <div className="text-2xl font-bold">{latestNewMemberships}</div>
           <p className="text-xs text-muted-foreground">
             {membershipsChange > 0 ? "+" : ""}
-            {membershipsChange.toFixed(1)}% from{" "}
+            {formatPercentage(membershipsChange)}% from{" "}
             {date ? format(date, "MMM dd, yyyy") : "yesterday"}
           </p>
         </CardContent>

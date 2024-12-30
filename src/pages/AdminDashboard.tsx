@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addDays, isWithinInterval, startOfDay } from "date-fns";
+import { addDays, startOfDay } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
@@ -68,22 +68,40 @@ const AdminDashboard = () => {
     enabled: !!isAdmin,
     queryFn: async () => {
       const today = startOfDay(new Date());
+      const tomorrow = addDays(today, 1);
       
+      console.log("Fetching memberships for date comparison:", {
+        today: today.toISOString(),
+        compareDate: compareDate.toISOString(),
+      });
+
       const { data: todayData, error: todayError } = await supabase
         .from("user_memberships")
         .select("created_at")
         .gte("created_at", today.toISOString())
-        .lt("created_at", new Date().toISOString());
+        .lt("created_at", tomorrow.toISOString());
 
-      if (todayError) throw todayError;
+      if (todayError) {
+        console.error("Error fetching today's memberships:", todayError);
+        throw todayError;
+      }
 
+      const compareNextDay = addDays(compareDate, 1);
       const { data: compareData, error: compareError } = await supabase
         .from("user_memberships")
         .select("created_at")
         .gte("created_at", compareDate.toISOString())
-        .lt("created_at", addDays(compareDate, 1).toISOString());
+        .lt("created_at", compareNextDay.toISOString());
 
-      if (compareError) throw compareError;
+      if (compareError) {
+        console.error("Error fetching comparison memberships:", compareError);
+        throw compareError;
+      }
+
+      console.log("Membership comparison results:", {
+        today: todayData.length,
+        compareDay: compareData.length,
+      });
 
       return {
         today: todayData.length,
@@ -143,26 +161,32 @@ const AdminDashboard = () => {
   if (!session || isAdmin === undefined) return null;
   if (!isAdmin) return null;
 
-  const today = new Date();
-  const threeDaysFromNow = addDays(today, 3);
-
   const activeMembers = memberships.filter(m => m.status === "active").length;
   const inactiveMembers = memberships.filter(m => m.status !== "active").length;
   const expiringMembers = memberships.filter(m => {
     const endDate = new Date(m.end_date);
-    return m.status === "active" && isWithinInterval(endDate, {
-      start: today,
-      end: threeDaysFromNow
-    });
+    const today = new Date();
+    const threeDaysFromNow = addDays(today, 3);
+    return m.status === "active" && endDate >= today && endDate <= threeDaysFromNow;
   }).length;
 
-  const membershipsChange = membershipsComparison.compareDay
-    ? ((membershipsComparison.today - membershipsComparison.compareDay) / membershipsComparison.compareDay) * 100
-    : 0;
+  // Calculate percentage change, handling division by zero
+  const calculatePercentageChange = (current: number, previous: number) => {
+    if (previous === 0) {
+      return current > 0 ? 100 : 0;
+    }
+    return ((current - previous) / previous) * 100;
+  };
 
-  const visitsChange = visitsData.yesterday
-    ? ((visitsData.today - visitsData.yesterday) / visitsData.yesterday) * 100
-    : 0;
+  const membershipsChange = calculatePercentageChange(
+    membershipsComparison.today,
+    membershipsComparison.compareDay
+  );
+
+  const visitsChange = calculatePercentageChange(
+    visitsData.today,
+    visitsData.yesterday
+  );
 
   return (
     <div className="min-h-screen bg-background">
