@@ -10,9 +10,8 @@ import { useState } from "react";
 import { DateRange } from "@/hooks/useAnalyticsData";
 
 interface StatsCardsProps {
-  activeMembers: number;
-  inactiveMembers: number;
-  expiringMembers: number;
+  users: any[];
+  memberships: any[];
   latestVisits: number;
   visitsChange: number;
   latestNewMemberships: number;
@@ -25,9 +24,8 @@ interface StatsCardsProps {
 }
 
 const StatsCards = ({
-  activeMembers,
-  inactiveMembers,
-  expiringMembers,
+  users,
+  memberships,
   latestVisits,
   visitsChange,
   latestNewMemberships,
@@ -46,6 +44,50 @@ const StatsCards = ({
       onCustomDateChange?.(selectedDate);
     }
   };
+
+  // Calculate membership statistics
+  const usersWithMembership = users.map(user => {
+    const userMemberships = memberships?.filter(m => m.user_id === user.id) || [];
+    // Sort memberships by created_at in descending order and get the latest one
+    const latestMembership = userMemberships.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )[0];
+    
+    // Check if the membership is active and not expired
+    const isActive = latestMembership?.status === "active" && 
+      new Date(latestMembership.end_date) >= new Date();
+    
+    return {
+      ...user,
+      membership: {
+        ...latestMembership,
+        status: isActive ? "active" : "inactive"
+      }
+    };
+  });
+
+  const activeMembers = usersWithMembership.filter(user => 
+    user.membership?.status === "active"
+  ).length;
+
+  const inactiveMembers = usersWithMembership.length - activeMembers;
+
+  // Calculate expiring soon members (within next 3 days)
+  const expiringMembers = usersWithMembership.filter(user => {
+    if (!user.membership || user.membership.status !== "active") return false;
+    const endDate = new Date(user.membership.end_date);
+    const today = new Date();
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(today.getDate() + 3);
+    return endDate >= today && endDate <= threeDaysFromNow;
+  }).length;
+
+  console.log("Membership statistics:", {
+    total: usersWithMembership.length,
+    active: activeMembers,
+    inactive: inactiveMembers,
+    expiring: expiringMembers
+  });
 
   const formatPercentage = (value: number) => {
     if (isNaN(value) || !isFinite(value)) return "0.0";

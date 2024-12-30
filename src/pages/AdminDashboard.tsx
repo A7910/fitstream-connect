@@ -95,42 +95,14 @@ const AdminDashboard = () => {
   if (!session || isAdmin === undefined) return null;
   if (!isAdmin) return null;
 
-  const activeMembers = memberships.filter(m => m.status === "active").length;
-  const inactiveMembers = memberships.filter(m => m.status !== "active").length;
-  const expiringMembers = memberships.filter(m => {
-    const endDate = new Date(m.end_date);
-    const today = new Date();
-    const threeDaysFromNow = addDays(today, 3);
-    return m.status === "active" && endDate >= today && endDate <= threeDaysFromNow;
-  }).length;
-
-  // Calculate percentage change, handling division by zero
-  const calculatePercentageChange = (current: number, previous: number) => {
-    if (previous === 0) {
-      return current > 0 ? 100 : 0;
-    }
-    return ((current - previous) / previous) * 100;
-  };
-
-  const membershipsChange = calculatePercentageChange(
-    membershipsComparison.current,
-    membershipsComparison.previous
-  );
-
-  const visitsChange = calculatePercentageChange(
-    visitsData.today,
-    visitsData.yesterday
-  );
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <AdminHeader onLogout={handleLogout} />
 
         <StatsCards
-          activeMembers={activeMembers}
-          inactiveMembers={inactiveMembers}
-          expiringMembers={expiringMembers}
+          users={memberships.map(m => m.profile) || []}
+          memberships={memberships}
           latestVisits={visitsData.today}
           visitsChange={visitsChange}
           latestNewMemberships={membershipsComparison.current}

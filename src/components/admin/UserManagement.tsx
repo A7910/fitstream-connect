@@ -157,33 +157,10 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
     };
   }) || [];
 
-  // Count active and inactive users based on their latest membership status
-  const activeUsers = usersWithMembership.filter(user => 
-    user.membership?.status === "active"
-  ).length;
-
-  const inactiveUsers = usersWithMembership.length - activeUsers;
-
-  console.log("Membership statistics:", {
-    total: usersWithMembership.length,
-    active: activeUsers,
-    inactive: inactiveUsers,
-    memberships: usersWithMembership.map(u => ({
-      userId: u.id,
-      status: u.membership?.status,
-      endDate: u.membership?.end_date
-    }))
-  });
-
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>User Management</CardTitle>
-          <div className="mt-2 text-sm text-muted-foreground">
-            Active: {activeUsers} | Inactive: {inactiveUsers}
-          </div>
-        </div>
+        <CardTitle>User Management</CardTitle>
         <AddUserDialog />
       </CardHeader>
       <CardContent>
