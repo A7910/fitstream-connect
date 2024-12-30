@@ -6,14 +6,23 @@ import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+interface Profile {
+  full_name: string | null;
+  phone_number: string | null;
+}
+
+interface ActiveUser {
+  user_id: string;
+  profiles?: Profile;
+}
+
 const AttendanceManagement = () => {
   const [selectedUserId, setSelectedUserId] = useState("");
   const { toast } = useToast();
 
-  const { data: activeUsers = [] } = useQuery({
+  const { data: activeUsers = [] } = useQuery<ActiveUser[]>({
     queryKey: ["active-users"],
     queryFn: async () => {
-      // Get active memberships with user profiles
       const { data: memberships, error: membershipError } = await supabase
         .from("user_memberships")
         .select(`
@@ -42,7 +51,7 @@ const AttendanceManagement = () => {
     }
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("attendance")
         .insert([{ user_id: selectedUserId }]);
 

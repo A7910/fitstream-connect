@@ -230,6 +230,13 @@ export type Database = {
             referencedRelation: "membership_plans"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_memberships_user_id_fkey_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_workout_goals: {
