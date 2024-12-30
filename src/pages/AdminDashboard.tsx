@@ -10,6 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
 import UserManagement from "@/components/admin/UserManagement";
+import AttendanceManagement from "@/components/admin/AttendanceManagement";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -182,11 +183,16 @@ const AdminDashboard = () => {
         <Tabs defaultValue="users" className="space-y-4">
           <TabsList>
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="workout">Workout Plans</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
             <UserManagement memberships={memberships} />
+          </TabsContent>
+
+          <TabsContent value="attendance" className="space-y-4">
+            <AttendanceManagement />
           </TabsContent>
 
           <TabsContent value="workout" className="space-y-4">
