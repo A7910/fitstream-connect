@@ -63,7 +63,17 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
 
         console.log("Activating membership with dates:", { startDate, endDate });
 
-        const { error } = await supabase
+        // First deactivate any existing active memberships
+        const { error: deactivateError } = await supabase
+          .from("user_memberships")
+          .update({ status: "inactive" })
+          .eq("user_id", userId)
+          .eq("status", "active");
+
+        if (deactivateError) throw deactivateError;
+
+        // Then create the new active membership
+        const { error: activateError } = await supabase
           .from("user_memberships")
           .insert({
             user_id: userId,
@@ -73,7 +83,7 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
             status: "active"
           });
 
-        if (error) throw error;
+        if (activateError) throw activateError;
       } else {
         const { error } = await supabase
           .from("user_memberships")
@@ -84,15 +94,25 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
         if (error) throw error;
       }
 
+      // Invalidate queries to refresh the data
+      await queryClient.invalidateQueries({ queryKey: ["all-memberships"] });
+      
+      // Wait for the database to update
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Refetch the memberships
+      const { data: updatedMemberships } = await supabase
+        .from("user_memberships")
+        .select("*")
+        .eq("user_id", userId);
+
+      // Force refresh the UI
+      queryClient.setQueryData(["all-memberships"], updatedMemberships);
+
       toast({
         title: `Membership ${action === 'activate' ? 'activated' : 'deactivated'} successfully`,
         description: `The user's membership has been ${action === 'activate' ? 'activated' : 'deactivated'}.`,
       });
-
-      // Invalidate queries to refresh the data
-      await queryClient.invalidateQueries({ queryKey: ["all-memberships"] });
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Increased delay to ensure DB update is complete
-      await queryClient.invalidateQueries({ queryKey: ["all-users"] });
     } catch (error) {
       console.error(`Error ${action}ing membership:`, error);
       toast({
@@ -113,7 +133,7 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
 
   const usersWithMembership = allUsers?.map(user => ({
     ...user,
-    membership: memberships?.find(m => m.user_id === user.id)
+    membership: memberships?.find(m => m.user_id === user.id && m.status === "active")
   })) || [];
 
   return (

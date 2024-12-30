@@ -7,30 +7,32 @@ interface MembershipStatusProps {
 
 export const getMembershipStatus = (membership: any) => {
   if (!membership) return "inactive";
+  if (membership.status !== "active") return "inactive";
   
   const today = new Date();
   const endDate = new Date(membership.end_date);
+  endDate.setHours(23, 59, 59, 999); // Set to end of day
   
-  if (membership.status === "active" && endDate < today) {
+  if (endDate < today) {
     return "expired";
   }
   
-  return membership.status;
+  return "active";
 };
 
 export const getMembershipStatusColor = (membership: any) => {
-  if (!membership) return "red";
+  if (!membership || membership.status !== "active") return "red";
   
   const today = new Date();
   const endDate = new Date(membership.end_date);
+  endDate.setHours(23, 59, 59, 999); // Set to end of day
+  
+  if (endDate < today) return "red";
+  
   const daysUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-  if (membership.status === "active") {
-    if (daysUntilExpiry <= 3 && daysUntilExpiry > 0) return "yellow";
-    if (daysUntilExpiry <= 0) return "red";
-    return "green";
-  }
-  return "red";
+  
+  if (daysUntilExpiry <= 3 && daysUntilExpiry > 0) return "yellow";
+  return "green";
 };
 
 export const MembershipStatus = ({ membership }: MembershipStatusProps) => {
@@ -41,6 +43,10 @@ export const MembershipStatus = ({ membership }: MembershipStatusProps) => {
     <div className="flex items-center gap-2">
       <Badge
         variant={statusColor === "red" ? "destructive" : "outline"}
+        className={
+          statusColor === "yellow" ? "border-yellow-500 text-yellow-500" :
+          statusColor === "green" ? "border-green-500 text-green-500" : ""
+        }
       >
         {status}
       </Badge>
@@ -49,7 +55,7 @@ export const MembershipStatus = ({ membership }: MembershipStatusProps) => {
           Expiring soon
         </span>
       )}
-      {membership && (
+      {membership && membership.status === "active" && (
         <p className="text-sm text-muted-foreground">
           Expires: {format(new Date(membership.end_date), "MMM dd, yyyy")}
         </p>
