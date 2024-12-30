@@ -136,10 +136,19 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
     );
   }
 
-  const usersWithMembership = allUsers?.map(user => ({
-    ...user,
-    membership: memberships?.find(m => m.user_id === user.id && m.status === "active")
-  })) || [];
+  // Get the latest membership for each user
+  const usersWithMembership = allUsers?.map(user => {
+    const userMemberships = memberships?.filter(m => m.user_id === user.id) || [];
+    // Sort memberships by created_at in descending order and get the latest one
+    const latestMembership = userMemberships.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )[0];
+    
+    return {
+      ...user,
+      membership: latestMembership
+    };
+  }) || [];
 
   return (
     <Card>
