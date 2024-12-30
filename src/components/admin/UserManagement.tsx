@@ -39,19 +39,27 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
     },
   });
 
-  const handleMembershipAction = async (userId: string, planId: string | null, action: 'activate' | 'deactivate') => {
+  const handleMembershipAction = async (
+    userId: string, 
+    planId: string | null, 
+    action: 'activate' | 'deactivate',
+    startDate?: Date,
+    endDate?: Date
+  ) => {
     try {
       if (action === 'activate' && !planId) {
         throw new Error("No plan selected");
       }
 
       if (action === 'activate') {
-        const startDate = new Date();
-        const endDate = new Date();
-        const selectedPlan = membershipPlans?.find(p => p.id === planId);
-        if (!selectedPlan) throw new Error("Plan not found");
-        
-        endDate.setMonth(endDate.getMonth() + selectedPlan.duration_months);
+        if (!startDate || !endDate) {
+          toast({
+            title: "Date selection required",
+            description: "Please select both start and end dates for the membership",
+            variant: "destructive",
+          });
+          return;
+        }
 
         const { error } = await supabase
           .from("user_memberships")

@@ -8,14 +8,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { ChevronDown } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface UserListProps {
   users: any[];
   membershipPlans: any[];
-  onMembershipAction: (userId: string, planId: string | null, action: 'activate' | 'deactivate') => void;
+  onMembershipAction: (
+    userId: string, 
+    planId: string | null, 
+    action: 'activate' | 'deactivate',
+    startDate?: Date,
+    endDate?: Date
+  ) => void;
 }
 
 const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps) => {
+  const [selectedDates, setSelectedDates] = useState<{ [key: string]: { start: Date | undefined; end: Date | undefined } }>({});
+
   const getMembershipStatusColor = (status: string, endDate: string) => {
     const today = new Date();
     const end = new Date(endDate);
@@ -28,26 +40,98 @@ const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps)
     return "red";
   };
 
-  const renderMembershipActions = (userId: string, membership: any) => {
-    if (!membership || membership.status === "inactive") {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              Activate Membership <ChevronDown className="ml-2 h-4 w-4" />
+  const renderDateSelector = (userId: string) => {
+    const dates = selectedDates[userId] || { start: undefined, end: undefined };
+
+    return (
+      <div className="flex gap-2 items-center mt-2">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "justify-start text-left font-normal w-[200px]",
+                !dates.start && "text-muted-foreground"
+              )}
+            >
+              {dates.start ? format(dates.start, "PPP") : "Start date"}
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {membershipPlans?.map((plan) => (
-              <DropdownMenuItem
-                key={plan.id}
-                onClick={() => onMembershipAction(userId, plan.id, 'activate')}
-              >
-                {plan.name} - ${plan.price}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={dates.start}
+              onSelect={(date) =>
+                setSelectedDates((prev) => ({
+                  ...prev,
+                  [userId]: { ...prev[userId], start: date || undefined },
+                }))
+              }
+            />
+          </PopoverContent>
+        </Popover>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "justify-start text-left font-normal w-[200px]",
+                !dates.end && "text-muted-foreground"
+              )}
+            >
+              {dates.end ? format(dates.end, "PPP") : "End date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={dates.end}
+              onSelect={(date) =>
+                setSelectedDates((prev) => ({
+                  ...prev,
+                  [userId]: { ...prev[userId], end: date || undefined },
+                }))
+              }
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  };
+
+  const renderMembershipActions = (userId: string, membership: any) => {
+    if (!membership || membership.status === "inactive" || membership.status === "expired") {
+      return (
+        <div className="space-y-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Activate Membership <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {membershipPlans?.map((plan) => (
+                <DropdownMenuItem
+                  key={plan.id}
+                  onClick={() => {
+                    const dates = selectedDates[userId];
+                    onMembershipAction(
+                      userId, 
+                      plan.id, 
+                      'activate',
+                      dates?.start,
+                      dates?.end
+                    );
+                  }}
+                >
+                  {plan.name} - ${plan.price}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {renderDateSelector(userId)}
+        </div>
       );
     }
 
