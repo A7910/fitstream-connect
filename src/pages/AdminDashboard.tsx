@@ -5,19 +5,19 @@ import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addDays, startOfDay } from "date-fns";
+import { addDays } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
 import UserManagement from "@/components/admin/UserManagement";
 import AttendanceManagement from "@/components/admin/AttendanceManagement";
+import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [compareDate, setCompareDate] = useState<Date>(
-    startOfDay(new Date(Date.now() - 86400000))
-  );
+  const [dateRange, setDateRange] = useState<DateRange>("week");
+  const [customDate, setCustomDate] = useState<Date>();
 
   const { data: session } = useQuery({
     queryKey: ["session"],
@@ -63,76 +63,10 @@ const AdminDashboard = () => {
     },
   });
 
-  const { data: membershipsComparison = { today: 0, compareDay: 0 } } = useQuery({
-    queryKey: ["memberships-comparison", compareDate],
-    enabled: !!isAdmin,
-    queryFn: async () => {
-      const today = startOfDay(new Date());
-      const tomorrow = addDays(today, 1);
-      
-      console.log("Fetching memberships for date comparison:", {
-        today: today.toISOString(),
-        compareDate: compareDate.toISOString(),
-      });
-
-      const { data: todayData, error: todayError } = await supabase
-        .from("user_memberships")
-        .select("created_at")
-        .gte("created_at", today.toISOString())
-        .lt("created_at", tomorrow.toISOString());
-
-      if (todayError) {
-        console.error("Error fetching today's memberships:", todayError);
-        throw todayError;
-      }
-
-      const compareNextDay = addDays(compareDate, 1);
-      const { data: compareData, error: compareError } = await supabase
-        .from("user_memberships")
-        .select("created_at")
-        .gte("created_at", compareDate.toISOString())
-        .lt("created_at", compareNextDay.toISOString());
-
-      if (compareError) {
-        console.error("Error fetching comparison memberships:", compareError);
-        throw compareError;
-      }
-
-      console.log("Membership comparison results:", {
-        today: todayData.length,
-        compareDay: compareData.length,
-      });
-
-      return {
-        today: todayData.length,
-        compareDay: compareData.length
-      };
-    },
-  });
-
-  const { data: visitsData = { today: 0, yesterday: 0 } } = useQuery({
-    queryKey: ["daily-visits"],
-    enabled: !!isAdmin,
-    queryFn: async () => {
-      const today = startOfDay(new Date());
-      const yesterday = startOfDay(new Date(Date.now() - 86400000));
-      
-      const { data, error } = await supabase
-        .from("analytics_daily")
-        .select("date, total_visits")
-        .in("date", [today.toISOString(), yesterday.toISOString()]);
-
-      if (error) throw error;
-
-      const todayVisits = data.find(d => d.date === today.toISOString())?.total_visits || 0;
-      const yesterdayVisits = data.find(d => d.date === yesterday.toISOString())?.total_visits || 0;
-
-      return {
-        today: todayVisits,
-        yesterday: yesterdayVisits
-      };
-    },
-  });
+  const { membershipsComparison, visitsData, dateRange: computedDateRange } = useAnalyticsData(
+    dateRange,
+    customDate
+  );
 
   const handleLogout = async () => {
     try {
@@ -179,8 +113,8 @@ const AdminDashboard = () => {
   };
 
   const membershipsChange = calculatePercentageChange(
-    membershipsComparison.today,
-    membershipsComparison.compareDay
+    membershipsComparison.current,
+    membershipsComparison.previous
   );
 
   const visitsChange = calculatePercentageChange(
@@ -199,9 +133,13 @@ const AdminDashboard = () => {
           expiringMembers={expiringMembers}
           latestVisits={visitsData.today}
           visitsChange={visitsChange}
-          latestNewMemberships={membershipsComparison.today}
+          latestNewMemberships={membershipsComparison.current}
           membershipsChange={membershipsChange}
-          onDateChange={setCompareDate}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          onCustomDateChange={setCustomDate}
+          rangeStart={computedDateRange.start}
+          rangeEnd={computedDateRange.end}
         />
 
         <Tabs defaultValue="users" className="space-y-4">
