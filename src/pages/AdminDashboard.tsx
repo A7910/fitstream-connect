@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { addDays } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
@@ -67,6 +66,16 @@ const AdminDashboard = () => {
     dateRange,
     customDate
   );
+
+  // Calculate visits change percentage
+  const visitsChange = visitsData.yesterday !== 0
+    ? ((visitsData.today - visitsData.yesterday) / visitsData.yesterday) * 100
+    : 0;
+
+  // Calculate memberships change percentage
+  const membershipsChange = membershipsComparison.previous !== 0
+    ? ((membershipsComparison.current - membershipsComparison.previous) / membershipsComparison.previous) * 100
+    : membershipsComparison.current > 0 ? 100 : 0;
 
   const handleLogout = async () => {
     try {
