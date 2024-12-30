@@ -26,6 +26,8 @@ interface StatsCardsProps {
 
 const StatsCards = ({
   activeMembers,
+  inactiveMembers,
+  expiringMembers,
   latestVisits,
   visitsChange,
   latestNewMemberships,
@@ -45,7 +47,6 @@ const StatsCards = ({
     }
   };
 
-  // Helper function to format percentage changes
   const formatPercentage = (value: number) => {
     if (isNaN(value) || !isFinite(value)) return "0.0";
     return value.toFixed(1);
@@ -62,11 +63,24 @@ const StatsCards = ({
     <div className="grid gap-4 md:grid-cols-3 mb-8">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Active Members</CardTitle>
+          <CardTitle className="text-sm font-medium">Membership Status</CardTitle>
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{activeMembers}</div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Active:</span>
+              <span className="text-sm font-medium text-green-600">{activeMembers}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Inactive:</span>
+              <span className="text-sm font-medium text-red-600">{inactiveMembers}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Expiring Soon:</span>
+              <span className="text-sm font-medium text-yellow-600">{expiringMembers}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
       <Card>
