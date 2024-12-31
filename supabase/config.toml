@@ -1,2 +1,4 @@
+project_id = "edgmccvuxjhnvhmfnhcn"
+
 [functions.check-expired-memberships]
 verify_jwt = false
