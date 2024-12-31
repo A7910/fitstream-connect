@@ -17,17 +17,16 @@ interface Profile {
   phone_number: string | null;
 }
 
-interface User {
-  id: string;
-  profiles: Profile;
-}
-
 interface AttendanceRecord {
   id: string;
   user_id: string;
   check_in: string;
   check_out: string | null;
-  user: User;
+  user: {
+    id: string;
+    full_name: string | null;
+    phone_number: string | null;
+  };
 }
 
 export const AttendanceRecords = () => {
@@ -53,10 +52,8 @@ export const AttendanceRecords = () => {
           check_out,
           user:profiles!attendance_user_id_fkey_profiles (
             id,
-            profiles (
-              full_name,
-              phone_number
-            )
+            full_name,
+            phone_number
           )
         `)
         .gte("check_in", startOfDay.toISOString())
@@ -69,7 +66,7 @@ export const AttendanceRecords = () => {
       }
       
       console.log("Fetched attendance records:", data);
-      return data;
+      return data as AttendanceRecord[];
     },
   });
 
@@ -109,7 +106,7 @@ export const AttendanceRecords = () => {
           {attendanceRecords.map((record) => (
             <div key={record.id} className="p-4 border rounded-lg">
               <div className="space-y-1">
-                <p className="font-medium">{record.user?.profiles?.full_name || "N/A"}</p>
+                <p className="font-medium">{record.user?.full_name || "N/A"}</p>
                 <p className="text-sm text-muted-foreground">
                   Check-in: {format(new Date(record.check_in), 'PP p')}
                 </p>
