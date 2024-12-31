@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Users } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -22,6 +22,7 @@ interface StatsCardsProps {
   dateRange: DateRange;
   rangeStart: Date;
   rangeEnd: Date;
+  onRefresh: () => void;
 }
 
 const StatsCards = ({
@@ -36,13 +37,24 @@ const StatsCards = ({
   dateRange,
   rangeStart,
   rangeEnd,
+  onRefresh,
 }: StatsCardsProps) => {
   const [date, setDate] = useState<Date>();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(selectedDate);
       onCustomDateChange?.(selectedDate);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -58,17 +70,46 @@ const StatsCards = ({
     return `last ${dateRange}`;
   };
 
+  const RefreshButton = () => (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handleRefresh}
+      className={cn(
+        "h-8 w-8 p-0 hover:bg-muted",
+        isRefreshing && "animate-spin"
+      )}
+    >
+      <RefreshCw className="h-4 w-4" />
+      <span className="sr-only">Refresh statistics</span>
+    </Button>
+  );
+
   return (
     <div className="grid gap-4 md:grid-cols-3 mb-8">
-      <MembershipStats users={users} memberships={memberships} />
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Membership Status</CardTitle>
+          <div className="flex items-center gap-2">
+            <RefreshButton />
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <MembershipStats users={users} memberships={memberships} />
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Daily Visits</CardTitle>
-          {visitsChange >= 0 ? (
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          ) : (
-            <TrendingDown className="h-4 w-4 text-red-500" />
-          )}
+          <div className="flex items-center gap-2">
+            <RefreshButton />
+            {visitsChange >= 0 ? (
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            ) : (
+              <TrendingDown className="h-4 w-4 text-red-500" />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{latestVisits}</div>
@@ -118,11 +159,14 @@ const StatsCards = ({
               </Popover>
             )}
           </CardTitle>
-          {membershipsChange >= 0 ? (
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          ) : (
-            <TrendingDown className="h-4 w-4 text-red-500" />
-          )}
+          <div className="flex items-center gap-2">
+            <RefreshButton />
+            {membershipsChange >= 0 ? (
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            ) : (
+              <TrendingDown className="h-4 w-4 text-red-500" />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{latestNewMemberships}</div>

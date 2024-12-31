@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
@@ -15,6 +15,7 @@ import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [customDate, setCustomDate] = useState<Date>();
 
@@ -95,6 +96,24 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleRefresh = async () => {
+    try {
+      await queryClient.invalidateQueries({ queryKey: ["all-memberships"] });
+      await queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      toast({
+        title: "Statistics refreshed",
+        description: "The latest data has been fetched from the database.",
+      });
+    } catch (error) {
+      console.error("Refresh error:", error);
+      toast({
+        title: "Refresh failed",
+        description: "There was an error refreshing the data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     if (session === null || isAdmin === false) {
       navigate("/admin/login");
@@ -121,6 +140,7 @@ const AdminDashboard = () => {
           onCustomDateChange={setCustomDate}
           rangeStart={computedDateRange.start}
           rangeEnd={computedDateRange.end}
+          onRefresh={handleRefresh}
         />
 
         <Tabs defaultValue="users" className="space-y-4">
