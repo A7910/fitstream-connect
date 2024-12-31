@@ -42,6 +42,8 @@ export const AttendanceRecords = () => {
       const endOfDay = new Date(selectedDate);
       endOfDay.setHours(23, 59, 59, 999);
 
+      console.log("Fetching attendance records for date range:", { startOfDay, endOfDay });
+
       const { data, error } = await supabase
         .from("attendance")
         .select(`
@@ -49,7 +51,7 @@ export const AttendanceRecords = () => {
           user_id,
           check_in,
           check_out,
-          user:profiles!attendance_user_id_fkey (
+          user:profiles!attendance_user_id_fkey_profiles (
             id,
             profiles (
               full_name,
@@ -61,7 +63,12 @@ export const AttendanceRecords = () => {
         .lte("check_in", endOfDay.toISOString())
         .order("check_in", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching attendance records:", error);
+        throw error;
+      }
+      
+      console.log("Fetched attendance records:", data);
       return data;
     },
   });
