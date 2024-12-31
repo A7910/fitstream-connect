@@ -12,18 +12,22 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
+interface Profile {
+  full_name: string | null;
+  phone_number: string | null;
+}
+
+interface User {
+  id: string;
+  profiles: Profile;
+}
+
 interface AttendanceRecord {
   id: string;
   user_id: string;
   check_in: string;
   check_out: string | null;
-  user?: {
-    id: string;
-    profiles: {
-      full_name: string | null;
-      phone_number: string | null;
-    };
-  };
+  user: User;
 }
 
 export const AttendanceRecords = () => {
@@ -41,8 +45,11 @@ export const AttendanceRecords = () => {
       const { data, error } = await supabase
         .from("attendance")
         .select(`
-          *,
-          user:user_id (
+          id,
+          user_id,
+          check_in,
+          check_out,
+          user:profiles!attendance_user_id_fkey (
             id,
             profiles (
               full_name,
