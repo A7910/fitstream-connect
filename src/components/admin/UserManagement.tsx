@@ -47,52 +47,83 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
     endDate?: Date
   ) => {
     try {
-      if (action === 'activate' && !planId) {
-        throw new Error("No plan selected");
-      }
+      console.log("Handling membership action:", { userId, planId, action, startDate, endDate });
+
+      // Get the user's current membership if it exists
+      const { data: existingMembership, error: fetchError } = await supabase
+        .from("user_memberships")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
 
       if (action === 'activate') {
-        if (!startDate || !endDate) {
-          toast({
-            title: "Date selection required",
-            description: "Please select both start and end dates for the membership",
-            variant: "destructive",
-          });
-          return;
+        if (!planId) {
+          throw new Error("No plan selected");
         }
 
-        console.log("Activating membership with dates:", { startDate, endDate });
+        let membershipStartDate = startDate;
+        let membershipEndDate = endDate;
 
-        // First deactivate any existing active memberships for this specific user
-        const { error: deactivateError } = await supabase
-          .from("user_memberships")
-          .update({ status: "inactive" })
-          .eq("user_id", userId)
-          .eq("status", "active");
+        // If dates aren't provided, calculate them based on the last membership
+        if (!startDate || !endDate) {
+          if (existingMembership) {
+            // If there's an existing membership, start from its end date
+            membershipStartDate = new Date(existingMembership.end_date);
+            membershipEndDate = new Date(existingMembership.end_date);
+            membershipEndDate.setMonth(membershipEndDate.getMonth() + 1); // Add one month
+          } else {
+            // If no existing membership, start from today
+            membershipStartDate = new Date();
+            membershipEndDate = new Date();
+            membershipEndDate.setMonth(membershipEndDate.getMonth() + 1);
+          }
+        }
 
-        if (deactivateError) throw deactivateError;
+        console.log("Calculated membership dates:", { 
+          membershipStartDate, 
+          membershipEndDate,
+          existingMembership 
+        });
 
-        // Then create the new active membership
-        const { error: activateError } = await supabase
-          .from("user_memberships")
-          .insert({
-            user_id: userId,
-            plan_id: planId,
-            start_date: startDate.toISOString().split('T')[0],
-            end_date: endDate.toISOString().split('T')[0],
-            status: "active"
-          });
+        if (existingMembership) {
+          // Update existing membership
+          const { error: updateError } = await supabase
+            .from("user_memberships")
+            .update({
+              plan_id: planId,
+              start_date: membershipStartDate.toISOString().split('T')[0],
+              end_date: membershipEndDate.toISOString().split('T')[0],
+              status: "active"
+            })
+            .eq("user_id", userId);
 
-        if (activateError) throw activateError;
+          if (updateError) throw updateError;
+        } else {
+          // Create new membership if none exists
+          const { error: insertError } = await supabase
+            .from("user_memberships")
+            .insert({
+              user_id: userId,
+              plan_id: planId,
+              start_date: membershipStartDate.toISOString().split('T')[0],
+              end_date: membershipEndDate.toISOString().split('T')[0],
+              status: "active"
+            });
+
+          if (insertError) throw insertError;
+        }
       } else {
-        // Deactivate only the specific user's membership
-        const { error } = await supabase
-          .from("user_memberships")
-          .update({ status: "inactive" })
-          .eq("user_id", userId)
-          .eq("status", "active");
+        // Deactivate membership if it exists
+        if (existingMembership) {
+          const { error: deactivateError } = await supabase
+            .from("user_memberships")
+            .update({ status: "inactive" })
+            .eq("user_id", userId);
 
-        if (error) throw error;
+          if (deactivateError) throw deactivateError;
+        }
       }
 
       // Invalidate queries to refresh the data
@@ -101,7 +132,7 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
       // Wait for the database to update
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Refetch only the specific user's memberships
+      // Refetch the specific user's memberships
       const { data: updatedMemberships } = await supabase
         .from("user_memberships")
         .select("*")
@@ -110,7 +141,6 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
       // Force refresh the UI with the updated data
       queryClient.setQueryData(["all-memberships"], (oldData: any[]) => {
         if (!oldData) return updatedMemberships;
-        // Update only the memberships for the specific user
         return oldData.filter(m => m.user_id !== userId).concat(updatedMemberships || []);
       });
 
