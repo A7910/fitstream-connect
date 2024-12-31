@@ -118,11 +118,11 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
         title: `Membership ${action === 'activate' ? 'activated' : 'deactivated'} successfully`,
         description: `The user's membership has been ${action === 'activate' ? 'activated' : 'deactivated'}.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error ${action}ing membership:`, error);
       toast({
         title: `Error ${action}ing membership`,
-        description: `There was an error ${action}ing the membership. Please try again.`,
+        description: error.message || `There was an error ${action}ing the membership. Please try again.`,
         variant: "destructive",
       });
     }
