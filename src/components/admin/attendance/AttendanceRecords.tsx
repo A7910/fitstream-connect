@@ -4,13 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Loader2, CalendarIcon } from "lucide-react";
+import { Loader2, CalendarIcon, Trash2 } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Profile {
   full_name: string | null;
@@ -31,8 +32,9 @@ interface AttendanceRecord {
 
 export const AttendanceRecords = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const { toast } = useToast();
 
-  const { data: attendanceRecords = [], isLoading: isLoadingAttendance } = useQuery<AttendanceRecord[]>({
+  const { data: attendanceRecords = [], isLoading: isLoadingAttendance, refetch } = useQuery<AttendanceRecord[]>({
     queryKey: ["attendance-records", selectedDate],
     queryFn: async () => {
       const startOfDay = new Date(selectedDate);
@@ -70,9 +72,41 @@ export const AttendanceRecords = () => {
     },
   });
 
+  const handleClearAttendance = async () => {
+    try {
+      const startOfDay = new Date(selectedDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(selectedDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const { error } = await supabase
+        .from("attendance")
+        .delete()
+        .gte("check_in", startOfDay.toISOString())
+        .lte("check_in", endOfDay.toISOString());
+
+      if (error) throw error;
+
+      toast({
+        title: "Attendance cleared",
+        description: "All attendance records for this day have been cleared",
+      });
+
+      refetch();
+    } catch (error) {
+      console.error("Error clearing attendance:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear attendance records",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between">
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -95,6 +129,15 @@ export const AttendanceRecords = () => {
             />
           </PopoverContent>
         </Popover>
+
+        <Button
+          variant="outline"
+          size="icon"
+          className="text-destructive hover:bg-destructive/10"
+          onClick={handleClearAttendance}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
 
       {isLoadingAttendance ? (
@@ -104,7 +147,7 @@ export const AttendanceRecords = () => {
       ) : (
         <div className="grid gap-4">
           {attendanceRecords.map((record) => (
-            <div key={record.id} className="p-4 border rounded-lg">
+            <div key={record.id} className="p-4 border rounded-lg animate-fade-in">
               <div className="space-y-1">
                 <p className="font-medium">{record.user?.full_name || "N/A"}</p>
                 <p className="text-sm text-muted-foreground">
