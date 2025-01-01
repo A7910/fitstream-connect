@@ -112,22 +112,7 @@ const Login = () => {
       variables: {
         sign_up: {
           password_label: "Password (min 6 chars, 1 number, 1 special char)",
-          confirmation_text: (
-            <div className="space-y-2">
-              <p>Check your email for the confirmation link</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleResendConfirmation();
-                }}
-                disabled={isResending}
-              >
-                {isResending ? "Sending..." : "Resend confirmation email"}
-              </Button>
-            </div>
-          ),
+          confirmation_text: "Check your email for the confirmation link",
         },
       },
     },
@@ -184,6 +169,20 @@ const Login = () => {
             view="sign_in"
             {...authOverrides}
           />
+
+          {/* Add resend confirmation button outside of Auth component */}
+          {email && (
+            <div className="mt-4 text-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResendConfirmation}
+                disabled={isResending}
+              >
+                {isResending ? "Sending..." : "Resend confirmation email"}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
