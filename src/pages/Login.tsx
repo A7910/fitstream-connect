@@ -1,13 +1,18 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -20,9 +25,49 @@ const Login = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Please enter your email address first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      const response = await fetch("/api/resend-confirmation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) throw new Error(data.error);
+      
+      toast({
+        title: "Success",
+        description: "Confirmation email has been resent. Please check your inbox.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend confirmation email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const authOverrides = {
     onSubmit: async (formData: any) => {
       console.log("Form submitted:", formData);
+      setEmail(formData.email);
       
       // Password requirements
       const password = formData.password;
@@ -42,7 +87,6 @@ const Login = () => {
 
       if (errors.length > 0) {
         console.log("Validation failed:", errors);
-        // Return false to prevent form submission
         return {
           error: {
             message: errors.join(", "),
@@ -51,14 +95,28 @@ const Login = () => {
       }
 
       console.log("Validation passed, proceeding with signup");
-      // Return true to allow form submission
       return true;
     },
     localization: {
       variables: {
         sign_up: {
           password_label: "Password (min 6 chars, 1 number, 1 special char)",
-          confirmation_text: "Check your email for the confirmation link",
+          confirmation_text: (
+            <div className="space-y-2">
+              <p>Check your email for the confirmation link</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleResendConfirmation();
+                }}
+                disabled={isResending}
+              >
+                {isResending ? "Sending..." : "Resend confirmation email"}
+              </Button>
+            </div>
+          ),
         },
       },
     },
