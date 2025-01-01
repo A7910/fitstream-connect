@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -72,6 +72,10 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
     },
   });
 
+  const handleClose = () => {
+    setEditingExercise(null);
+  };
+
   if (isLoading) {
     return <p>Loading exercises...</p>;
   }
@@ -137,15 +141,30 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
 
       <Dialog open={!!editingExercise} onOpenChange={() => setEditingExercise(null)}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader>
+          <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle>Edit Exercise</DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleClose}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </DialogHeader>
           {editingExercise && (
-            <ExerciseForm
-              workoutGoals={workoutGoals}
-              exercise={editingExercise}
-              onSuccess={() => setEditingExercise(null)}
-            />
+            <div className="space-y-4">
+              <ExerciseForm
+                workoutGoals={workoutGoals}
+                exercise={editingExercise}
+                onSuccess={handleClose}
+              />
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={handleClose}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>

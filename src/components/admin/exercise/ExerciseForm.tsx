@@ -35,7 +35,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const uploadImage = async () => {
-    if (!imageFile) return null;
+    if (!imageFile) return newExercise.image_url;
 
     const fileExt = imageFile.name.split('.').pop();
     const filePath = `${crypto.randomUUID()}.${fileExt}`;
@@ -53,19 +53,22 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
     return publicUrl;
   };
 
-  const handleFieldChange = (field: string, value: any) => {
-    setNewExercise(prev => ({ ...prev, [field]: value }));
-  };
-
   const mutation = useMutation({
     mutationFn: async () => {
-      let imageUrl = newExercise.image_url;
-
-      if (imageFile) {
-        imageUrl = await uploadImage();
-      }
+      let imageUrl = await uploadImage();
+      console.log("Uploading with image URL:", imageUrl);
 
       if (exercise?.id) {
+        // If updating and there's a new image, delete the old one
+        if (imageFile && exercise.image_url) {
+          const oldImagePath = exercise.image_url.split('/').pop();
+          if (oldImagePath) {
+            await supabase.storage
+              .from('exercise-images')
+              .remove([oldImagePath]);
+          }
+        }
+
         const { data, error } = await supabase
           .from('exercises')
           .update({ ...newExercise, image_url: imageUrl })
@@ -119,7 +122,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
       <ExerciseFormFields
         exercise={newExercise}
         workoutGoals={workoutGoals}
-        onFieldChange={handleFieldChange}
+        onFieldChange={(field, value) => setNewExercise(prev => ({ ...prev, [field]: value }))}
         imageFile={imageFile}
         setImageFile={setImageFile}
       />
@@ -127,7 +130,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
         onClick={() => mutation.mutate()}
         disabled={!newExercise.name || !newExercise.muscle_group || !newExercise.difficulty_level || !newExercise.goal_id}
       >
-        {exercise ? 'Update' : 'Create'} Exercise
+        {exercise ? 'Save Changes' : 'Create Exercise'}
       </Button>
     </div>
   );
