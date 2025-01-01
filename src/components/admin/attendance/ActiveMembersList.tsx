@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { MemberListItem } from "./MemberListItem";
 import { useAttendanceActions } from "./useAttendanceActions";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 interface Profile {
   full_name: string | null;
@@ -19,6 +21,7 @@ interface ActiveUser {
 
 export const ActiveMembersList = () => {
   const { selectedUserId, setSelectedUserId, handleCheckIn, handleCheckOut } = useAttendanceActions();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: activeUsers = [], isLoading: isLoadingUsers } = useQuery<ActiveUser[]>({
     queryKey: ["active-users"],
@@ -62,6 +65,10 @@ export const ActiveMembersList = () => {
     refetchInterval: 60000, // Refetch every minute to handle day changes
   });
 
+  const filteredUsers = activeUsers.filter(user =>
+    user.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (isLoadingUsers) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -72,7 +79,17 @@ export const ActiveMembersList = () => {
 
   return (
     <div className="grid gap-4">
-      {activeUsers.map((user) => (
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-8"
+        />
+      </div>
+
+      {filteredUsers.map((user) => (
         <MemberListItem
           key={user.user_id}
           userId={user.user_id}
@@ -87,7 +104,7 @@ export const ActiveMembersList = () => {
           onCheckOut={() => handleCheckOut(user.user_id)}
         />
       ))}
-      {activeUsers.length === 0 && (
+      {filteredUsers.length === 0 && (
         <p className="text-center text-muted-foreground py-8">
           No active members available for check-in
         </p>
