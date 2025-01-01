@@ -61,7 +61,7 @@ const Login = () => {
               },
             }}
             showLinks={true}
-            view="sign_up"
+            view="sign_in"
           />
         </div>
       </div>
