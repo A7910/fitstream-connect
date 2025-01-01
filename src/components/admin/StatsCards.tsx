@@ -42,14 +42,6 @@ const StatsCards = ({
   const [date, setDate] = useState<Date>();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Filter out inactive memberships
-  const activeUsers = users.filter(user => {
-    const userMemberships = memberships.filter(m => m.user_id === user.id);
-    return userMemberships.some(m => m.status === 'active');
-  });
-
-  const activeMemberships = memberships.filter(m => m.status === 'active');
-
   const handleSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
       setDate(selectedDate);
@@ -104,7 +96,7 @@ const StatsCards = ({
           </div>
         </CardHeader>
         <CardContent>
-          <MembershipStats users={activeUsers} memberships={activeMemberships} />
+          <MembershipStats users={users} memberships={memberships} />
         </CardContent>
       </Card>
       <Card>
