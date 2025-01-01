@@ -2,14 +2,15 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: session, isError, refetch } = useQuery({
+  const { data: session, isError } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
       try {
@@ -18,7 +19,6 @@ const Navbar = () => {
         
         if (error) {
           console.error("Session error:", error);
-          // Clear any invalid session state
           await supabase.auth.signOut();
           return null;
         }
@@ -30,28 +30,32 @@ const Navbar = () => {
 
         // Set up auth state change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log("Auth state changed:", event);
+          console.log("Auth state changed:", event, session);
+          
+          // Invalidate and refetch session data
+          await queryClient.invalidateQueries({ queryKey: ["session"] });
+          
+          // Also invalidate admin status when auth state changes
+          if (session?.user?.id) {
+            await queryClient.invalidateQueries({ queryKey: ["isAdmin", session.user.id] });
+          }
+          
           if (event === 'SIGNED_OUT') {
             console.log("User signed out");
-            await refetch();
+            navigate("/");
           } else if (event === 'SIGNED_IN') {
             console.log("User signed in");
-            await refetch();
-          } else if (event === 'TOKEN_REFRESHED') {
-            console.log("Token refreshed");
-            await refetch();
+            navigate("/");
           }
         });
 
         return session;
       } catch (error) {
         console.error("Error fetching session:", error);
-        // Clear any invalid session state
         await supabase.auth.signOut();
         return null;
       }
     },
-    retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
@@ -75,8 +79,8 @@ const Navbar = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      await refetch();
-      navigate("/");
+      // Clear all queries from the cache
+      queryClient.clear();
       
       toast({
         title: "Logged out successfully",
