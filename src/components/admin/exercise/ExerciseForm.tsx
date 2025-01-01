@@ -126,12 +126,14 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
         imageFile={imageFile}
         setImageFile={setImageFile}
       />
-      <Button 
-        onClick={() => mutation.mutate()}
-        disabled={!newExercise.name || !newExercise.muscle_group || !newExercise.difficulty_level || !newExercise.goal_id}
-      >
-        {exercise ? 'Save Changes' : 'Create Exercise'}
-      </Button>
+      <div className="flex justify-end gap-2 mt-6">
+        <Button 
+          onClick={() => mutation.mutate()}
+          disabled={!newExercise.name || !newExercise.muscle_group || !newExercise.difficulty_level || !newExercise.goal_id}
+        >
+          {exercise ? 'Save Changes' : 'Create Exercise'}
+        </Button>
+      </div>
     </div>
   );
 };

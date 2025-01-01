@@ -139,8 +139,8 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
         ))}
       </div>
 
-      <Dialog open={!!editingExercise} onOpenChange={() => setEditingExercise(null)}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={!!editingExercise} onOpenChange={handleClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle>Edit Exercise</DialogTitle>
             <Button
@@ -159,11 +159,6 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
                 exercise={editingExercise}
                 onSuccess={handleClose}
               />
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={handleClose}>
-                  Cancel
-                </Button>
-              </div>
             </div>
           )}
         </DialogContent>
