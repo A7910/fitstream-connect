@@ -13,6 +13,7 @@ const Login = () => {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     // Clear any existing session on component mount
@@ -26,6 +27,9 @@ const Login = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event);
+      if (event === 'SIGNED_UP') {
+        setShowConfirmation(true);
+      }
       if (session) {
         navigate("/");
       }
@@ -170,9 +174,10 @@ const Login = () => {
             {...authOverrides}
           />
 
-          {/* Add resend confirmation button outside of Auth component */}
-          {email && (
+          {/* Show resend confirmation button when in confirmation state */}
+          {showConfirmation && (
             <div className="mt-4 text-center">
+              <p className="mb-2 text-sm text-gray-600">Didn't receive the email?</p>
               <Button
                 variant="outline"
                 size="sm"
