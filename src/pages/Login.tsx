@@ -1,97 +1,36 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [isResending, setIsResending] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
-    // Clear any existing session on component mount
-    const clearSession = async () => {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Error clearing session:", error);
-      }
-    };
-    clearSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event);
-      if (event === 'SIGNED_UP') {
-        setShowConfirmation(true);
-      }
       if (session) {
         navigate("/");
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [navigate]);
-
-  const handleResendConfirmation = async () => {
-    if (!email) {
-      toast({
-        title: "Error",
-        description: "Please enter your email address first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsResending(true);
-    try {
-      const response = await fetch("/api/resend-confirmation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) throw new Error(data.error);
-      
-      toast({
-        title: "Success",
-        description: "Confirmation email has been resent. Please check your inbox.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to resend confirmation email",
-        variant: "destructive",
-      });
-    } finally {
-      setIsResending(false);
-    }
-  };
 
   const authOverrides = {
     onSubmit: async (formData: any) => {
       console.log("Form submitted:", formData);
-      setEmail(formData.email);
       
       // Password requirements
       const password = formData.password;
-      const confirmPassword = formData.password_confirm || formData.confirmPassword;
+      const confirmPassword = formData.confirmPassword;
       
-      const minLength = password?.length >= 6;
-      const hasNumber = /\d/.test(password || '');
-      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password || '');
+      const minLength = password.length >= 6;
+      const hasNumber = /\d/.test(password);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
       const passwordsMatch = password === confirmPassword;
 
       const errors: string[] = [];
@@ -103,6 +42,7 @@ const Login = () => {
 
       if (errors.length > 0) {
         console.log("Validation failed:", errors);
+        // Return false to prevent form submission
         return {
           error: {
             message: errors.join(", "),
@@ -111,6 +51,7 @@ const Login = () => {
       }
 
       console.log("Validation passed, proceeding with signup");
+      // Return true to allow form submission
       return true;
     },
     localization: {
@@ -174,21 +115,6 @@ const Login = () => {
             view="sign_in"
             {...authOverrides}
           />
-
-          {/* Show resend confirmation button when in confirmation state */}
-          {showConfirmation && (
-            <div className="mt-4 text-center">
-              <p className="mb-2 text-sm text-gray-600">Didn't receive the email?</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleResendConfirmation}
-                disabled={isResending}
-              >
-                {isResending ? "Sending..." : "Resend confirmation email"}
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </div>
