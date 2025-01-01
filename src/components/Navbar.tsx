@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
+import { useEffect } from "react";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -18,35 +19,14 @@ const Navbar = () => {
         
         if (error) {
           console.error("Session error:", error);
-          // Clear any invalid session state
           await supabase.auth.signOut();
           return null;
         }
 
-        if (!session) {
-          console.log("No active session found");
-          return null;
-        }
-
-        // Set up auth state change listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log("Auth state changed:", event);
-          if (event === 'SIGNED_OUT') {
-            console.log("User signed out");
-            await refetch();
-          } else if (event === 'SIGNED_IN') {
-            console.log("User signed in");
-            await refetch();
-          } else if (event === 'TOKEN_REFRESHED') {
-            console.log("Token refreshed");
-            await refetch();
-          }
-        });
-
+        console.log("Session data:", session);
         return session;
       } catch (error) {
         console.error("Error fetching session:", error);
-        // Clear any invalid session state
         await supabase.auth.signOut();
         return null;
       }
@@ -55,6 +35,20 @@ const Navbar = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
+
+  // Set up auth state change listener
+  useEffect(() => {
+    console.log("Setting up auth state change listener");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      await refetch();
+    });
+
+    return () => {
+      console.log("Cleaning up auth state change listener");
+      subscription.unsubscribe();
+    };
+  }, [refetch]);
 
   // Check if user is admin
   const { data: isAdmin } = useQuery({
@@ -93,7 +87,7 @@ const Navbar = () => {
   };
 
   if (isError || !session) {
-    console.log("No valid session, showing logged-out state");
+    console.log("Rendering logged-out navbar");
     return (
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,6 +111,7 @@ const Navbar = () => {
     );
   }
 
+  console.log("Rendering logged-in navbar");
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
