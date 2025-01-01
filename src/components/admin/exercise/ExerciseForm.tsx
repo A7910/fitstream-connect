@@ -40,59 +40,85 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
     const fileExt = imageFile.name.split('.').pop();
     const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
-    console.log("Uploading image with path:", filePath);
+    console.log("Starting image upload process...");
+    console.log("File path:", filePath);
 
-    const { error: uploadError, data } = await supabase.storage
-      .from('exercise-images')
-      .upload(filePath, imageFile);
+    try {
+      const { error: uploadError, data } = await supabase.storage
+        .from('exercise-images')
+        .upload(filePath, imageFile);
 
-    if (uploadError) {
-      console.error("Image upload error:", uploadError);
-      throw uploadError;
+      if (uploadError) {
+        console.error("Image upload error:", uploadError);
+        throw uploadError;
+      }
+
+      console.log("Image uploaded successfully:", data);
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('exercise-images')
+        .getPublicUrl(filePath);
+
+      console.log("Generated public URL:", publicUrl);
+      return publicUrl;
+    } catch (error) {
+      console.error("Error in uploadImage:", error);
+      throw error;
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('exercise-images')
-      .getPublicUrl(filePath);
-
-    console.log("Image uploaded successfully, public URL:", publicUrl);
-    return publicUrl;
   };
 
   const mutation = useMutation({
     mutationFn: async () => {
+      console.log("Starting mutation with exercise:", exercise?.id ? "update" : "create");
+      
       let imageUrl = await uploadImage();
-      console.log("Uploading with image URL:", imageUrl);
+      console.log("Image URL after upload:", imageUrl);
 
-      if (exercise?.id) {
-        // If updating and there's a new image, delete the old one
-        if (imageFile && exercise.image_url) {
-          const oldImagePath = exercise.image_url.split('/').pop();
-          if (oldImagePath) {
-            await supabase.storage
-              .from('exercise-images')
-              .remove([oldImagePath]);
+      try {
+        if (exercise?.id) {
+          // If updating and there's a new image, delete the old one
+          if (imageFile && exercise.image_url) {
+            const oldImagePath = exercise.image_url.split('/').pop();
+            if (oldImagePath) {
+              console.log("Deleting old image:", oldImagePath);
+              await supabase.storage
+                .from('exercise-images')
+                .remove([oldImagePath]);
+            }
           }
+
+          const { data, error } = await supabase
+            .from('exercises')
+            .update({ ...newExercise, image_url: imageUrl })
+            .eq('id', exercise.id)
+            .select()
+            .maybeSingle();
+
+          if (error) {
+            console.error("Error updating exercise:", error);
+            throw error;
+          }
+          
+          console.log("Exercise updated successfully:", data);
+          return data;
+        } else {
+          const { data, error } = await supabase
+            .from('exercises')
+            .insert([{ ...newExercise, image_url: imageUrl }])
+            .select()
+            .maybeSingle();
+
+          if (error) {
+            console.error("Error creating exercise:", error);
+            throw error;
+          }
+          
+          console.log("Exercise created successfully:", data);
+          return data;
         }
-
-        const { data, error } = await supabase
-          .from('exercises')
-          .update({ ...newExercise, image_url: imageUrl })
-          .eq('id', exercise.id)
-          .select()
-          .maybeSingle();
-
-        if (error) throw error;
-        return data;
-      } else {
-        const { data, error } = await supabase
-          .from('exercises')
-          .insert([{ ...newExercise, image_url: imageUrl }])
-          .select()
-          .maybeSingle();
-
-        if (error) throw error;
-        return data;
+      } catch (error) {
+        console.error("Error in mutation:", error);
+        throw error;
       }
     },
     onSuccess: () => {
@@ -117,7 +143,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
       console.error("Error saving exercise:", error);
       toast({
         title: "Error",
-        description: `Failed to ${exercise ? 'update' : 'create'} exercise`,
+        description: `Failed to ${exercise ? 'update' : 'create'} exercise. Please try again.`,
         variant: "destructive",
       });
     },

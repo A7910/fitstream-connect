@@ -18,14 +18,18 @@ const ExerciseManager = () => {
         .from("workout_goals")
         .select("*");
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching workout goals:", error);
+        throw error;
+      }
       return data;
     },
   });
 
-  const { data: exercises, isLoading } = useQuery({
+  const { data: exercises, isLoading, error } = useQuery({
     queryKey: ["exercises"],
     queryFn: async () => {
+      console.log("Fetching exercises...");
       const { data, error } = await supabase
         .from("exercises")
         .select(`
@@ -36,10 +40,19 @@ const ExerciseManager = () => {
         `)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching exercises:", error);
+        throw error;
+      }
+
+      console.log("Fetched exercises:", data);
       return data;
     },
   });
+
+  if (error) {
+    console.error("Error in ExerciseManager:", error);
+  }
 
   return (
     <Card>
