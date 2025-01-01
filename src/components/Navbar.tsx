@@ -14,11 +14,11 @@ const Navbar = () => {
     queryFn: async () => {
       try {
         console.log("Fetching session...");
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          // If there's a session error, sign out to clear any invalid tokens
+        if (error) {
+          console.error("Session error:", error);
+          // Clear any invalid session state
           await supabase.auth.signOut();
           return null;
         }
@@ -29,21 +29,24 @@ const Navbar = () => {
         }
 
         // Set up auth state change listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log("Auth state changed:", event);
-          if (event === 'TOKEN_REFRESHED') {
-            console.log("Token refreshed successfully");
-          } else if (event === 'SIGNED_OUT') {
+          if (event === 'SIGNED_OUT') {
             console.log("User signed out");
+            await refetch();
+          } else if (event === 'SIGNED_IN') {
+            console.log("User signed in");
+            await refetch();
+          } else if (event === 'TOKEN_REFRESHED') {
+            console.log("Token refreshed");
             await refetch();
           }
         });
 
-        // Cleanup subscription on component unmount
         return session;
       } catch (error) {
         console.error("Error fetching session:", error);
-        // If there's an error, sign out to clear any invalid tokens
+        // Clear any invalid session state
         await supabase.auth.signOut();
         return null;
       }
