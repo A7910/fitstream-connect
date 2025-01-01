@@ -2,13 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +13,7 @@ import ExerciseCard from "@/components/workout/ExerciseCard";
 import GoalSelector from "@/components/workout/GoalSelector";
 import MuscleGroupFilter from "@/components/workout/MuscleGroupFilter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { BackButton } from "@/components/ui/back-button";
 
 const WorkoutPlan = () => {
   const navigate = useNavigate();
@@ -249,6 +244,7 @@ const WorkoutPlan = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
+        <BackButton />
         <div className="max-w-4xl mx-auto space-y-8">
           {isAdmin && (
             <Card>

@@ -11,6 +11,7 @@ import StatsCards from "@/components/admin/StatsCards";
 import UserManagement from "@/components/admin/UserManagement";
 import AttendanceManagement from "@/components/admin/AttendanceManagement";
 import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
+import { BackButton } from "@/components/ui/back-button";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -126,6 +127,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
+        <BackButton />
         <AdminHeader onLogout={handleLogout} />
 
         <StatsCards

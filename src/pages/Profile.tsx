@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import { MembershipCard } from "@/components/profile/MembershipCard";
 import { ProfileForm } from "@/components/profile/ProfileForm";
+import { BackButton } from "@/components/ui/back-button";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -54,6 +55,7 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="container max-w-4xl mx-auto px-4 py-8">
+        <BackButton />
         <div className="grid gap-6">
           <MembershipCard userId={session.user.id} />
           <ProfileForm 

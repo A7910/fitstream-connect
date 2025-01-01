@@ -6,6 +6,7 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useQuery } from "@tanstack/react-query";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
+import { BackButton } from "@/components/ui/back-button";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -121,6 +122,7 @@ const AdminLogin = () => {
   return (
     <div className="min-h-screen pt-24 pb-12 bg-gray-50">
       <div className="container max-w-md mx-auto px-4">
+        <BackButton />
         <div className="bg-white rounded-lg shadow-md p-6">
           <h1 className="text-2xl font-bold text-center mb-6">Admin Login</h1>
           <Alert className="mb-6">
