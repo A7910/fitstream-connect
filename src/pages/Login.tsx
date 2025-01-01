@@ -15,6 +15,15 @@ const Login = () => {
   const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
+    // Clear any existing session on component mount
+    const clearSession = async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error clearing session:", error);
+      }
+    };
+    clearSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event);
       if (session) {
@@ -22,7 +31,9 @@ const Login = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleResendConfirmation = async () => {
@@ -71,11 +82,11 @@ const Login = () => {
       
       // Password requirements
       const password = formData.password;
-      const confirmPassword = formData.confirmPassword;
+      const confirmPassword = formData.password_confirm || formData.confirmPassword;
       
-      const minLength = password.length >= 6;
-      const hasNumber = /\d/.test(password);
-      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+      const minLength = password?.length >= 6;
+      const hasNumber = /\d/.test(password || '');
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password || '');
       const passwordsMatch = password === confirmPassword;
 
       const errors: string[] = [];
