@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import LoggedInNav from "./nav/LoggedInNav";
 import LoggedOutNav from "./nav/LoggedOutNav";
+import { useEffect } from "react";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -27,20 +28,6 @@ const Navbar = () => {
           return null;
         }
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log("Auth state changed:", event);
-          if (event === 'SIGNED_OUT') {
-            console.log("User signed out");
-            await refetch();
-          } else if (event === 'SIGNED_IN') {
-            console.log("User signed in");
-            await refetch();
-          } else if (event === 'TOKEN_REFRESHED') {
-            console.log("Token refreshed");
-            await refetch();
-          }
-        });
-
         return session;
       } catch (error) {
         console.error("Error fetching session:", error);
@@ -52,6 +39,28 @@ const Navbar = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
+
+  // Set up auth state change listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event);
+      if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
+        await refetch();
+      } else if (event === 'SIGNED_IN') {
+        console.log("User signed in");
+        await refetch();
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log("Token refreshed");
+        await refetch();
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [refetch]);
 
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", session?.user?.id],
