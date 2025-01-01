@@ -52,7 +52,11 @@ const ExerciseManager = () => {
           <ExerciseForm workoutGoals={workoutGoals} />
           <div className="mt-6">
             <h3 className="text-lg font-semibold mb-4">Existing Exercises</h3>
-            <ExerciseList exercises={exercises} isLoading={isLoading} />
+            <ExerciseList 
+              exercises={exercises} 
+              isLoading={isLoading} 
+              workoutGoals={workoutGoals}
+            />
           </div>
         </div>
       </CardContent>

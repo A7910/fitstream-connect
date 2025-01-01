@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
@@ -16,35 +17,87 @@ import {
 
 interface ExerciseFormProps {
   workoutGoals: Array<{ id: string; name: string; }> | undefined;
+  exercise?: {
+    id: string;
+    name: string;
+    description: string;
+    muscle_group: string;
+    difficulty_level: string;
+    goal_id: string;
+    sets: number;
+    image_url: string | null;
+  };
+  onSuccess?: () => void;
 }
 
-const ExerciseForm = ({ workoutGoals }: ExerciseFormProps) => {
+const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newExercise, setNewExercise] = useState({
-    name: "",
-    description: "",
-    muscle_group: "",
-    difficulty_level: "",
-    goal_id: "",
-    sets: 3,
+    name: exercise?.name || "",
+    description: exercise?.description || "",
+    muscle_group: exercise?.muscle_group || "",
+    difficulty_level: exercise?.difficulty_level || "",
+    goal_id: exercise?.goal_id || "",
+    sets: exercise?.sets || 3,
+    image_url: exercise?.image_url || null,
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const createExercise = useMutation({
+  const uploadImage = async () => {
+    if (!imageFile) return null;
+
+    const fileExt = imageFile.name.split('.').pop();
+    const filePath = `${crypto.randomUUID()}.${fileExt}`;
+
+    const { error: uploadError, data } = await supabase.storage
+      .from('exercise-images')
+      .upload(filePath, imageFile);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('exercise-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const mutation = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase
-        .from("exercises")
-        .insert([newExercise])
-        .select()
-        .single();
+      let imageUrl = newExercise.image_url;
 
-      if (error) throw error;
-      return data;
+      if (imageFile) {
+        imageUrl = await uploadImage();
+      }
+
+      if (exercise?.id) {
+        // Update existing exercise
+        const { data, error } = await supabase
+          .from('exercises')
+          .update({ ...newExercise, image_url: imageUrl })
+          .eq('id', exercise.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } else {
+        // Create new exercise
+        const { data, error } = await supabase
+          .from('exercises')
+          .insert([{ ...newExercise, image_url: imageUrl }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Exercise created successfully",
+        description: `Exercise ${exercise ? 'updated' : 'created'} successfully`,
       });
       setNewExercise({
         name: "",
@@ -53,14 +106,17 @@ const ExerciseForm = ({ workoutGoals }: ExerciseFormProps) => {
         difficulty_level: "",
         goal_id: "",
         sets: 3,
+        image_url: null,
       });
+      setImageFile(null);
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
+      onSuccess?.();
     },
     onError: (error) => {
-      console.error("Error creating exercise:", error);
+      console.error("Error saving exercise:", error);
       toast({
         title: "Error",
-        description: "Failed to create exercise",
+        description: `Failed to ${exercise ? 'update' : 'create'} exercise`,
         variant: "destructive",
       });
     },
@@ -84,6 +140,17 @@ const ExerciseForm = ({ workoutGoals }: ExerciseFormProps) => {
           value={newExercise.description}
           onChange={(e) => setNewExercise(prev => ({ ...prev, description: e.target.value }))}
           placeholder="Enter exercise description"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Exercise Image</Label>
+        <ImageUpload
+          value={newExercise.image_url}
+          onChange={(file) => setImageFile(file)}
+          onRemove={() => {
+            setImageFile(null);
+            setNewExercise(prev => ({ ...prev, image_url: null }));
+          }}
         />
       </div>
       <div className="space-y-2">
@@ -140,10 +207,10 @@ const ExerciseForm = ({ workoutGoals }: ExerciseFormProps) => {
         />
       </div>
       <Button 
-        onClick={() => createExercise.mutate()}
+        onClick={() => mutation.mutate()}
         disabled={!newExercise.name || !newExercise.muscle_group || !newExercise.difficulty_level || !newExercise.goal_id}
       >
-        Create Exercise
+        {exercise ? 'Update' : 'Create'} Exercise
       </Button>
     </div>
   );
