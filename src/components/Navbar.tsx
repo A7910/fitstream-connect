@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import LoggedInNav from "./nav/LoggedInNav";
-import LoggedOutNav from "./nav/LoggedOutNav";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ const Navbar = () => {
         
         if (error) {
           console.error("Session error:", error);
+          // Clear any invalid session state
           await supabase.auth.signOut();
           return null;
         }
@@ -27,6 +28,7 @@ const Navbar = () => {
           return null;
         }
 
+        // Set up auth state change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log("Auth state changed:", event);
           if (event === 'SIGNED_OUT') {
@@ -44,6 +46,7 @@ const Navbar = () => {
         return session;
       } catch (error) {
         console.error("Error fetching session:", error);
+        // Clear any invalid session state
         await supabase.auth.signOut();
         return null;
       }
@@ -53,6 +56,7 @@ const Navbar = () => {
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
 
+  // Check if user is admin
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", session?.user?.id],
     enabled: !!session?.user?.id,
@@ -89,10 +93,66 @@ const Navbar = () => {
   };
 
   if (isError || !session) {
-    return <LoggedOutNav />;
+    console.log("No valid session, showing logged-out state");
+    return (
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <Link to="/" className="flex items-center">
+                <span className="text-xl font-bold">FitStream Connect</span>
+              </Link>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link to="/membership-plans">
+                <Button variant="ghost">Membership Plans</Button>
+              </Link>
+              <Link to="/login">
+                <Button>Login</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
   }
 
-  return <LoggedInNav isAdmin={!!isAdmin} onLogout={handleLogout} />;
+  return (
+    <nav className="bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <Link to="/" className="flex items-center">
+              <span className="text-xl font-bold">FitStream Connect</span>
+            </Link>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Link to="/membership-plans">
+              <Button variant="ghost">Membership Plans</Button>
+            </Link>
+            {session && (
+              <>
+                <Link to="/workout-plan">
+                  <Button variant="ghost">Workout Plan</Button>
+                </Link>
+                {isAdmin && (
+                  <Link to="/admin">
+                    <Button variant="ghost">Admin Dashboard</Button>
+                  </Link>
+                )}
+                <Link to="/profile">
+                  <Button variant="ghost">Profile</Button>
+                </Link>
+                <Button variant="ghost" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
 };
 
 export default Navbar;
