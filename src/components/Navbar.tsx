@@ -4,78 +4,85 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
+import { useEffect, useState } from "react";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [session, setSession] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const { data: session, isError, refetch } = useQuery({
-    queryKey: ["session"],
-    queryFn: async () => {
-      try {
-        console.log("Fetching session...");
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Session error:", error);
-          // Clear any invalid session state
-          await supabase.auth.signOut();
-          return null;
-        }
-
-        if (!session) {
-          console.log("No active session found");
-          return null;
-        }
-
-        // Set up auth state change listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log("Auth state changed:", event);
-          if (event === 'SIGNED_OUT') {
-            console.log("User signed out");
-            await refetch();
-          } else if (event === 'SIGNED_IN') {
-            console.log("User signed in");
-            await refetch();
-          } else if (event === 'TOKEN_REFRESHED') {
-            console.log("Token refreshed");
-            await refetch();
-          }
-        });
-
-        return session;
-      } catch (error) {
+  // Fetch session and handle authentication state change
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
         console.error("Error fetching session:", error);
-        // Clear any invalid session state
-        await supabase.auth.signOut();
-        return null;
+        return;
       }
-    },
-    retry: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-  });
-
-  // Check if user is admin
-  const { data: isAdmin } = useQuery({
-    queryKey: ["isAdmin", session?.user?.id],
-    enabled: !!session?.user?.id,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("admin_users")
-        .select()
-        .eq("user_id", session?.user?.id)
-        .maybeSingle();
-      return !!data;
-    },
-  });
+      setSession(session);
+  
+      if (session) {
+        // Fetch the admin status
+        const { data, error: adminError } = await supabase
+          .from("admin_users")
+          .select()
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+  
+        if (adminError) {
+          console.error("Error fetching admin status:", adminError);
+        }
+  
+        setIsAdmin(!!data); // If there's data, the user is an admin
+      }
+    };
+  
+    // Get session on mount
+    getSession();
+  
+    // Listen for auth state changes (sign in/out)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setSession(session);
+        if (session) {
+          // Fetch admin status after sign-in
+          const fetchAdminStatus = async () => {
+            const { data, error: adminError } = await supabase
+              .from("admin_users")
+              .select()
+              .eq("user_id", session.user.id)
+              .maybeSingle();
+  
+            if (adminError) {
+              console.error("Error fetching admin status:", adminError);
+            }
+  
+            setIsAdmin(!!data); // If data exists, user is admin
+          };
+  
+          fetchAdminStatus();
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setIsAdmin(false);
+      }
+    });
+  
+    return () => {
+      // Cleanup subscription on component unmount
+      subscription?.unsubscribe();
+    };
+  }, []);
+  
 
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      await refetch();
+      setSession(null);
+      setIsAdmin(false);
       navigate("/");
       
       toast({
@@ -92,8 +99,8 @@ const Navbar = () => {
     }
   };
 
-  if (isError || !session) {
-    console.log("No valid session, showing logged-out state");
+  // Loading state while fetching session
+  if (!session) {
     return (
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
