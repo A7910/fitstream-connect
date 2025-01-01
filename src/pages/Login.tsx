@@ -20,40 +20,39 @@ const Login = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Custom auth UI overrides for password validation
   const authOverrides = {
-    callbacks: {
-      validatePassword: (password: string, confirmPassword: string) => {
-        console.log("Validating password:", { password, confirmPassword });
-        
-        // Password requirements
-        const minLength = password.length >= 6;
-        const hasNumber = /\d/.test(password);
-        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-        const passwordsMatch = password === confirmPassword;
+    onSubmit: async (formData: any) => {
+      console.log("Form submitted:", formData);
+      
+      // Password requirements
+      const password = formData.password;
+      const confirmPassword = formData.confirmPassword;
+      
+      const minLength = password.length >= 6;
+      const hasNumber = /\d/.test(password);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+      const passwordsMatch = password === confirmPassword;
 
-        const errors: string[] = [];
+      const errors: string[] = [];
 
-        if (!minLength) errors.push("Password must be at least 6 characters long");
-        if (!hasNumber) errors.push("Password must contain at least one number");
-        if (!hasSpecialChar) errors.push("Password must contain at least one special character");
-        if (!passwordsMatch) errors.push("Passwords do not match");
+      if (!minLength) errors.push("Password must be at least 6 characters long");
+      if (!hasNumber) errors.push("Password must contain at least one number");
+      if (!hasSpecialChar) errors.push("Password must contain at least one special character");
+      if (!passwordsMatch) errors.push("Passwords do not match");
 
-        // Return invalid if any requirement is not met
-        if (!minLength || !hasNumber || !hasSpecialChar || !passwordsMatch) {
-          console.log("Password validation failed:", errors);
-          return {
-            valid: false,
-            message: errors.join(", "),
-          };
-        }
-
-        console.log("Password validation passed");
+      if (errors.length > 0) {
+        console.log("Validation failed:", errors);
+        // Return false to prevent form submission
         return {
-          valid: true,
-          message: "",
+          error: {
+            message: errors.join(", "),
+          }
         };
-      },
+      }
+
+      console.log("Validation passed, proceeding with signup");
+      // Return true to allow form submission
+      return true;
     },
     localization: {
       variables: {
