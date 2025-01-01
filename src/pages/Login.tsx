@@ -39,10 +39,25 @@ const Login = () => {
         if (!hasSpecialChar) errors.push("Password must contain at least one special character");
         if (!passwordsMatch) errors.push("Passwords do not match");
 
+        if (errors.length > 0) {
+          return {
+            valid: false,
+            message: errors.join(", "),
+          };
+        }
+
         return {
-          valid: minLength && hasNumber && hasSpecialChar && passwordsMatch,
-          message: errors.join(", "),
+          valid: true,
+          message: "",
         };
+      },
+    },
+    localization: {
+      variables: {
+        sign_up: {
+          password_label: "Password (min 6 chars, 1 number, 1 special char)",
+          confirmation_text: "Check your email for the confirmation link",
+        },
       },
     },
     elements: {
