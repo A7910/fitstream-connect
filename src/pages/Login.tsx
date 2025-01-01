@@ -55,7 +55,7 @@ const Login = () => {
             localization={{
               variables: {
                 sign_up: {
-                  password_placeholder: "Minimum 6 characters, 1 number, 1 symbol",
+                  password_input_placeholder: "Minimum 6 characters, 1 number, 1 symbol",
                   confirmation_text: "Check your email for the confirmation link",
                 },
               },
