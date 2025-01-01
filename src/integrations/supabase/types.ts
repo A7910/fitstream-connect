@@ -111,6 +111,7 @@ export type Database = {
           difficulty_level: string
           goal_id: string
           id: string
+          image_url: string | null
           muscle_group: string
           name: string
           sets: number
@@ -121,6 +122,7 @@ export type Database = {
           difficulty_level: string
           goal_id: string
           id?: string
+          image_url?: string | null
           muscle_group: string
           name: string
           sets?: number
@@ -131,6 +133,7 @@ export type Database = {
           difficulty_level?: string
           goal_id?: string
           id?: string
+          image_url?: string | null
           muscle_group?: string
           name?: string
           sets?: number
