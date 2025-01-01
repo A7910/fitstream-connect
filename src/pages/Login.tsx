@@ -39,13 +39,16 @@ const Login = () => {
         if (!hasSpecialChar) errors.push("Password must contain at least one special character");
         if (!passwordsMatch) errors.push("Passwords do not match");
 
-        if (errors.length > 0) {
+        // Return invalid if any requirement is not met
+        if (!minLength || !hasNumber || !hasSpecialChar || !passwordsMatch) {
+          console.log("Password validation failed:", errors);
           return {
             valid: false,
             message: errors.join(", "),
           };
         }
 
+        console.log("Password validation passed");
         return {
           valid: true,
           message: "",
