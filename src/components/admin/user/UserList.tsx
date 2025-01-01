@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { MembershipStatus } from "./MembershipStatus";
 import { MembershipActions } from "./MembershipActions";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 interface UserListProps {
   users: any[];
@@ -16,10 +18,25 @@ interface UserListProps {
 
 const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps) => {
   const [selectedDates, setSelectedDates] = useState<{ [key: string]: { start: Date | undefined; end: Date | undefined } }>({});
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredUsers = users.filter(user => 
+    user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-4">
-      {users.map((user) => (
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-8"
+        />
+      </div>
+
+      {filteredUsers.map((user) => (
         <div
           key={user.id}
           className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -46,6 +63,12 @@ const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps)
           />
         </div>
       ))}
+
+      {filteredUsers.length === 0 && (
+        <p className="text-center text-muted-foreground py-8">
+          No users found
+        </p>
+      )}
     </div>
   );
 };

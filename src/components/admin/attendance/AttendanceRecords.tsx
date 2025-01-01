@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Loader2, CalendarIcon, Trash2 } from "lucide-react";
+import { Loader2, CalendarIcon, Trash2, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -32,6 +33,7 @@ interface AttendanceRecord {
 
 export const AttendanceRecords = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   const { data: attendanceRecords = [], isLoading: isLoadingAttendance, refetch } = useQuery<AttendanceRecord[]>({
@@ -104,9 +106,13 @@ export const AttendanceRecords = () => {
     }
   };
 
+  const filteredRecords = attendanceRecords.filter(record => 
+    record.user?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -130,6 +136,16 @@ export const AttendanceRecords = () => {
           </PopoverContent>
         </Popover>
 
+        <div className="flex-1 relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+
         <Button
           variant="outline"
           size="icon"
@@ -146,7 +162,7 @@ export const AttendanceRecords = () => {
         </div>
       ) : (
         <div className="grid gap-4">
-          {attendanceRecords.map((record) => (
+          {filteredRecords.map((record) => (
             <div key={record.id} className="p-4 border rounded-lg animate-fade-in">
               <div className="space-y-1">
                 <p className="font-medium">{record.user?.full_name || "N/A"}</p>
@@ -161,9 +177,9 @@ export const AttendanceRecords = () => {
               </div>
             </div>
           ))}
-          {attendanceRecords.length === 0 && (
+          {filteredRecords.length === 0 && (
             <p className="text-center text-muted-foreground py-8">
-              No attendance records found for this date
+              No attendance records found
             </p>
           )}
         </div>
