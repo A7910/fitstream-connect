@@ -40,16 +40,22 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
     const fileExt = imageFile.name.split('.').pop();
     const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
+    console.log("Uploading image with path:", filePath);
+
     const { error: uploadError, data } = await supabase.storage
       .from('exercise-images')
       .upload(filePath, imageFile);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error("Image upload error:", uploadError);
+      throw uploadError;
+    }
 
     const { data: { publicUrl } } = supabase.storage
       .from('exercise-images')
       .getPublicUrl(filePath);
 
+    console.log("Image uploaded successfully, public URL:", publicUrl);
     return publicUrl;
   };
 
@@ -74,7 +80,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
           .update({ ...newExercise, image_url: imageUrl })
           .eq('id', exercise.id)
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         return data;
@@ -83,7 +89,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
           .from('exercises')
           .insert([{ ...newExercise, image_url: imageUrl }])
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         return data;
