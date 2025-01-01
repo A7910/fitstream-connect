@@ -20,6 +20,39 @@ const Login = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Custom auth UI overrides for password validation
+  const authOverrides = {
+    callbacks: {
+      validatePassword: (password: string, confirmPassword: string) => {
+        console.log("Validating password:", { password, confirmPassword });
+        
+        // Password requirements
+        const minLength = password.length >= 6;
+        const hasNumber = /\d/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        const passwordsMatch = password === confirmPassword;
+
+        const errors: string[] = [];
+
+        if (!minLength) errors.push("Password must be at least 6 characters long");
+        if (!hasNumber) errors.push("Password must contain at least one number");
+        if (!hasSpecialChar) errors.push("Password must contain at least one special character");
+        if (!passwordsMatch) errors.push("Passwords do not match");
+
+        return {
+          valid: minLength && hasNumber && hasSpecialChar && passwordsMatch,
+          message: errors.join(", "),
+        };
+      },
+    },
+    elements: {
+      confirmPassword: {
+        label: "Confirm Password",
+        placeholder: "Confirm your password",
+      },
+    },
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-12 bg-gray-50">
       <div className="container max-w-md mx-auto px-4">
@@ -34,6 +67,7 @@ const Login = () => {
                 <li>Minimum 6 characters</li>
                 <li>At least 1 number</li>
                 <li>At least 1 special character</li>
+                <li>Passwords must match</li>
               </ul>
             </AlertDescription>
           </Alert>
@@ -62,6 +96,7 @@ const Login = () => {
             }}
             showLinks={true}
             view="sign_in"
+            {...authOverrides}
           />
         </div>
       </div>
