@@ -37,11 +37,13 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
 
   const deleteExercise = useMutation({
     mutationFn: async (id: string) => {
+      console.log("Deleting exercise with ID:", id);
       const exercise = exercises?.find(e => e.id === id);
       
       if (exercise?.image_url) {
         const imagePath = exercise.image_url.split('/').pop();
         if (imagePath) {
+          console.log("Deleting image:", imagePath);
           await supabase.storage
             .from('exercise-images')
             .remove([imagePath]);
@@ -90,11 +92,17 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
           >
             <div className="flex gap-4">
               {exercise.image_url && (
-                <img
-                  src={exercise.image_url}
-                  alt={exercise.name}
-                  className="w-32 h-32 object-cover rounded-lg"
-                />
+                <div className="w-32 h-32 relative">
+                  <img
+                    src={exercise.image_url}
+                    alt={exercise.name}
+                    className="w-full h-full object-cover rounded-lg"
+                    onError={(e) => {
+                      console.error("Error loading image:", exercise.image_url);
+                      e.currentTarget.src = "/placeholder.svg";
+                    }}
+                  />
+                </div>
               )}
               <div className="flex-1">
                 <div className="flex justify-between items-start">

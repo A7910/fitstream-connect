@@ -89,9 +89,12 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
 
           const { data, error } = await supabase
             .from('exercises')
-            .update({ ...newExercise, image_url: imageUrl })
+            .update({ 
+              ...newExercise, 
+              image_url: imageUrl || newExercise.image_url 
+            })
             .eq('id', exercise.id)
-            .select()
+            .select('*')
             .maybeSingle();
 
           if (error) {
@@ -105,7 +108,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
           const { data, error } = await supabase
             .from('exercises')
             .insert([{ ...newExercise, image_url: imageUrl }])
-            .select()
+            .select('*')
             .maybeSingle();
 
           if (error) {
