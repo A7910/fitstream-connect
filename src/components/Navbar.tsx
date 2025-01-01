@@ -5,12 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { data: session, isError, refetch } = useQuery({
+  const { data: session, isError, isLoading, refetch } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
       try {
@@ -32,8 +34,10 @@ const Navbar = () => {
       }
     },
     retry: false,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
+    staleTime: 1000 * 60, // Reduced to 1 minute
+    gcTime: 1000 * 60 * 5, // Reduced to 5 minutes
+    refetchOnWindowFocus: true, // Add automatic refetch on window focus
+    refetchOnMount: true, // Always refetch on component mount
   });
 
   // Set up auth state change listener
@@ -85,6 +89,27 @@ const Navbar = () => {
       });
     }
   };
+
+  // Show loading state while fetching session
+  if (isLoading) {
+    return (
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <Link to="/" className="flex items-center">
+                <span className="text-xl font-bold">FitStream Connect</span>
+              </Link>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-24" />
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   if (isError || !session) {
     console.log("Rendering logged-out navbar");
@@ -138,8 +163,20 @@ const Navbar = () => {
                 <Link to="/profile">
                   <Button variant="ghost">Profile</Button>
                 </Link>
-                <Button variant="ghost" onClick={handleLogout}>
-                  Logout
+                <Button 
+                  variant="ghost" 
+                  onClick={handleLogout}
+                  disabled={isLoading}
+                  className="relative"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span>Logging out...</span>
+                    </>
+                  ) : (
+                    "Logout"
+                  )}
                 </Button>
               </>
             )}
