@@ -64,7 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "Gym Management <announcements@resend.dev>",
-        bcc: userEmails, // Use BCC to hide recipient emails from each other
+        to: userEmails, // Using 'to' instead of 'bcc'
         subject: `New Gym Announcement - ${messageType.toUpperCase()}`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
