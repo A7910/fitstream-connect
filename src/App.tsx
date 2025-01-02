@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import MembershipPlans from "./pages/MembershipPlans";
 import WorkoutPlan from "./pages/WorkoutPlan";
 import AdminDashboard from "./pages/AdminDashboard";
+import FloatingChatBubble from "./components/chat/FloatingChatBubble";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/workout-plan" element={<WorkoutPlan />} />
             <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
+          <FloatingChatBubble />
           <Toaster />
           <Sonner />
         </TooltipProvider>
