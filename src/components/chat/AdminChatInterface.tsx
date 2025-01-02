@@ -5,10 +5,9 @@ import { Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const UserChatInterface = () => {
+const AdminChatInterface = ({ userId }: { userId: string }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const [adminId, setAdminId] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -16,59 +15,44 @@ const UserChatInterface = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch first available admin ID
-      const { data: adminData, error: adminError } = await supabase
-        .from("admin_users")
-        .select("user_id")
-        .limit(1);
+      // Fetch both admin messages and user messages
+      const [adminMessagesResponse, userMessagesResponse] = await Promise.all([
+        supabase
+          .from("admin_messages")
+          .select("*, sender:profiles!admin_id(*)")
+          .eq("user_id", userId)
+          .eq("admin_id", user.id)
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("user_messages")
+          .select("*, sender:profiles!user_id(*)")
+          .eq("user_id", userId)
+          .eq("admin_id", user.id)
+          .order("created_at", { ascending: true })
+      ]);
 
-      if (adminError) {
-        console.error("Error fetching admin:", adminError);
-        return;
+      if (adminMessagesResponse.error) {
+        console.error("Error fetching admin messages:", adminMessagesResponse.error);
+      }
+      if (userMessagesResponse.error) {
+        console.error("Error fetching user messages:", userMessagesResponse.error);
       }
 
-      if (adminData && adminData.length > 0) {
-        const firstAdminId = adminData[0].user_id;
-        setAdminId(firstAdminId);
+      // Combine and sort messages
+      const combinedMessages = [
+        ...(adminMessagesResponse.data || []).map(msg => ({
+          ...msg,
+          type: 'admin'
+        })),
+        ...(userMessagesResponse.data || []).map(msg => ({
+          ...msg,
+          type: 'user'
+        }))
+      ].sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
 
-        // Fetch both admin messages and user messages
-        const [adminMessagesResponse, userMessagesResponse] = await Promise.all([
-          supabase
-            .from("admin_messages")
-            .select("*, sender:profiles!admin_id(*)")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: true }),
-          supabase
-            .from("user_messages")
-            .select("*, sender:profiles!user_id(*)")
-            .eq("user_id", user.id)
-            .eq("admin_id", firstAdminId)
-            .order("created_at", { ascending: true })
-        ]);
-
-        if (adminMessagesResponse.error) {
-          console.error("Error fetching admin messages:", adminMessagesResponse.error);
-        }
-        if (userMessagesResponse.error) {
-          console.error("Error fetching user messages:", userMessagesResponse.error);
-        }
-
-        // Combine and sort messages
-        const combinedMessages = [
-          ...(adminMessagesResponse.data || []).map(msg => ({
-            ...msg,
-            type: 'admin'
-          })),
-          ...(userMessagesResponse.data || []).map(msg => ({
-            ...msg,
-            type: 'user'
-          }))
-        ].sort((a, b) => 
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        );
-
-        setMessages(combinedMessages);
-      }
+      setMessages(combinedMessages);
     };
 
     fetchMessages();
@@ -87,7 +71,7 @@ const UserChatInterface = () => {
             event: "INSERT",
             schema: "public",
             table: "admin_messages",
-            filter: `user_id=eq.${user.id}`,
+            filter: `user_id=eq.${userId}`,
           },
           (payload) => {
             console.log("New admin message received:", payload);
@@ -105,7 +89,7 @@ const UserChatInterface = () => {
             event: "INSERT",
             schema: "public",
             table: "user_messages",
-            filter: `user_id=eq.${user.id}`,
+            filter: `user_id=eq.${userId}`,
           },
           (payload) => {
             console.log("New user message received:", payload);
@@ -121,18 +105,18 @@ const UserChatInterface = () => {
     };
 
     setupSubscription();
-  }, []);
+  }, [userId]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!message.trim() || !adminId) return;
+    if (!message.trim()) return;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("user_messages").insert({
+      const { error } = await supabase.from("admin_messages").insert({
         content: message.trim(),
-        user_id: user.id,
-        admin_id: adminId,
+        admin_id: user.id,
+        user_id: userId,
       });
 
       if (error) throw error;
@@ -140,10 +124,10 @@ const UserChatInterface = () => {
       // Optimistically add message to state
       const newMessage = {
         content: message.trim(),
-        user_id: user.id,
-        admin_id: adminId,
+        admin_id: user.id,
+        user_id: userId,
         created_at: new Date().toISOString(),
-        type: 'user'
+        type: 'admin'
       };
       setMessages((prev) => [...prev, newMessage]);
       setMessage("");
@@ -164,7 +148,7 @@ const UserChatInterface = () => {
           <div
             key={msg.id || index}
             className={`flex items-start gap-2 ${
-              msg.type === 'admin' ? "flex-row" : "flex-row-reverse"
+              msg.type === 'admin' ? "flex-row-reverse" : "flex-row"
             }`}
           >
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm">
@@ -173,8 +157,8 @@ const UserChatInterface = () => {
             <div
               className={`max-w-[70%] rounded-lg p-3 ${
                 msg.type === 'admin'
-                  ? "bg-muted"
-                  : "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted"
               }`}
             >
               <p className="text-sm">{msg.content}</p>
@@ -190,7 +174,7 @@ const UserChatInterface = () => {
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Message admin..."
+            placeholder="Reply to user..."
             className="flex-1"
           />
           <Button type="submit" size="icon">
@@ -202,4 +186,4 @@ const UserChatInterface = () => {
   );
 };
 
-export default UserChatInterface;
+export default AdminChatInterface;
