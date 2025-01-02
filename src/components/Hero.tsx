@@ -49,7 +49,7 @@ const Hero = () => {
 
       if (data) {
         setAnnouncement(data.message);
-        setMessageType(data.message_type);
+        setMessageType(data.message_type || "info");
         setDisplayText(""); // Reset display text for new announcement
       }
     } catch (error) {
