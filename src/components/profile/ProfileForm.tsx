@@ -137,8 +137,12 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
               onChange={handleImageUpload}
               onRemove={handleImageRemove}
             >
-              <Button size="icon" variant="secondary" className="rounded-full">
-                <Camera className="h-4 w-4" />
+              <Button 
+                size="icon" 
+                variant="secondary" 
+                className="rounded-full bg-white hover:bg-gray-100"
+              >
+                <Camera className="h-4 w-4 text-black" />
               </Button>
             </ImageUpload>
           </div>
