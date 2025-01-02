@@ -45,7 +45,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Filter out any undefined emails and get unique emails
     const userEmails = [...new Set(users.users.map(user => user.email).filter(Boolean))] as string[];
-    console.log(`Sending announcement to ${userEmails.length} users`);
+    console.log(`Sending announcement to ${userEmails.length} users:`, userEmails);
 
     if (userEmails.length === 0) {
       throw new Error("No valid user emails found");
@@ -64,7 +64,7 @@ const handler = async (req: Request): Promise<Response> => {
       },
       body: JSON.stringify({
         from: "Gym Management <announcements@resend.dev>",
-        bcc: userEmails,
+        bcc: userEmails, // Use BCC to hide recipient emails from each other
         subject: `New Gym Announcement - ${messageType.toUpperCase()}`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
