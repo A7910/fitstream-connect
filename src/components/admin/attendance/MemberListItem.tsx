@@ -1,5 +1,7 @@
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { User } from "lucide-react";
 
 interface MemberListItemProps {
   userId: string;
@@ -9,6 +11,7 @@ interface MemberListItemProps {
   endDate: string;
   isSelected: boolean;
   isCheckedIn: boolean;
+  avatarUrl?: string | null;
   onSelect: (userId: string) => void;
   onCheckIn: () => void;
   onCheckOut: () => void;
@@ -22,6 +25,7 @@ export const MemberListItem = ({
   endDate,
   isSelected,
   isCheckedIn,
+  avatarUrl,
   onSelect,
   onCheckIn,
   onCheckOut,
@@ -38,14 +42,22 @@ export const MemberListItem = ({
       onClick={() => !isCheckedIn && onSelect(userId)}
     >
       <div className="flex justify-between items-center">
-        <div className="space-y-1">
-          <p className="font-medium">{fullName || "N/A"}</p>
-          <p className="text-sm text-muted-foreground">
-            {phoneNumber || "No phone number"}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Membership: {format(new Date(startDate), 'PP')} - {format(new Date(endDate), 'PP')}
-          </p>
+        <div className="flex items-center space-x-4">
+          <Avatar>
+            <AvatarImage src={avatarUrl || undefined} />
+            <AvatarFallback>
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <p className="font-medium">{fullName || "N/A"}</p>
+            <p className="text-sm text-muted-foreground">
+              {phoneNumber || "No phone number"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Membership: {format(new Date(startDate), 'PP')} - {format(new Date(endDate), 'PP')}
+            </p>
+          </div>
         </div>
         {isSelected && !isCheckedIn && (
           <div className="flex gap-2">

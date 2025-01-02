@@ -9,6 +9,7 @@ import { useState } from "react";
 interface Profile {
   full_name: string | null;
   phone_number: string | null;
+  avatar_url: string | null;
 }
 
 interface ActiveUser {
@@ -37,7 +38,8 @@ export const ActiveMembersList = () => {
           end_date,
           profiles (
             full_name,
-            phone_number
+            phone_number,
+            avatar_url
           )
         `)
         .eq("status", "active")
@@ -95,6 +97,7 @@ export const ActiveMembersList = () => {
           userId={user.user_id}
           fullName={user.profiles?.full_name}
           phoneNumber={user.profiles?.phone_number}
+          avatarUrl={user.profiles?.avatar_url}
           startDate={user.start_date}
           endDate={user.end_date}
           isSelected={selectedUserId === user.user_id}

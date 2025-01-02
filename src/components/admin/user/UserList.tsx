@@ -3,6 +3,8 @@ import { MembershipStatus } from "./MembershipStatus";
 import { MembershipActions } from "./MembershipActions";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { User } from "lucide-react";
 
 interface UserListProps {
   users: any[];
@@ -41,11 +43,19 @@ const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps)
           key={user.id}
           className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
         >
-          <div className="space-y-1">
-            <p className="font-medium">{user.full_name}</p>
-            <MembershipStatus membership={user.membership} />
-            <div className="text-sm text-muted-foreground">
-              {user.phone_number}
+          <div className="flex items-center space-x-4">
+            <Avatar>
+              <AvatarImage src={user.avatar_url || undefined} />
+              <AvatarFallback>
+                <User className="h-4 w-4" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="space-y-1">
+              <p className="font-medium">{user.full_name}</p>
+              <MembershipStatus membership={user.membership} />
+              <div className="text-sm text-muted-foreground">
+                {user.phone_number}
+              </div>
             </div>
           </div>
           <MembershipActions
