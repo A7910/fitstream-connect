@@ -5,12 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
 import UserManagement from "@/components/admin/UserManagement";
 import AttendanceManagement from "@/components/admin/AttendanceManagement";
-import MessagesManagement from "@/components/admin/MessagesManagement";
 import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 import { BackButton } from "@/components/ui/back-button";
 
@@ -151,7 +150,6 @@ const AdminDashboard = () => {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="workout">Workout Plans</TabsTrigger>
-            <TabsTrigger value="messages">Messages</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
@@ -167,10 +165,6 @@ const AdminDashboard = () => {
               <WorkoutGoalManager />
               <ExerciseManager />
             </div>
-          </TabsContent>
-
-          <TabsContent value="messages" className="space-y-4">
-            <MessagesManagement />
           </TabsContent>
         </Tabs>
       </div>
