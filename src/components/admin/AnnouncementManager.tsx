@@ -66,6 +66,24 @@ const AnnouncementManager = () => {
         .single();
 
       if (error) throw error;
+
+      // Send email notification
+      const emailResponse = await supabase.functions.invoke('send-announcement-email', {
+        body: {
+          message: newMessage,
+          messageType: messageType,
+        },
+      });
+
+      if (emailResponse.error) {
+        console.error("Error sending announcement emails:", emailResponse.error);
+        toast({
+          title: "Warning",
+          description: "Announcement created but email notifications failed to send",
+          variant: "destructive",
+        });
+      }
+
       return data;
     },
     onSuccess: () => {
