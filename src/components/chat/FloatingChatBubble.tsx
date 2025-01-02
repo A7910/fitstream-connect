@@ -30,7 +30,7 @@ const FloatingChatBubble = () => {
         .from("chat_messages")
         .select(`
           *,
-          profiles!chat_messages_sender_id_fkey (
+          profiles:sender_id (
             full_name,
             avatar_url
           )
