@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -10,6 +10,7 @@ import UserList from "./UserList";
 const ChatInterface = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: messages, isLoading: messagesLoading } = useQuery({
     queryKey: ["chat-messages", selectedUser?.id],
@@ -58,7 +59,7 @@ const ChatInterface = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedUser]);
+  }, [selectedUser, queryClient]);
 
   return (
     <div className="flex h-[calc(100vh-200px)] gap-4 p-4">
