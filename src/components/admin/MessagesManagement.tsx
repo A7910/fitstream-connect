@@ -23,6 +23,7 @@ const MessagesManagement = () => {
   const { data: messages = [], refetch: refetchMessages } = useQuery({
     queryKey: ["chat-messages"],
     queryFn: async () => {
+      console.log("Fetching messages...");
       const { data, error } = await supabase
         .from("chat_messages")
         .select(`
@@ -38,6 +39,8 @@ const MessagesManagement = () => {
         console.error("Error fetching messages:", error);
         throw error;
       }
+
+      console.log("Messages data:", data);
       return data;
     },
     enabled: !!session?.user,
