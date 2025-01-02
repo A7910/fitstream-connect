@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { MessageCircle, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import UserChatInterface from "./UserChatInterface";
 
 const ChatBubble = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const navigate = useNavigate();
   
   useEffect(() => {
     const fetchUnreadMessages = async () => {
@@ -52,15 +51,10 @@ const ChatBubble = () => {
     };
   }, []);
 
-  const handleChatClick = () => {
-    navigate("/admin");
-    setIsOpen(false);
-  };
-
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {isOpen ? (
-        <div className="bg-white rounded-lg shadow-lg p-4 mb-4 w-64">
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-4 w-96">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Chat with Admin</h3>
             <Button
@@ -71,12 +65,7 @@ const ChatBubble = () => {
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <Button
-            className="w-full"
-            onClick={handleChatClick}
-          >
-            Open Chat
-          </Button>
+          <UserChatInterface />
         </div>
       ) : (
         <Button
