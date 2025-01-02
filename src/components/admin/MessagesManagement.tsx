@@ -28,7 +28,7 @@ const MessagesManagement = () => {
         .from("chat_messages")
         .select(`
           *,
-          profiles:sender_id (
+          profiles:profiles!chat_messages_sender_id_fkey(
             full_name,
             avatar_url
           )
