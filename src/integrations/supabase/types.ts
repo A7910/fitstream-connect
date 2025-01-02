@@ -117,6 +117,30 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          message: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           check_in: string

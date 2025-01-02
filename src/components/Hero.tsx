@@ -1,10 +1,65 @@
 import { Button } from "@/components/ui/button";
 import { Activity, Award, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Hero = () => {
+  const [session, setSession] = useState(null);
+  const [announcement, setAnnouncement] = useState("");
+
+  useEffect(() => {
+    // Check for session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        fetchAnnouncement();
+      }
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        fetchAnnouncement();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchAnnouncement = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select("message")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error("Error fetching announcement:", error);
+        return;
+      }
+
+      if (data) {
+        setAnnouncement(data.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   return (
     <div className="pt-24 pb-12 animate-fade-in">
       <div className="container mx-auto px-4">
+        {session && announcement && (
+          <div className="bg-primary/10 rounded-lg p-4 mb-8 text-center">
+            <p className="text-primary font-medium">{announcement}</p>
+          </div>
+        )}
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             Transform Your Fitness Journey with{" "}
