@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { MembershipStatus } from "./MembershipStatus";
+import { MembershipStatus, getMembershipStatus } from "./MembershipStatus";
 import { MembershipActions } from "./MembershipActions";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import {
@@ -13,10 +13,19 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface UserListProps {
   users: any[];
   membershipPlans: any[];
+  statusFilter: 'all' | 'active' | 'inactive' | 'expired';
+  onStatusFilterChange: (status: 'all' | 'active' | 'inactive' | 'expired') => void;
   onMembershipAction: (
     userId: string,
     planId: string | null,
@@ -28,14 +37,20 @@ interface UserListProps {
 
 const USERS_PER_PAGE = 8;
 
-const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps) => {
+const UserList = ({ users, membershipPlans, onMembershipAction, statusFilter, onStatusFilterChange }: UserListProps) => {
   const [selectedDates, setSelectedDates] = useState<{ [key: string]: { start: Date | undefined; end: Date | undefined } }>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredUsers = users.filter(user => 
-    user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const nameMatch = user.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!nameMatch) return false;
+    
+    if (statusFilter === 'all') return true;
+    
+    const userStatus = getMembershipStatus(user.membership);
+    return userStatus === statusFilter;
+  });
 
   const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
   const startIndex = (currentPage - 1) * USERS_PER_PAGE;
@@ -43,17 +58,52 @@ const UserList = ({ users, membershipPlans, onMembershipAction }: UserListProps)
 
   return (
     <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by name..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setCurrentPage(1); // Reset to first page on search
-          }}
-          className="pl-8"
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="pl-8"
+          />
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Filter className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem 
+              onClick={() => onStatusFilterChange('all')}
+              className={statusFilter === 'all' ? "bg-muted" : ""}
+            >
+              All Users
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => onStatusFilterChange('active')}
+              className={statusFilter === 'active' ? "bg-muted" : ""}
+            >
+              Active Members
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => onStatusFilterChange('inactive')}
+              className={statusFilter === 'inactive' ? "bg-muted" : ""}
+            >
+              Inactive Members
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => onStatusFilterChange('expired')}
+              className={statusFilter === 'expired' ? "bg-muted" : ""}
+            >
+              Expired Members
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {paginatedUsers.map((user) => (

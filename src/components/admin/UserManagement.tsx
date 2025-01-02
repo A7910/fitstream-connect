@@ -4,6 +4,7 @@ import AddUserDialog from "./user/AddUserDialog";
 import UserList from "./user/UserList";
 import { useMemberships } from "@/hooks/useMemberships";
 import { useUserMembershipData } from "./user/UserMembershipData";
+import { useState } from "react";
 
 interface UserManagementProps {
   memberships: any[];
@@ -11,6 +12,7 @@ interface UserManagementProps {
 
 const UserManagement = ({ memberships }: UserManagementProps) => {
   const { membershipPlans, allUsers, isLoading, handleMembershipAction } = useMemberships();
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'expired'>('all');
   
   const usersWithMembership = useUserMembershipData({ 
     allUsers: allUsers || [], 
@@ -36,6 +38,8 @@ const UserManagement = ({ memberships }: UserManagementProps) => {
           users={usersWithMembership}
           membershipPlans={membershipPlans || []}
           onMembershipAction={handleMembershipAction}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
         />
       </CardContent>
     </Card>
