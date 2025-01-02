@@ -5,6 +5,14 @@ import { MemberListItem } from "./MemberListItem";
 import { useAttendanceActions } from "./useAttendanceActions";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface Profile {
   full_name: string | null;
@@ -20,9 +28,12 @@ interface ActiveUser {
   isCheckedIn?: boolean;
 }
 
+const USERS_PER_PAGE = 8;
+
 export const ActiveMembersList = () => {
   const { selectedUserId, setSelectedUserId, handleCheckIn, handleCheckOut } = useAttendanceActions();
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: activeUsers = [], isLoading: isLoadingUsers } = useQuery<ActiveUser[]>({
     queryKey: ["active-users"],
@@ -71,6 +82,10 @@ export const ActiveMembersList = () => {
     user.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
+
   if (isLoadingUsers) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -80,37 +95,72 @@ export const ActiveMembersList = () => {
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="space-y-4">
       <div className="relative">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search by name..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setCurrentPage(1); // Reset to first page on search
+          }}
           className="pl-8"
         />
       </div>
 
-      {filteredUsers.map((user) => (
-        <MemberListItem
-          key={user.user_id}
-          userId={user.user_id}
-          fullName={user.profiles?.full_name}
-          phoneNumber={user.profiles?.phone_number}
-          avatarUrl={user.profiles?.avatar_url}
-          startDate={user.start_date}
-          endDate={user.end_date}
-          isSelected={selectedUserId === user.user_id}
-          isCheckedIn={false}
-          onSelect={setSelectedUserId}
-          onCheckIn={() => handleCheckIn(user.user_id)}
-          onCheckOut={() => handleCheckOut(user.user_id)}
-        />
-      ))}
-      {filteredUsers.length === 0 && (
-        <p className="text-center text-muted-foreground py-8">
-          No active members available for check-in
-        </p>
+      <div className="grid gap-4">
+        {paginatedUsers.map((user) => (
+          <MemberListItem
+            key={user.user_id}
+            userId={user.user_id}
+            fullName={user.profiles?.full_name}
+            phoneNumber={user.profiles?.phone_number}
+            avatarUrl={user.profiles?.avatar_url}
+            startDate={user.start_date}
+            endDate={user.end_date}
+            isSelected={selectedUserId === user.user_id}
+            isCheckedIn={false}
+            onSelect={setSelectedUserId}
+            onCheckIn={() => handleCheckIn(user.user_id)}
+            onCheckOut={() => handleCheckOut(user.user_id)}
+          />
+        ))}
+        {filteredUsers.length === 0 && (
+          <p className="text-center text-muted-foreground py-8">
+            No active members available for check-in
+          </p>
+        )}
+      </div>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(page)}
+                  isActive={currentPage === page}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   );
