@@ -35,18 +35,18 @@ export const MembershipCard = ({ userId }: { userId: string }) => {
 
   return (
     <Card 
-      className="bg-gray-50 dark:bg-gray-900 border-none shadow-none hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+      className="bg-gray-50 border-none shadow-none hover:bg-gray-100 transition-colors cursor-pointer"
       onClick={() => navigate("/membership-plans")}
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-primary/10 dark:bg-primary/20 p-2 rounded-full">
-              <CreditCard className="h-5 w-5 text-primary dark:text-primary/90" />
+            <div className="bg-primary/10 p-2 rounded-full">
+              <CreditCard className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-medium dark:text-white">Subscription</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <h3 className="font-medium">Subscription</h3>
+              <p className="text-sm text-gray-500">
                 {membership ? (
                   <>
                     {membership.membership_plans.name} · Expires {format(new Date(membership.end_date), 'MMM dd, yyyy')}
@@ -57,7 +57,7 @@ export const MembershipCard = ({ userId }: { userId: string }) => {
               </p>
             </div>
           </div>
-          <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+          <ChevronRight className="h-5 w-5 text-gray-400" />
         </div>
       </CardContent>
     </Card>

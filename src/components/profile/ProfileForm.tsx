@@ -127,8 +127,8 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
         <div className="relative">
           <Avatar className="h-24 w-24">
             <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback className="bg-gray-100 dark:bg-gray-800">
-              <User className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+            <AvatarFallback>
+              <User className="h-12 w-12" />
             </AvatarFallback>
           </Avatar>
           <div className="absolute bottom-0 right-0">
@@ -140,41 +140,39 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
               <Button 
                 size="icon" 
                 variant="secondary" 
-                className="rounded-full bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-md"
+                className="rounded-full bg-white hover:bg-gray-100 shadow-md"
               >
-                <Camera className="h-4 w-4 text-black dark:text-white" />
+                <Camera className="h-4 w-4 text-black" />
               </Button>
             </ImageUpload>
           </div>
         </div>
         
         <div className="text-center">
-          <h2 className="text-xl font-semibold dark:text-white">{fullName || "Add your name"}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{email}</p>
+          <h2 className="text-xl font-semibold">{fullName || "Add your name"}</h2>
+          <p className="text-sm text-gray-500">{email}</p>
         </div>
       </div>
 
       {isEditing ? (
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName" className="dark:text-gray-300">Full Name</Label>
+            <Label htmlFor="fullName">Full Name</Label>
             <Input
               id="fullName"
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="dark:bg-gray-800 dark:text-white dark:border-gray-700"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phoneNumber" className="dark:text-gray-300">Phone Number</Label>
+            <Label htmlFor="phoneNumber">Phone Number</Label>
             <Input
               id="phoneNumber"
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="dark:bg-gray-800 dark:text-white dark:border-gray-700"
             />
           </div>
 
@@ -182,7 +180,7 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
             <Button
               onClick={() => setIsEditing(false)}
               variant="outline"
-              className="flex-1 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700"
+              className="flex-1"
             >
               Cancel
             </Button>
@@ -199,7 +197,7 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
         <Button
           onClick={() => setIsEditing(true)}
           variant="outline"
-          className="w-full dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700"
+          className="w-full"
         >
           Edit Profile
         </Button>

@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import { MembershipCard } from "@/components/profile/MembershipCard";
 import { ProfileForm } from "@/components/profile/ProfileForm";
-import { ThemeToggle } from "@/components/profile/ThemeToggle";
 import { Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -54,10 +53,10 @@ const Profile = () => {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="container max-w-md mx-auto px-4 py-8">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md p-6">
+          <div className="bg-white rounded-3xl shadow-md p-6">
             Loading...
           </div>
         </div>
@@ -66,21 +65,21 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="container max-w-md mx-auto px-4 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md transition-colors duration-200">
+        <div className="bg-white rounded-3xl shadow-md">
           <div className="p-6 space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <button 
                 onClick={() => navigate(-1)} 
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                className="text-gray-600 hover:text-gray-800"
               >
                 ←
               </button>
-              <h1 className="text-xl font-semibold dark:text-white">My Profile</h1>
-              <Settings className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              <h1 className="text-xl font-semibold">My Profile</h1>
+              <Settings className="w-6 h-6 text-gray-600" />
             </div>
 
             {/* Profile Info */}
@@ -89,9 +88,6 @@ const Profile = () => {
               email={session.user.email} 
               userId={session.user.id}
             />
-
-            {/* Theme Toggle */}
-            <ThemeToggle />
 
             {/* Membership Status */}
             <MembershipCard userId={session.user.id} />
@@ -107,7 +103,7 @@ const Profile = () => {
             </Button>
 
             {/* App Version */}
-            <p className="text-center text-sm text-gray-400 dark:text-gray-500">
+            <p className="text-center text-sm text-gray-400">
               App version: 0.0.3
             </p>
           </div>

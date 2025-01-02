@@ -5,8 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
-import { NavLinks } from "./navbar/NavLinks";
-import { MobileMenu } from "./navbar/MobileMenu";
+import { Menu, X } from "lucide-react";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -15,6 +14,7 @@ const Navbar = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Fetch session and handle authentication state change
   useEffect(() => {
     const getSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
@@ -104,29 +104,60 @@ const Navbar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const NavLinks = () => (
+    <>
+      <Link to="/membership-plans">
+        <Button variant="ghost">Membership Plans</Button>
+      </Link>
+      {session && (
+        <>
+          <Link to="/workout-plan">
+            <Button variant="ghost">Workout Plan</Button>
+          </Link>
+          {isAdmin && (
+            <Link to="/admin">
+              <Button variant="ghost">Admin Dashboard</Button>
+            </Link>
+          )}
+          <Link to="/profile">
+            <Button variant="ghost">Profile</Button>
+          </Link>
+          <Button variant="ghost" onClick={handleLogout}>
+            Logout
+          </Button>
+        </>
+      )}
+    </>
+  );
+
   if (!session) {
     return (
-      <nav className="bg-background border-b border-border transition-colors duration-200">
+      <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
-                <span className="text-xl font-bold text-foreground">FitStream Connect</span>
+                <span className="text-xl font-bold">FitStream Connect</span>
               </Link>
             </div>
             
+            {/* Mobile menu button */}
             <div className="flex items-center md:hidden">
-              <MobileMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} />
+              <Button variant="ghost" size="icon" onClick={toggleMenu}>
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
             </div>
 
+            {/* Desktop navigation */}
             <div className="hidden md:flex items-center space-x-4">
-              <NavLinks session={session} isAdmin={isAdmin} handleLogout={handleLogout} />
+              <NavLinks />
               <Link to="/login">
                 <Button>Login</Button>
               </Link>
             </div>
           </div>
 
+          {/* Mobile navigation */}
           <div
             className={`md:hidden transition-all duration-300 ease-in-out ${
               isMenuOpen
@@ -135,7 +166,7 @@ const Navbar = () => {
             }`}
           >
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <NavLinks session={session} isAdmin={isAdmin} handleLogout={handleLogout} />
+              <NavLinks />
               <Link to="/login" className="block">
                 <Button className="w-full">Login</Button>
               </Link>
@@ -147,24 +178,29 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-background border-b border-border transition-colors duration-200">
+    <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <span className="text-xl font-bold text-foreground">FitStream Connect</span>
+              <span className="text-xl font-bold">FitStream Connect</span>
             </Link>
           </div>
 
+          {/* Mobile menu button */}
           <div className="flex items-center md:hidden">
-            <MobileMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} />
+            <Button variant="ghost" size="icon" onClick={toggleMenu}>
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
           </div>
 
+          {/* Desktop navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <NavLinks session={session} isAdmin={isAdmin} handleLogout={handleLogout} />
+            <NavLinks />
           </div>
         </div>
 
+        {/* Mobile navigation */}
         <div
           className={`md:hidden transition-all duration-300 ease-in-out ${
             isMenuOpen
@@ -173,7 +209,7 @@ const Navbar = () => {
           }`}
         >
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <NavLinks session={session} isAdmin={isAdmin} handleLogout={handleLogout} />
+            <NavLinks />
           </div>
         </div>
       </div>
