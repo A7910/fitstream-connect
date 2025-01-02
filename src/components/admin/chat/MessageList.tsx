@@ -9,10 +9,10 @@ interface Message {
   sender_id: string;
   created_at: string;
   is_read: boolean;
-  profiles?: {
+  profiles: {
     full_name: string | null;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 interface MessageListProps {

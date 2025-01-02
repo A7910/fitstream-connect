@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { MessageList } from "./chat/MessageList";
 import { MessageInput } from "./chat/MessageInput";
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +34,10 @@ const MessagesManagement = () => {
         `)
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching messages:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!session?.user,
