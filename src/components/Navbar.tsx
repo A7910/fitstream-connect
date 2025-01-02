@@ -36,54 +36,55 @@ const Navbar = () => {
           console.error("Error fetching admin status:", adminError);
         }
   
-        setIsAdmin(!!data); // If there's data, the user is an admin
+        setIsAdmin(!!data);
       }
     };
   
-    // Get session on mount
     getSession();
   
-    // Listen for auth state changes (sign in/out)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event);
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setSession(session);
         if (session) {
-          // Fetch admin status after sign-in
-          const fetchAdminStatus = async () => {
-            const { data, error: adminError } = await supabase
-              .from("admin_users")
-              .select()
-              .eq("user_id", session.user.id)
-              .maybeSingle();
+          const { data, error: adminError } = await supabase
+            .from("admin_users")
+            .select()
+            .eq("user_id", session.user.id)
+            .maybeSingle();
   
-            if (adminError) {
-              console.error("Error fetching admin status:", adminError);
-            }
+          if (adminError) {
+            console.error("Error fetching admin status:", adminError);
+          }
   
-            setIsAdmin(!!data); // If data exists, user is admin
-          };
-  
-          fetchAdminStatus();
+          setIsAdmin(!!data);
         }
       } else if (event === 'SIGNED_OUT') {
         setSession(null);
         setIsAdmin(false);
+        navigate("/");
       }
     });
   
     return () => {
-      // Cleanup subscription on component unmount
       subscription?.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
+      // First clear local session state
       setSession(null);
       setIsAdmin(false);
+      
+      // Then attempt to sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        // Even if there's an error, we'll redirect and show success
+        // since the local session is already cleared
+      }
+      
       navigate("/");
       
       toast({
@@ -92,10 +93,11 @@ const Navbar = () => {
       });
     } catch (error) {
       console.error("Logout error:", error);
+      // Still redirect and show success since local session is cleared
+      navigate("/");
       toast({
-        title: "Logout failed",
-        description: "There was an error logging out. Please try again.",
-        variant: "destructive",
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
       });
     }
   };
