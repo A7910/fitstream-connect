@@ -13,6 +13,7 @@ import AttendanceManagement from "@/components/admin/AttendanceManagement";
 import ChatInterface from "@/components/admin/chat/ChatInterface";
 import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 import { BackButton } from "@/components/ui/back-button";
+import { Loader2 } from "lucide-react";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -21,27 +22,45 @@ const AdminDashboard = () => {
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [customDate, setCustomDate] = useState<Date>();
 
-  const { data: session } = useQuery({
+  // Check session and admin status
+  const { data: session, isLoading: sessionLoading } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Fetching session...");
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Session error:", error);
+        throw error;
+      }
+      console.log("Session status:", session ? "Found" : "Not found");
       return session;
     },
   });
 
-  const { data: isAdmin } = useQuery({
+  // Check admin status only if we have a session
+  const { data: isAdmin, isLoading: adminLoading } = useQuery({
     queryKey: ["isAdmin", session?.user?.id],
     enabled: !!session?.user?.id,
     queryFn: async () => {
-      const { data } = await supabase
+      console.log("Checking admin status for user:", session?.user?.id);
+      const { data, error } = await supabase
         .from("admin_users")
         .select()
         .eq("user_id", session?.user?.id)
         .maybeSingle();
-      return !!data;
+
+      if (error) {
+        console.error("Admin check error:", error);
+        throw error;
+      }
+
+      const isAdminUser = !!data;
+      console.log("Is admin user:", isAdminUser);
+      return isAdminUser;
     },
   });
 
+  // Fetch memberships only if user is admin
   const { data: memberships = [] } = useQuery({
     queryKey: ["all-memberships"],
     enabled: !!isAdmin,
@@ -116,14 +135,56 @@ const AdminDashboard = () => {
     }
   };
 
+  // Set up auth state listener
   useEffect(() => {
-    if (session === null || isAdmin === false) {
-      navigate("/admin/login");
-    }
-  }, [session, isAdmin, navigate]);
+    console.log("Setting up auth state listener");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event);
+      if (event === 'SIGNED_OUT') {
+        console.log("User signed out, redirecting to login");
+        navigate("/admin/login");
+      }
+    });
 
-  if (!session || isAdmin === undefined) return null;
-  if (!isAdmin) return null;
+    return () => {
+      console.log("Cleaning up auth state listener");
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  // Redirect if not authenticated or not admin
+  useEffect(() => {
+    console.log("Checking auth status:", { sessionLoading, adminLoading, session, isAdmin });
+    if (!sessionLoading && !session) {
+      console.log("No session found, redirecting to login");
+      navigate("/admin/login");
+      return;
+    }
+
+    if (!adminLoading && session && isAdmin === false) {
+      console.log("User is not admin, redirecting to login");
+      navigate("/admin/login");
+      toast({
+        title: "Access Denied",
+        description: "You must be an admin to access this page.",
+        variant: "destructive",
+      });
+    }
+  }, [session, isAdmin, sessionLoading, adminLoading, navigate, toast]);
+
+  // Show loading state while checking auth
+  if (sessionLoading || adminLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  // Don't render anything if not authenticated or not admin
+  if (!session || !isAdmin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
