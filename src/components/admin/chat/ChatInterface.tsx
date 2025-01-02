@@ -16,10 +16,11 @@ const ChatInterface = () => {
     queryKey: ["chat-messages", selectedUser?.id],
     enabled: !!selectedUser,
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("chat_messages")
         .select("*, sender:profiles!sender_id(*)")
-        .or(`sender_id.eq.${selectedUser.id},sender_id.eq.${(await supabase.auth.getUser()).data.user.id}`)
+        .or(`and(sender_id.eq.${selectedUser.id},recipient_id.eq.${user.id}),and(sender_id.eq.${user.id},recipient_id.eq.${selectedUser.id})`)
         .order("created_at", { ascending: true });
 
       if (error) {

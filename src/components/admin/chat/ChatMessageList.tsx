@@ -8,6 +8,7 @@ interface ChatMessageListProps {
     id: string;
     content: string;
     sender_id: string;
+    recipient_id: string;
     created_at: string;
     sender: {
       full_name: string;
@@ -39,6 +40,8 @@ const ChatMessageList = ({ messages: initialMessages }: ChatMessageListProps) =>
 
   // Subscribe to new messages
   useEffect(() => {
+    if (!currentUser) return;
+
     const channel = supabase
       .channel("chat-messages")
       .on(
@@ -47,6 +50,7 @@ const ChatMessageList = ({ messages: initialMessages }: ChatMessageListProps) =>
           event: "INSERT",
           schema: "public",
           table: "chat_messages",
+          filter: `sender_id=eq.${currentUser.id},recipient_id=eq.${currentUser.id}`,
         },
         (payload) => {
           console.log("New message received:", payload);
@@ -62,6 +66,7 @@ const ChatMessageList = ({ messages: initialMessages }: ChatMessageListProps) =>
               id: payload.new.id,
               content: payload.new.content,
               sender_id: payload.new.sender_id,
+              recipient_id: payload.new.recipient_id,
               created_at: payload.new.created_at,
               sender: {
                 full_name: sender?.full_name || "Unknown",
@@ -80,7 +85,7 @@ const ChatMessageList = ({ messages: initialMessages }: ChatMessageListProps) =>
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     scrollToBottom();
