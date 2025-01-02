@@ -2,10 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Activity, Award, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const Hero = () => {
   const [session, setSession] = useState(null);
   const [announcement, setAnnouncement] = useState("");
+  const [displayText, setDisplayText] = useState("");
+  const [messageType, setMessageType] = useState("info");
 
   useEffect(() => {
     // Check for session
@@ -33,7 +36,7 @@ const Hero = () => {
     try {
       const { data, error } = await supabase
         .from("announcements")
-        .select("message")
+        .select("message, message_type")
         .eq("is_active", true)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -46,9 +49,35 @@ const Hero = () => {
 
       if (data) {
         setAnnouncement(data.message);
+        setMessageType(data.message_type);
+        setDisplayText(""); // Reset display text for new announcement
       }
     } catch (error) {
       console.error("Error:", error);
+    }
+  };
+
+  // Typing animation effect
+  useEffect(() => {
+    if (announcement && displayText.length < announcement.length) {
+      const timeoutId = setTimeout(() => {
+        setDisplayText(announcement.slice(0, displayText.length + 1));
+      }, 50); // Adjust speed as needed
+      return () => clearTimeout(timeoutId);
+    }
+  }, [announcement, displayText]);
+
+  const getAnnouncementStyles = () => {
+    const baseStyles = "rounded-lg p-4 mb-8 text-center animate-fade-in";
+    switch (messageType) {
+      case "success":
+        return cn(baseStyles, "bg-green-100 text-green-800 border border-green-200");
+      case "warning":
+        return cn(baseStyles, "bg-yellow-100 text-yellow-800 border border-yellow-200");
+      case "alert":
+        return cn(baseStyles, "bg-red-100 text-red-800 border border-red-200");
+      default:
+        return cn(baseStyles, "bg-blue-100 text-blue-800 border border-blue-200");
     }
   };
 
@@ -56,8 +85,8 @@ const Hero = () => {
     <div className="pt-24 pb-12 animate-fade-in">
       <div className="container mx-auto px-4">
         {session && announcement && (
-          <div className="bg-primary/10 rounded-lg p-4 mb-8 text-center">
-            <p className="text-primary font-medium">{announcement}</p>
+          <div className={getAnnouncementStyles()}>
+            <p className="font-medium">{displayText}</p>
           </div>
         )}
         <div className="text-center max-w-3xl mx-auto">
