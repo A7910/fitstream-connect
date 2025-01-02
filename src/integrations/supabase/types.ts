@@ -110,7 +110,6 @@ export type Database = {
           created_at: string
           id: string
           is_read: boolean | null
-          recipient_id: string
           sender_id: string
           updated_at: string
         }
@@ -119,7 +118,6 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean | null
-          recipient_id: string
           sender_id: string
           updated_at?: string
         }
@@ -128,18 +126,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean | null
-          recipient_id?: string
           sender_id?: string
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "chat_messages_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "chat_messages_sender_id_fkey_profiles"
             columns: ["sender_id"]
