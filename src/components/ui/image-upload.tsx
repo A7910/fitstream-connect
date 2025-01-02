@@ -5,12 +5,19 @@ import { Trash2, Upload } from "lucide-react";
 
 interface ImageUploadProps {
   value?: string | null;
-  onChange: (file: File | null) => void;
+  onChange: (file: File) => void;
   onRemove: () => void;
-  children?: React.ReactNode; // Add this line to accept children
+  children?: React.ReactNode;
+  disabled?: boolean;
 }
 
-export function ImageUpload({ value, onChange, onRemove, children }: ImageUploadProps) {
+export function ImageUpload({ 
+  value, 
+  onChange, 
+  onRemove, 
+  children,
+  disabled = false 
+}: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(value || null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,6 +45,7 @@ export function ImageUpload({ value, onChange, onRemove, children }: ImageUpload
         onChange={handleFileChange}
         className="hidden"
         id="image-upload"
+        disabled={disabled}
       />
       {preview ? (
         <div className="relative">
@@ -51,16 +59,21 @@ export function ImageUpload({ value, onChange, onRemove, children }: ImageUpload
             size="icon"
             className="absolute top-2 right-2"
             onClick={handleRemove}
+            disabled={disabled}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       ) : children ? (
-        <label htmlFor="image-upload">{children}</label>
+        <label htmlFor="image-upload" className={disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}>
+          {children}
+        </label>
       ) : (
         <label
           htmlFor="image-upload"
-          className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-secondary"
+          className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg ${
+            disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-secondary'
+          }`}
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
             <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
