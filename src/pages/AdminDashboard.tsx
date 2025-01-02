@@ -10,6 +10,7 @@ import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
 import UserManagement from "@/components/admin/UserManagement";
 import AttendanceManagement from "@/components/admin/AttendanceManagement";
+import ChatInterface from "@/components/admin/chat/ChatInterface";
 import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 import { BackButton } from "@/components/ui/back-button";
 
@@ -150,6 +151,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="workout">Workout Plans</TabsTrigger>
+            <TabsTrigger value="chat">Chat</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
@@ -165,6 +167,10 @@ const AdminDashboard = () => {
               <WorkoutGoalManager />
               <ExerciseManager />
             </div>
+          </TabsContent>
+
+          <TabsContent value="chat" className="space-y-4">
+            <ChatInterface />
           </TabsContent>
         </Tabs>
       </div>
