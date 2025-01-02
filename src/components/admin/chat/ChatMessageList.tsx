@@ -59,7 +59,10 @@ const ChatMessageList = ({ messages: initialMessages }: ChatMessageListProps) =>
               .single();
 
             const newMessage = {
-              ...payload.new,
+              id: payload.new.id,
+              content: payload.new.content,
+              sender_id: payload.new.sender_id,
+              created_at: payload.new.created_at,
               sender: {
                 full_name: sender?.full_name || "Unknown",
                 avatar_url: sender?.avatar_url || null,
