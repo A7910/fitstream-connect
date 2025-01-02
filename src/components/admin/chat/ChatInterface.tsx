@@ -74,7 +74,7 @@ const ChatInterface = () => {
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
             ) : (
-              <ChatMessageList messages={messages || []} />
+              <ChatMessageList initialMessages={messages || []} />
             )}
             <ChatInput selectedUser={selectedUser} />
           </>

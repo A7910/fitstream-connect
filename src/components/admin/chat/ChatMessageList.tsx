@@ -34,15 +34,24 @@ const ChatMessageList = ({ initialMessages }: ChatMessageListProps) => {
 
   // Fetch new messages in real-time
   useEffect(() => {
-    const messageSubscription = supabase
-      .from("messages")
-      .on("INSERT", (payload) => {
-        setMessages((prevMessages) => [...prevMessages, payload.new]);
-      })
+    const channel = supabase
+      .channel('chat-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages'
+        },
+        (payload) => {
+          console.log('New message received:', payload);
+          setMessages((prevMessages) => [...prevMessages, payload.new]);
+        }
+      )
       .subscribe();
 
     return () => {
-      supabase.removeSubscription(messageSubscription);
+      supabase.removeChannel(channel);
     };
   }, []);
 
