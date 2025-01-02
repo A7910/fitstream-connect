@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY'; // Replace with your actual VAPID public key
 
@@ -34,9 +35,18 @@ export const usePushNotifications = () => {
       // Store subscription in user's profile
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
+        // Convert PushSubscriptionJSON to a plain object that matches our Json type
+        const subscriptionData = {
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: sub.toJSON().keys?.p256dh,
+            auth: sub.toJSON().keys?.auth
+          }
+        } as Json;
+
         await supabase
           .from('profiles')
-          .update({ push_subscription: sub.toJSON() })
+          .update({ push_subscription: subscriptionData })
           .eq('id', session.user.id);
       }
 
