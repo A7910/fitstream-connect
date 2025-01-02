@@ -56,4 +56,9 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  /* Ensure smooth transitions for dark mode changes */
+  html.dark {
+    color-scheme: dark;
+  }
 }
