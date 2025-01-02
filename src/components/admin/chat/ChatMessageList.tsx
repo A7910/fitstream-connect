@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ChatMessageListProps {
-  initialMessages: Array<{
+  messages: Array<{
     id: string;
     content: string;
     sender_id: string;
@@ -16,10 +16,8 @@ interface ChatMessageListProps {
   }>;
 }
 
-const ChatMessageList = ({ initialMessages }: ChatMessageListProps) => {
+const ChatMessageList = ({ messages }: ChatMessageListProps) => {
   const messagesEndRef = useRef(null);
-  const [messages, setMessages] = useState(initialMessages);
-
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
@@ -31,29 +29,6 @@ const ChatMessageList = ({ initialMessages }: ChatMessageListProps) => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  // Fetch new messages in real-time
-  useEffect(() => {
-    const channel = supabase
-      .channel('chat-messages')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages'
-        },
-        (payload) => {
-          console.log('New message received:', payload);
-          setMessages((prevMessages) => [...prevMessages, payload.new]);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
 
   useEffect(() => {
     scrollToBottom();
