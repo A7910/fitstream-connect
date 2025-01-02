@@ -1,9 +1,9 @@
 import { format } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, ChevronRight } from "lucide-react";
 
 export const MembershipCard = ({ userId }: { userId: string }) => {
   const navigate = useNavigate();
@@ -34,31 +34,31 @@ export const MembershipCard = ({ userId }: { userId: string }) => {
   });
 
   return (
-    <Card 
-      className="bg-gray-50 border-none shadow-none hover:bg-gray-100 transition-colors cursor-pointer"
-      onClick={() => navigate("/membership-plans")}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-primary/10 p-2 rounded-full">
-              <CreditCard className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-medium">Subscription</h3>
-              <p className="text-sm text-gray-500">
-                {membership ? (
-                  <>
-                    {membership.membership_plans.name} · Expires {format(new Date(membership.end_date), 'MMM dd, yyyy')}
-                  </>
-                ) : (
-                  "No active membership"
-                )}
-              </p>
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Membership Status</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {membership ? (
+          <div className="space-y-2">
+            <p className="text-lg font-medium">
+              Current Plan: {membership.membership_plans.name}
+            </p>
+            <p className="text-sm text-gray-600">
+              Expires: {format(new Date(membership.end_date), 'MMMM dd, yyyy')}
+            </p>
+            <p className="text-sm text-gray-600">
+              {membership.membership_plans.description}
+            </p>
           </div>
-          <ChevronRight className="h-5 w-5 text-gray-400" />
-        </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-gray-600">No active membership</p>
+            <Button onClick={() => navigate("/membership-plans")}>
+              View Membership Plans
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { User, Camera } from "lucide-react";
+import { User } from "lucide-react";
 
 interface ProfileFormProps {
   profile: {
@@ -23,7 +24,6 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -39,6 +39,7 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}-${Date.now()}.${fileExt}`;
 
+      // Upload image to Supabase Storage
       const { error: uploadError, data } = await supabase.storage
         .from('profile-pictures')
         .upload(filePath, file, {
@@ -47,12 +48,14 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
 
       if (uploadError) throw uploadError;
 
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profile-pictures')
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
       
+      // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -114,7 +117,6 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
 
       if (error) throw error;
       toast.success("Profile updated successfully");
-      setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Error updating profile");
@@ -122,86 +124,67 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="relative">
-          <Avatar className="h-24 w-24">
-            <AvatarImage src={avatarUrl || undefined} />
-            <AvatarFallback>
-              <User className="h-12 w-12" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="absolute bottom-0 right-0">
+    <Card>
+      <CardHeader>
+        <CardTitle>Profile Settings</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          <div className="flex flex-col items-center space-y-4">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={avatarUrl || undefined} />
+              <AvatarFallback>
+                <User className="h-12 w-12" />
+              </AvatarFallback>
+            </Avatar>
             <ImageUpload
               value={avatarUrl}
               onChange={handleImageUpload}
               onRemove={handleImageRemove}
-            >
-              <Button 
-                size="icon" 
-                variant="secondary" 
-                className="rounded-full bg-white hover:bg-gray-100 shadow-md"
-              >
-                <Camera className="h-4 w-4 text-black" />
-              </Button>
-            </ImageUpload>
-          </div>
-        </div>
-        
-        <div className="text-center">
-          <h2 className="text-xl font-semibold">{fullName || "Add your name"}</h2>
-          <p className="text-sm text-gray-500">{email}</p>
-        </div>
-      </div>
-
-      {isEditing ? (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
-            <Input
-              id="phoneNumber"
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                disabled
+              />
+            </div>
 
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setIsEditing(false)}
-              variant="outline"
-              className="flex-1"
-            >
-              Cancel
-            </Button>
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
+            </div>
+
             <Button
               onClick={updateProfile}
-              className="flex-1"
+              className="w-full"
               disabled={isUploading}
             >
-              Save Changes
+              Update Profile
             </Button>
           </div>
         </div>
-      ) : (
-        <Button
-          onClick={() => setIsEditing(true)}
-          variant="outline"
-          className="w-full"
-        >
-          Edit Profile
-        </Button>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 };

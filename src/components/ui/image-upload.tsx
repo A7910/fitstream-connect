@@ -7,10 +7,9 @@ interface ImageUploadProps {
   value?: string | null;
   onChange: (file: File | null) => void;
   onRemove: () => void;
-  children?: React.ReactNode; // Add this line to accept children
 }
 
-export function ImageUpload({ value, onChange, onRemove, children }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(value || null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,8 +54,6 @@ export function ImageUpload({ value, onChange, onRemove, children }: ImageUpload
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-      ) : children ? (
-        <label htmlFor="image-upload">{children}</label>
       ) : (
         <label
           htmlFor="image-upload"
