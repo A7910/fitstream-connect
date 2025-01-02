@@ -16,14 +16,20 @@ const UserChatInterface = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch admin ID
-      const { data: adminData } = await supabase
+      // Fetch first available admin ID
+      const { data: adminData, error: adminError } = await supabase
         .from("admin_users")
         .select("user_id")
-        .single();
+        .limit(1);
 
-      if (adminData) {
-        setAdminId(adminData.user_id);
+      if (adminError) {
+        console.error("Error fetching admin:", adminError);
+        return;
+      }
+
+      if (adminData && adminData.length > 0) {
+        const firstAdminId = adminData[0].user_id;
+        setAdminId(firstAdminId);
 
         // Fetch messages between user and admin
         const { data: messagesData, error } = await supabase
@@ -32,7 +38,7 @@ const UserChatInterface = () => {
             *,
             sender:profiles!sender_id(*)
           `)
-          .or(`and(sender_id.eq.${user.id},recipient_id.eq.${adminData.user_id}),and(sender_id.eq.${adminData.user_id},recipient_id.eq.${user.id})`)
+          .or(`and(sender_id.eq.${user.id},recipient_id.eq.${firstAdminId}),and(sender_id.eq.${firstAdminId},recipient_id.eq.${user.id})`)
           .order("created_at", { ascending: true });
 
         if (error) {
