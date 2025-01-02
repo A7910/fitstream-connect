@@ -2,88 +2,83 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { NavLinks } from "./navigation/NavLinks";
-import { MobileMenu } from "./navigation/MobileMenu";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Fetch session and handle authentication state change
   useEffect(() => {
     const getSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error("Error fetching session:", error);
-          return;
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error fetching session:", error);
+        return;
+      }
+      setSession(session);
+  
+      if (session) {
+        // Fetch the admin status
+        const { data, error: adminError } = await supabase
+          .from("admin_users")
+          .select()
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+  
+        if (adminError) {
+          console.error("Error fetching admin status:", adminError);
         }
-        
-        if (session) {
-          setSession(session);
-          const { data: adminData, error: adminError } = await supabase
-            .from("admin_users")
-            .select()
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-
-          if (adminError) {
-            console.error("Error fetching admin status:", adminError);
-          }
-          setIsAdmin(!!adminData);
-        } else {
-          setSession(null);
-          setIsAdmin(false);
-        }
-      } catch (error) {
-        console.error("Session fetch error:", error);
+  
+        setIsAdmin(!!data); // If there's data, the user is an admin
       }
     };
-
+  
+    // Get session on mount
     getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
-      
+  
+    // Listen for auth state changes (sign in/out)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setSession(session);
         if (session) {
-          const { data: adminData, error: adminError } = await supabase
-            .from("admin_users")
-            .select()
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-
-          if (adminError) {
-            console.error("Error fetching admin status:", adminError);
-          }
-          setIsAdmin(!!adminData);
+          // Fetch admin status after sign-in
+          const fetchAdminStatus = async () => {
+            const { data, error: adminError } = await supabase
+              .from("admin_users")
+              .select()
+              .eq("user_id", session.user.id)
+              .maybeSingle();
+  
+            if (adminError) {
+              console.error("Error fetching admin status:", adminError);
+            }
+  
+            setIsAdmin(!!data); // If data exists, user is admin
+          };
+  
+          fetchAdminStatus();
         }
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      } else if (event === 'SIGNED_OUT') {
         setSession(null);
         setIsAdmin(false);
-        // Clear any stored session data
-        await supabase.auth.signOut();
-        localStorage.removeItem('supabase.auth.token');
       }
     });
-
+  
     return () => {
+      // Cleanup subscription on component unmount
       subscription?.unsubscribe();
     };
   }, []);
 
   const handleLogout = async () => {
     try {
-      // First clear local storage
-      localStorage.removeItem('supabase.auth.token');
-      
-      // Then sign out from Supabase
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
@@ -109,6 +104,79 @@ const Navbar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const NavLinks = () => (
+    <>
+      <Link to="/membership-plans">
+        <Button variant="ghost">Membership Plans</Button>
+      </Link>
+      {session && (
+        <>
+          <Link to="/workout-plan">
+            <Button variant="ghost">Workout Plan</Button>
+          </Link>
+          {isAdmin && (
+            <Link to="/admin">
+              <Button variant="ghost">Admin Dashboard</Button>
+            </Link>
+          )}
+          <Link to="/profile">
+            <Button variant="ghost">Profile</Button>
+          </Link>
+          <Button variant="ghost" onClick={handleLogout}>
+            Logout
+          </Button>
+        </>
+      )}
+    </>
+  );
+
+  if (!session) {
+    return (
+      <nav className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <Link to="/" className="flex items-center">
+                <span className="text-xl font-bold">FitStream Connect</span>
+              </Link>
+            </div>
+            
+            {/* Mobile menu button */}
+            <div className="flex items-center md:hidden">
+              <Button variant="ghost" size="icon" onClick={toggleMenu}>
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
+            </div>
+
+            {/* Desktop navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <NavLinks />
+              <Link to="/login">
+                <Button>Login</Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Mobile navigation */}
+          <div
+            className={`md:hidden transition-all duration-300 ease-in-out ${
+              isMenuOpen
+                ? "max-h-96 opacity-100"
+                : "max-h-0 opacity-0 overflow-hidden"
+            }`}
+          >
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <NavLinks />
+              <Link to="/login" className="block">
+                <Button className="w-full">Login</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -118,29 +186,32 @@ const Navbar = () => {
               <span className="text-xl font-bold">FitStream Connect</span>
             </Link>
           </div>
-          
+
+          {/* Mobile menu button */}
           <div className="flex items-center md:hidden">
             <Button variant="ghost" size="icon" onClick={toggleMenu}>
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
 
+          {/* Desktop navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <NavLinks session={session} isAdmin={isAdmin} onLogout={handleLogout} />
-            {!session && (
-              <Link to="/login">
-                <Button>Login</Button>
-              </Link>
-            )}
+            <NavLinks />
           </div>
         </div>
 
-        <MobileMenu 
-          isOpen={isMenuOpen}
-          session={session}
-          isAdmin={isAdmin}
-          onLogout={handleLogout}
-        />
+        {/* Mobile navigation */}
+        <div
+          className={`md:hidden transition-all duration-300 ease-in-out ${
+            isMenuOpen
+              ? "max-h-96 opacity-100"
+              : "max-h-0 opacity-0 overflow-hidden"
+          }`}
+        >
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            <NavLinks />
+          </div>
+        </div>
       </div>
     </nav>
   );
