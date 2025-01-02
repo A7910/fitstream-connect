@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ChatMessageListProps {
-  messages: Array<{
+  initialMessages: Array<{
     id: string;
     content: string;
     sender_id: string;
@@ -16,8 +16,10 @@ interface ChatMessageListProps {
   }>;
 }
 
-const ChatMessageList = ({ messages }: ChatMessageListProps) => {
+const ChatMessageList = ({ initialMessages }: ChatMessageListProps) => {
   const messagesEndRef = useRef(null);
+  const [messages, setMessages] = useState(initialMessages);
+
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
@@ -29,6 +31,20 @@ const ChatMessageList = ({ messages }: ChatMessageListProps) => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Fetch new messages in real-time
+  useEffect(() => {
+    const messageSubscription = supabase
+      .from("messages")
+      .on("INSERT", (payload) => {
+        setMessages((prevMessages) => [...prevMessages, payload.new]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeSubscription(messageSubscription);
+    };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
