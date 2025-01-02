@@ -22,10 +22,10 @@ const ChatInput = ({ selectedUser }: ChatInputProps) => {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("chat_messages").insert({
+      const { error } = await supabase.from("admin_messages").insert({
         content: message.trim(),
-        sender_id: user.id,
-        recipient_id: selectedUser.id,
+        admin_id: user.id,
+        user_id: selectedUser.id,
       });
 
       if (error) throw error;

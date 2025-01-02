@@ -13,41 +13,70 @@ const ChatBubble = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .select("*")
-        .eq("recipient_id", user.id)
-        .eq("is_read", false);
+      // Fetch unread messages from both tables
+      const [adminMessages, userMessages] = await Promise.all([
+        supabase
+          .from("admin_messages")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("is_read", false),
+        supabase
+          .from("user_messages")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("is_read", false)
+      ]);
 
-      if (error) {
-        console.error("Error fetching unread messages:", error);
+      if (adminMessages.error || userMessages.error) {
+        console.error("Error fetching unread messages:", adminMessages.error || userMessages.error);
         return;
       }
 
-      setUnreadCount(data?.length || 0);
+      setUnreadCount((adminMessages.data?.length || 0) + (userMessages.data?.length || 0));
     };
 
     fetchUnreadMessages();
 
     // Subscribe to new messages
-    const channel = supabase
-      .channel("chat_messages")
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const adminChannel = supabase
+      .channel("admin-messages")
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
-          table: "chat_messages",
+          table: "admin_messages",
+          filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log("New message received in bubble:", payload);
+          console.log("New admin message received in bubble:", payload);
+          setUnreadCount((prev) => prev + 1);
+        }
+      )
+      .subscribe();
+
+    const userChannel = supabase
+      .channel("user-messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "user_messages",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("New user message received in bubble:", payload);
           setUnreadCount((prev) => prev + 1);
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(adminChannel);
+      supabase.removeChannel(userChannel);
     };
   }, []);
 

@@ -17,21 +17,57 @@ const ChatInterface = () => {
     enabled: !!selectedUser,
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .select("*, sender:profiles!sender_id(*)")
-        .or(`and(sender_id.eq.${selectedUser.id},recipient_id.eq.${user.id}),and(sender_id.eq.${user.id},recipient_id.eq.${selectedUser.id})`)
-        .order("created_at", { ascending: true });
+      
+      // Fetch both admin messages and user messages
+      const [adminMessagesResponse, userMessagesResponse] = await Promise.all([
+        supabase
+          .from("admin_messages")
+          .select("*, sender:profiles!admin_id(*)")
+          .or(`admin_id.eq.${user.id},user_id.eq.${selectedUser.id}`)
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("user_messages")
+          .select("*, sender:profiles!user_id(*)")
+          .or(`user_id.eq.${selectedUser.id},admin_id.eq.${user.id}`)
+          .order("created_at", { ascending: true })
+      ]);
 
-      if (error) {
+      if (adminMessagesResponse.error || userMessagesResponse.error) {
         toast({
           title: "Error fetching messages",
-          description: error.message,
+          description: adminMessagesResponse.error?.message || userMessagesResponse.error?.message,
           variant: "destructive",
         });
         return [];
       }
-      return data;
+
+      // Combine and format messages
+      const combinedMessages = [
+        ...(adminMessagesResponse.data || []).map(msg => ({
+          id: msg.id,
+          content: msg.content,
+          sender_id: msg.admin_id,
+          recipient_id: msg.user_id,
+          created_at: msg.created_at,
+          sender: {
+            full_name: msg.sender?.full_name,
+            avatar_url: msg.sender?.avatar_url
+          }
+        })),
+        ...(userMessagesResponse.data || []).map(msg => ({
+          id: msg.id,
+          content: msg.content,
+          sender_id: msg.user_id,
+          recipient_id: msg.admin_id,
+          created_at: msg.created_at,
+          sender: {
+            full_name: msg.sender?.full_name,
+            avatar_url: msg.sender?.avatar_url
+          }
+        }))
+      ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+      return combinedMessages;
     },
   });
 
@@ -39,26 +75,47 @@ const ChatInterface = () => {
   useEffect(() => {
     if (!selectedUser) return;
 
-    const channel = supabase
-      .channel("chat-messages")
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Subscribe to admin messages
+    const adminChannel = supabase
+      .channel("admin-messages")
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
-          table: "chat_messages",
-          filter: `sender_id=eq.${selectedUser.id}`,
+          table: "admin_messages",
+          filter: `user_id=eq.${selectedUser.id}`,
         },
         (payload) => {
-          console.log("New message received:", payload);
-          // Invalidate the messages query to refetch
+          console.log("New admin message received:", payload);
+          queryClient.invalidateQueries({ queryKey: ["chat-messages", selectedUser.id] });
+        }
+      )
+      .subscribe();
+
+    // Subscribe to user messages
+    const userChannel = supabase
+      .channel("user-messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "user_messages",
+          filter: `admin_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("New user message received:", payload);
           queryClient.invalidateQueries({ queryKey: ["chat-messages", selectedUser.id] });
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(adminChannel);
+      supabase.removeChannel(userChannel);
     };
   }, [selectedUser, queryClient]);
 
