@@ -66,32 +66,6 @@ const AnnouncementManager = () => {
         .single();
 
       if (error) throw error;
-
-      // Fetch all active subscriptions and send push notifications
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('push_subscription')
-        .not('push_subscription', 'is', null);
-
-      if (profiles) {
-        for (const profile of profiles) {
-          try {
-            await fetch('/api/send-push-notification', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                subscription: profile.push_subscription,
-                notification: {
-                  message: newMessage,
-                }
-              }),
-            });
-          } catch (error) {
-            console.error('Error sending push notification:', error);
-          }
-        }
-      }
-
       return data;
     },
     onSuccess: () => {
