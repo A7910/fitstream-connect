@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Loader2, CalendarIcon, Trash2, Search } from "lucide-react";
+import { Loader2, CalendarIcon, Trash2, Search, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface Profile {
   full_name: string | null;
@@ -28,6 +29,7 @@ interface AttendanceRecord {
     id: string;
     full_name: string | null;
     phone_number: string | null;
+    avatar_url: string | null;
   };
 }
 
@@ -57,7 +59,8 @@ export const AttendanceRecords = () => {
           user:profiles!attendance_user_id_fkey_profiles (
             id,
             full_name,
-            phone_number
+            phone_number,
+            avatar_url
           )
         `)
         .gte("check_in", startOfDay.toISOString())
@@ -164,16 +167,24 @@ export const AttendanceRecords = () => {
         <div className="grid gap-4">
           {filteredRecords.map((record) => (
             <div key={record.id} className="p-4 border rounded-lg animate-fade-in">
-              <div className="space-y-1">
-                <p className="font-medium">{record.user?.full_name || "N/A"}</p>
-                <p className="text-sm text-muted-foreground">
-                  Check-in: {format(new Date(record.check_in), 'PP p')}
-                </p>
-                {record.check_out && (
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarImage src={record.user?.avatar_url || undefined} />
+                  <AvatarFallback>
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-1">
+                  <p className="font-medium">{record.user?.full_name || "N/A"}</p>
                   <p className="text-sm text-muted-foreground">
-                    Check-out: {format(new Date(record.check_out), 'PP p')}
+                    Check-in: {format(new Date(record.check_in), 'PP p')}
                   </p>
-                )}
+                  {record.check_out && (
+                    <p className="text-sm text-muted-foreground">
+                      Check-out: {format(new Date(record.check_out), 'PP p')}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           ))}
