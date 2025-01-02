@@ -47,29 +47,33 @@ const UserChatInterface = () => {
     fetchMessages();
 
     // Subscribe to new messages
-    const { data: { user } } = supabase.auth.getUser();
-    if (!user) return;
+    const setupSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const channel = supabase
-      .channel("chat_messages")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat_messages",
-          filter: `recipient_id=eq.${user.id}`,
-        },
-        (payload) => {
-          console.log("New message received:", payload);
-          setMessages((prevMessages) => [...prevMessages, payload.new]);
-        }
-      )
-      .subscribe();
+      const channel = supabase
+        .channel("chat_messages")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "chat_messages",
+            filter: `recipient_id=eq.${user.id}`,
+          },
+          (payload) => {
+            console.log("New message received:", payload);
+            setMessages((prevMessages) => [...prevMessages, payload.new]);
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
+      return () => {
+        supabase.removeChannel(channel);
+      };
     };
+
+    setupSubscription();
   }, []);
 
   const handleSendMessage = async (e) => {
