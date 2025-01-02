@@ -25,6 +25,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Initialize Supabase client with service role key
     const supabase = createClient(
       SUPABASE_URL!,
       SUPABASE_SERVICE_ROLE_KEY!
@@ -34,28 +35,25 @@ const handler = async (req: Request): Promise<Response> => {
     const { message, messageType }: AnnouncementEmailRequest = await req.json();
     console.log("Announcement details:", { message, messageType });
 
-    // Get all user profiles
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("id, full_name");
-
-    if (profilesError) {
-      console.error("Error fetching profiles:", profilesError);
-      throw new Error("Failed to fetch user profiles");
-    }
-
-    // Get user emails using service role to access auth.users
-    const { data: users, error: usersError } = await supabase
-      .auth.admin.listUsers();
+    // Get all user emails from auth.users
+    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
 
     if (usersError) {
       console.error("Error fetching users:", usersError);
       throw new Error("Failed to fetch user emails");
     }
 
-    // Combine profiles with emails
-    const userEmails = users.users.map(user => user.email).filter(Boolean) as string[];
+    // Filter out any undefined emails and get unique emails
+    const userEmails = [...new Set(users.users.map(user => user.email).filter(Boolean))] as string[];
     console.log(`Sending announcement to ${userEmails.length} users`);
+
+    if (userEmails.length === 0) {
+      throw new Error("No valid user emails found");
+    }
+
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not set");
+    }
 
     // Send email using Resend
     const res = await fetch("https://api.resend.com/emails", {
@@ -85,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (!res.ok) {
       const error = await res.text();
       console.error("Resend API error:", error);
-      throw new Error("Failed to send emails");
+      throw new Error(`Failed to send emails: ${error}`);
     }
 
     const data = await res.json();
@@ -98,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error) {
     console.error("Error in send-announcement-email function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || "Failed to send emails" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
