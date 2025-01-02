@@ -1,14 +1,18 @@
 import { Button } from "@/components/ui/button";
-import { Activity, Award, Users } from "lucide-react";
+import { Activity, Award, Users, Bell } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useToast } from "@/components/ui/use-toast";
 
 const Hero = () => {
   const [session, setSession] = useState(null);
   const [announcement, setAnnouncement] = useState("");
   const [displayText, setDisplayText] = useState("");
   const [messageType, setMessageType] = useState("info");
+  const { toast } = useToast();
+  const { permission, requestPermission, isSupported } = usePushNotifications();
 
   useEffect(() => {
     // Check for session
@@ -81,12 +85,40 @@ const Hero = () => {
     }
   };
 
+  const handleNotificationRequest = async () => {
+    try {
+      await requestPermission();
+      toast({
+        title: "Notifications enabled",
+        description: "You will now receive announcements as notifications",
+      });
+    } catch (error) {
+      console.error("Error enabling notifications:", error);
+      toast({
+        title: "Error",
+        description: "Failed to enable notifications",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="pt-24 pb-12 animate-fade-in">
       <div className="container mx-auto px-4">
         {session && announcement && (
           <div className={getAnnouncementStyles()}>
             <p className="font-medium">{displayText}</p>
+            {isSupported && permission !== 'granted' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={handleNotificationRequest}
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                Enable Notifications
+              </Button>
+            )}
           </div>
         )}
         <div className="text-center max-w-3xl mx-auto">
