@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,8 +16,10 @@ interface ChatMessageListProps {
   }>;
 }
 
-const ChatMessageList = ({ messages }: ChatMessageListProps) => {
+const ChatMessageList = ({ messages: initialMessages }: ChatMessageListProps) => {
   const messagesEndRef = useRef(null);
+  const [messages, setMessages] = useState(initialMessages);
+  
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
     queryFn: async () => {
@@ -29,6 +31,53 @@ const ChatMessageList = ({ messages }: ChatMessageListProps) => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
+
+  // Subscribe to new messages
+  useEffect(() => {
+    const channel = supabase
+      .channel("chat-messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+        },
+        (payload) => {
+          console.log("New message received:", payload);
+          // Fetch the sender information for the new message
+          const fetchSenderInfo = async () => {
+            const { data: sender } = await supabase
+              .from("profiles")
+              .select("full_name, avatar_url")
+              .eq("id", payload.new.sender_id)
+              .single();
+
+            const newMessage = {
+              ...payload.new,
+              sender: {
+                full_name: sender?.full_name || "Unknown",
+                avatar_url: sender?.avatar_url || null,
+              },
+            };
+
+            setMessages((prevMessages) => [...prevMessages, newMessage]);
+          };
+
+          fetchSenderInfo();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
