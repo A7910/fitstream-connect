@@ -10,8 +10,8 @@ export interface Message {
   created_at: string;
   updated_at: string;
   profiles: {
-    full_name: string;
-    avatar_url: string;
+    full_name: string | null;
+    avatar_url: string | null;
   };
 }
 
@@ -32,9 +32,9 @@ const MessageList = ({ messages, currentUserId }: MessageListProps) => {
             className={cn("flex gap-2", isCurrentUser && "flex-row-reverse")}
           >
             <Avatar>
-              <AvatarImage src={message.profiles.avatar_url} />
+              <AvatarImage src={message.profiles?.avatar_url || undefined} />
               <AvatarFallback>
-                {message.profiles.full_name?.charAt(0).toUpperCase()}
+                {message.profiles?.full_name?.charAt(0).toUpperCase() || '?'}
               </AvatarFallback>
             </Avatar>
             <div
@@ -45,7 +45,7 @@ const MessageList = ({ messages, currentUserId }: MessageListProps) => {
             >
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">
-                  {message.profiles.full_name}
+                  {message.profiles?.full_name || 'Anonymous'}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   {format(new Date(message.created_at), "p")}
