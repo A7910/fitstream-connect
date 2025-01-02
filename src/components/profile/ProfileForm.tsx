@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ProfileAvatar } from "./ProfileAvatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { ImageUpload } from "@/components/ui/image-upload";
+import { User, Camera } from "lucide-react";
 
 interface ProfileFormProps {
   profile: {
@@ -34,24 +36,10 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
   const handleImageUpload = async (file: File) => {
     try {
       setIsUploading(true);
-      
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast.error("Please upload an image file");
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("File size must be less than 5MB");
-        return;
-      }
-
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}-${Date.now()}.${fileExt}`;
 
-      // Upload the file to Supabase storage
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('profile-pictures')
         .upload(filePath, file, {
           upsert: true,
@@ -59,12 +47,12 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
 
       if (uploadError) throw uploadError;
 
-      // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profile-pictures')
         .getPublicUrl(filePath);
 
-      // Update the profile with the new avatar URL
+      setAvatarUrl(publicUrl);
+      
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -72,7 +60,6 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
 
       if (updateError) throw updateError;
 
-      setAvatarUrl(publicUrl);
       toast.success("Profile picture updated successfully");
     } catch (error) {
       console.error("Error uploading image:", error);
@@ -137,12 +124,29 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center space-y-4">
-        <ProfileAvatar
-          avatarUrl={avatarUrl}
-          isUploading={isUploading}
-          onImageUpload={handleImageUpload}
-          onImageRemove={handleImageRemove}
-        />
+        <div className="relative">
+          <Avatar className="h-24 w-24">
+            <AvatarImage src={avatarUrl || undefined} />
+            <AvatarFallback>
+              <User className="h-12 w-12" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="absolute bottom-0 right-0">
+            <ImageUpload
+              value={avatarUrl}
+              onChange={handleImageUpload}
+              onRemove={handleImageRemove}
+            >
+              <Button 
+                size="icon" 
+                variant="secondary" 
+                className="rounded-full bg-white hover:bg-gray-100 shadow-md"
+              >
+                <Camera className="h-4 w-4 text-black" />
+              </Button>
+            </ImageUpload>
+          </div>
+        </div>
         
         <div className="text-center">
           <h2 className="text-xl font-semibold">{fullName || "Add your name"}</h2>
