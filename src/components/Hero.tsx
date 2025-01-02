@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Activity, Award, Users } from "lucide-react";
+import { Activity, Award, Users, Dumbbell, Weight, HeartPulse } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -82,7 +82,20 @@ const Hero = () => {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-gradient-to-b from-purple-100 to-blue-100">
+      {/* Floating Icons Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-10 text-purple-300 opacity-20">
+          <Dumbbell size={120} />
+        </div>
+        <div className="absolute top-40 right-20 text-blue-300 opacity-20">
+          <HeartPulse size={100} />
+        </div>
+        <div className="absolute bottom-40 left-20 text-purple-300 opacity-20">
+          <Weight size={80} />
+        </div>
+      </div>
+
       {/* Announcement Bar */}
       <div className="container mx-auto px-4 relative z-10">
         {session && announcement && (
@@ -92,28 +105,15 @@ const Hero = () => {
         )}
       </div>
 
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: 'url("/lovable-uploads/fba9eb4e-9f88-49cc-ac0d-91a795c7fa73.png")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      >
-        <div className="absolute inset-0 bg-black/50" /> {/* Dark overlay */}
-      </div>
-
       {/* Content */}
       <div className="relative z-10 pt-24 pb-12 animate-fade-in">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-white mb-6">
+            <h1 className="text-5xl font-bold text-gray-800 mb-6">
               Transform Your Fitness Journey with{" "}
               <span className="text-primary">Obees Fitness</span>
             </h1>
-            <p className="text-xl text-gray-200 mb-8">
+            <p className="text-xl text-gray-600 mb-8">
               Your all-in-one platform for gym management, fitness tracking, and
               achieving your wellness goals.
             </p>
@@ -126,11 +126,11 @@ const Hero = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="p-6 rounded-lg bg-white/10 backdrop-blur-sm hover:bg-white/20 transition-all"
+                className="p-6 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white/90 transition-all shadow-lg"
               >
                 <feature.icon className="h-12 w-12 text-primary mb-4" />
-                <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
-                <p className="text-gray-200">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-2 text-gray-800">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
               </div>
             ))}
           </div>
