@@ -140,7 +140,7 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
               <Button 
                 size="icon" 
                 variant="secondary" 
-                className="rounded-full bg-white hover:bg-gray-100"
+                className="rounded-full bg-white hover:bg-gray-100 shadow-md"
               >
                 <Camera className="h-4 w-4 text-black" />
               </Button>
