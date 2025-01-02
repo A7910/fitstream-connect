@@ -92,13 +92,13 @@ const Hero = () => {
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             Transform Your Fitness Journey with{" "}
-            <span className="text-primary">FitHub</span>
+            <span className="text-primary">Obees Fitness</span>
           </h1>
           <p className="text-xl text-gray-600 mb-8">
             Your all-in-one platform for gym management, fitness tracking, and
             achieving your wellness goals.
           </p>
-          <Button className="bg-primary hover:bg-primary/90 text-lg px-8 py-6">
+          <Button className="bg-yellow-500 hover:bg-yellow-600 text-lg px-8 py-6 rounded-full">
             Start Your Journey
           </Button>
         </div>
