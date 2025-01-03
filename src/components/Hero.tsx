@@ -105,7 +105,7 @@ const Hero = () => {
             <img 
               src="/lovable-uploads/27a724cd-d33a-4e6c-b956-5067ab176292.png" 
               alt="Fitness Training"
-              className="w-full h-[500px] object-cover"
+              className="w-full h-[500px] object-cover -ml-8"
             />
           </div>
         </div>
