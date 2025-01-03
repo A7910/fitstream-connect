@@ -63,9 +63,11 @@ export const ClubSection = () => {
             >
               <CollapsibleTrigger className="flex items-center justify-between p-6 bg-[#9b87f5]/10 backdrop-blur-sm rounded-lg w-full hover:bg-[#9b87f5]/20 transition-all border border-[#9b87f5]/20">
                 <h4 className="font-bebas text-2xl text-[#020817]">{plan.name}</h4>
-                <span className="text-2xl text-[#9b87f5]">{openPlan === plan.id ? "-" : "+"}</span>
+                <span className="text-2xl text-[#9b87f5] transition-transform duration-300">
+                  {openPlan === plan.id ? "-" : "+"}
+                </span>
               </CollapsibleTrigger>
-              <CollapsibleContent>
+              <CollapsibleContent className="transition-all duration-300 ease-in-out data-[state=open]:animate-content-slide-down data-[state=closed]:animate-content-slide-up">
                 <div className="p-6 bg-[#020817] backdrop-blur-sm border border-[#9b87f5]/20 rounded-b-lg mt-1">
                   <p className="font-poppins text-white mb-4">{plan.description}</p>
                   <div className="text-3xl font-bold text-white mb-4 font-poppins">
