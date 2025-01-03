@@ -1,16 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Users, RefreshCw, ArrowUpDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { useState } from "react";
 import { DateRange } from "@/hooks/useAnalyticsData";
 import { MembershipStats } from "./stats/MembershipStats";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { MembershipPlanStats } from "./stats/MembershipPlanStats";
+import { NewMembershipsStats } from "./stats/NewMembershipsStats";
+import { useSwipeable } from "react-swipeable";
 
 interface StatsCardsProps {
   users: any[];
@@ -20,7 +19,6 @@ interface StatsCardsProps {
   latestNewMemberships: number;
   membershipsChange: number;
   onDateRangeChange: (range: DateRange) => void;
-  onCustomDateChange?: (date: Date) => void;
   dateRange: DateRange;
   rangeStart: Date;
   rangeEnd: Date;
@@ -35,18 +33,15 @@ const StatsCards = ({
   latestNewMemberships,
   membershipsChange,
   onDateRangeChange,
-  onCustomDateChange,
   dateRange,
   rangeStart,
   rangeEnd,
   onRefresh,
 }: StatsCardsProps) => {
-  const [date, setDate] = useState<Date>();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState<'stats' | 'plans'>('plans');
   const [defaultFirstPage, setDefaultFirstPage] = useState<'stats' | 'plans'>('plans');
 
-  // Query to fetch membership plans with subscriber counts
   const { data: membershipPlans = [] } = useQuery({
     queryKey: ["membership-plans"],
     queryFn: async () => {
@@ -60,15 +55,7 @@ const StatsCards = ({
     },
   });
 
-  // Filter out inactive memberships
   const activeMemberships = memberships.filter(m => m.status === 'active');
-
-  const handleSelect = (selectedDate: Date | undefined) => {
-    if (selectedDate) {
-      setDate(selectedDate);
-      onCustomDateChange?.(selectedDate);
-    }
-  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -85,17 +72,16 @@ const StatsCards = ({
     setCurrentPage(newDefault);
   };
 
-  const formatPercentage = (value: number) => {
-    if (isNaN(value) || !isFinite(value)) return "0.0";
-    return value.toFixed(1);
+  const togglePage = (direction: 'next' | 'prev') => {
+    setCurrentPage(currentPage === 'plans' ? 'stats' : 'plans');
   };
 
-  const formatDateRange = () => {
-    if (dateRange === "custom" && date) {
-      return format(date, "MMM dd, yyyy");
-    }
-    return `last ${dateRange}`;
-  };
+  const handlers = useSwipeable({
+    onSwipedLeft: () => togglePage('next'),
+    onSwipedRight: () => togglePage('prev'),
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true
+  });
 
   const RefreshButton = () => (
     <Button
@@ -112,50 +98,52 @@ const StatsCards = ({
     </Button>
   );
 
+  const formatDateRange = () => {
+    return `last ${dateRange}`;
+  };
+
   const renderMembershipPlansCard = () => (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">Membership Plans</CardTitle>
         <div className="flex items-center gap-2">
+          <RefreshButton />
+          <Users className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </CardHeader>
+      <CardContent {...handlers}>
+        <div className="min-h-[200px]">
+          {currentPage === 'plans' ? (
+            <MembershipPlanStats 
+              membershipPlans={membershipPlans}
+              onToggleDefault={toggleDefaultPage}
+            />
+          ) : (
+            <NewMembershipsStats
+              latestNewMemberships={latestNewMemberships}
+              membershipsChange={membershipsChange}
+              dateRange={formatDateRange()}
+            />
+          )}
+        </div>
+        <div className="flex justify-center gap-4 mt-4">
           <Button
             variant="ghost"
-            size="sm"
-            onClick={() => setCurrentPage(currentPage === 'plans' ? 'stats' : 'plans')}
+            size="icon"
+            onClick={() => togglePage('prev')}
+            className="h-8 w-8 p-0"
           >
-            {currentPage === 'plans' ? 'View New Memberships' : 'View Plan Stats'}
+            <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleDefaultPage}
-            title="Change default first page"
+            onClick={() => togglePage('next')}
+            className="h-8 w-8 p-0"
           >
-            <ArrowUpDown className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
-          <Users className="h-4 w-4 text-muted-foreground" />
         </div>
-      </CardHeader>
-      <CardContent>
-        {currentPage === 'plans' ? (
-          <div className="space-y-4">
-            {membershipPlans.map((plan) => (
-              <div key={plan.id} className="flex justify-between items-center">
-                <span className="font-medium">{plan.name}</span>
-                <span className="text-muted-foreground">
-                  {plan.subscribers_count} subscribers
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div>
-            <div className="text-2xl font-bold">{latestNewMemberships}</div>
-            <p className="text-xs text-muted-foreground">
-              {membershipsChange > 0 ? "+" : ""}
-              {formatPercentage(membershipsChange)}% from {formatDateRange()}
-            </p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
