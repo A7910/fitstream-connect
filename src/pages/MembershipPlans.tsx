@@ -97,20 +97,20 @@ const MembershipPlans = () => {
   return (
     <div className="container mx-auto py-8">
       <BackButton />
-      <h1 className="text-3xl font-bold text-center mb-8">Membership Plans</h1>
+      <h1 className="text-2xl md:text-3xl font-bebas text-primary text-center mb-8">Membership Plans</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans?.map((plan) => (
-          <Card key={plan.id} className="flex flex-col">
+          <Card key={plan.id} className="flex flex-col bg-white shadow-lg border-none">
             <CardHeader>
-              <CardTitle>{plan.name}</CardTitle>
-              <CardDescription>{plan.description}</CardDescription>
+              <CardTitle className="text-xl md:text-2xl font-bebas text-primary">{plan.name}</CardTitle>
+              <CardDescription className="font-poppins text-sm md:text-base text-gray-600">{plan.description}</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">
-              <div className="text-3xl font-bold mb-4">{formatPrice(plan.price)}</div>
+              <div className="text-2xl md:text-3xl font-bold font-bebas text-primary mb-4">{formatPrice(plan.price)}</div>
               <div className="space-y-2">
                 {parseFeatures(plan.features as string).map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <span className="mr-2">•</span>
+                  <div key={index} className="flex items-center font-poppins text-sm md:text-base text-gray-600">
+                    <span className="mr-2 text-primary">•</span>
                     {feature}
                   </div>
                 ))}
@@ -118,7 +118,7 @@ const MembershipPlans = () => {
             </CardContent>
             <CardFooter>
               <Button 
-                className="w-full" 
+                className="w-full bg-primary hover:bg-primary/90 text-white font-poppins" 
                 onClick={() => handleSubscribe(plan.id)}
               >
                 Subscribe Now
