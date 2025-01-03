@@ -11,22 +11,22 @@ export const NavLinks = ({ session, isAdmin, handleLogout }: NavLinksProps) => {
   return (
     <>
       <Link to="/membership-plans">
-        <Button variant="ghost">Membership Plans</Button>
+        <Button variant="ghost" className="font-poppins">Membership Plans</Button>
       </Link>
       {session && (
         <>
           <Link to="/workout-plan">
-            <Button variant="ghost">Workout Plan</Button>
+            <Button variant="ghost" className="font-poppins">Workout Plan</Button>
           </Link>
           {isAdmin && (
             <Link to="/admin">
-              <Button variant="ghost">Admin Dashboard</Button>
+              <Button variant="ghost" className="font-poppins">Admin Dashboard</Button>
             </Link>
           )}
           <Link to="/profile">
-            <Button variant="ghost">Profile</Button>
+            <Button variant="ghost" className="font-poppins">Profile</Button>
           </Link>
-          <Button variant="ghost" onClick={handleLogout}>
+          <Button variant="ghost" onClick={handleLogout} className="font-poppins">
             Logout
           </Button>
         </>
