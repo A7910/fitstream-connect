@@ -16,7 +16,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <React.StrictMode>
+    <StrictMode>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
@@ -34,7 +34,7 @@ const App = () => {
           </TooltipProvider>
         </QueryClientProvider>
       </BrowserRouter>
-    </React.StrictMode>
+    </StrictMode>
   );
 };
 
