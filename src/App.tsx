@@ -10,28 +10,31 @@ import Profile from "./pages/Profile";
 import MembershipPlans from "./pages/MembershipPlans";
 import WorkoutPlan from "./pages/WorkoutPlan";
 import AdminDashboard from "./pages/AdminDashboard";
+import { StrictMode } from "react";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/membership-plans" element={<MembershipPlans />} />
-            <Route path="/workout-plan" element={<WorkoutPlan />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Routes>
-          <Toaster />
-          <Sonner />
-        </TooltipProvider>
+        <BrowserRouter>
+          <TooltipProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/membership-plans" element={<MembershipPlans />} />
+              <Route path="/workout-plan" element={<WorkoutPlan />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Routes>
+            <Toaster />
+            <Sonner />
+          </TooltipProvider>
+        </BrowserRouter>
       </QueryClientProvider>
-    </BrowserRouter>
+    </StrictMode>
   );
 };
 
