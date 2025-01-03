@@ -94,12 +94,12 @@ const Hero = () => {
 
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
-        <div className="text-center w-full mx-auto">
+        <div className="text-center max-w-4xl mx-auto">
           <h1 className="font-bebas text-[40px] md:text-[100px] font-bold leading-[0.85] mb-0 animate-strength-burst">
             FIND YOUR<br />STRENGTH
           </h1>
-          <div className="relative overflow-hidden my-12">
-            <h2 className="font-poppins text-[40px] md:text-[80px] font-bold leading-none absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 text-white whitespace-nowrap overflow-hidden animate-typewriter">
+          <div className="relative rounded-2xl overflow-hidden my-12">
+            <h2 className="font-bebas text-[40px] md:text-[80px] font-bold leading-none absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 text-white whitespace-nowrap overflow-hidden animate-typewriter">
               INSIDE<br />AND OUT.
             </h2>
             <img 
@@ -113,8 +113,8 @@ const Hero = () => {
 
       <div className="text-center py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h3 className="font-poppins text-2xl md:text-3xl mb-4">FITNESS SHOULD BE ACCESSIBLE TO EVERYONE.</h3>
-          <p className="text-gray-600 max-w-2xl mx-auto mb-6 font-poppins">
+          <h3 className="font-bebas text-2xl md:text-3xl mb-4">FITNESS SHOULD BE ACCESSIBLE TO EVERYONE.</h3>
+          <p className="text-gray-600 max-w-2xl mx-auto mb-6">
             Whether you're a seasoned athlete or just starting out, our expert trainers are here to guide you through your fitness journey. We believe in creating an inclusive environment where everyone can thrive.
           </p>
           <Button variant="outline" className="rounded-full">
@@ -132,10 +132,10 @@ const Hero = () => {
       {/* Final CTA */}
       <div className="bg-black text-white py-24 text-center">
         <div className="container mx-auto px-4">
-          <h2 className="font-poppins text-[40px] md:text-[80px] leading-tight md:leading-normal mb-6">
+          <h2 className="font-bebas text-[40px] md:text-[80px] leading-tight md:leading-normal mb-6">
             YOUR BODY IS YOUR TEMPLE
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto mb-8 font-poppins">
+          <p className="text-gray-400 max-w-2xl mx-auto mb-8">
             Take the first step towards a stronger, healthier you. Join our community and transform your life through fitness.
           </p>
           <Button className="bg-white text-black hover:bg-gray-100">
