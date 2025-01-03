@@ -51,34 +51,36 @@ export const ClubSection = () => {
   }
 
   return (
-    <div className="bg-gray-50 py-16">
+    <div className="bg-gradient-to-b from-[#1A1F2C] to-[#2D243F] py-16">
       <div className="container mx-auto px-4">
-        <h3 className="font-bebas text-3xl mb-8">THE CLUB</h3>
-        <div className="space-y-4 max-w-3xl mx-auto">
+        <h3 className="font-bebas text-4xl mb-12 text-white tracking-wider">THE CLUB</h3>
+        <div className="space-y-6 max-w-3xl mx-auto">
           {plans?.map((plan) => (
             <Collapsible
               key={plan.id}
               open={openPlan === plan.id}
               onOpenChange={() => setOpenPlan(openPlan === plan.id ? null : plan.id)}
             >
-              <CollapsibleTrigger className="flex items-center justify-between p-6 bg-white rounded-lg w-full hover:bg-gray-50">
-                <h4 className="font-bebas text-2xl">{plan.name}</h4>
-                <span className="text-2xl">{openPlan === plan.id ? "-" : "+"}</span>
+              <CollapsibleTrigger className="flex items-center justify-between p-6 bg-[#9b87f5]/10 backdrop-blur-sm rounded-lg w-full hover:bg-[#9b87f5]/20 transition-all border border-[#9b87f5]/20">
+                <h4 className="font-bebas text-2xl text-white">{plan.name}</h4>
+                <span className="text-2xl text-[#D6BCFA]">{openPlan === plan.id ? "-" : "+"}</span>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="p-6 bg-white border-t">
-                  <p className="text-gray-600 mb-4">{plan.description}</p>
-                  <div className="text-3xl font-bold mb-4">{formatPrice(plan.price)}</div>
+                <div className="p-6 bg-[#1A1F2C]/80 backdrop-blur-sm border border-[#9b87f5]/20 rounded-b-lg mt-1">
+                  <p className="font-poppins text-[#E5DEFF] mb-4">{plan.description}</p>
+                  <div className="text-3xl font-bold text-[#9b87f5] mb-4 font-poppins">
+                    {formatPrice(plan.price)}
+                  </div>
                   <div className="space-y-2 mb-6">
                     {parseFeatures(plan.features as string).map((feature, index) => (
-                      <div key={index} className="flex items-center">
-                        <span className="mr-2">•</span>
+                      <div key={index} className="flex items-center text-[#D6BCFA] font-poppins">
+                        <span className="mr-2 text-[#9b87f5]">•</span>
                         {feature}
                       </div>
                     ))}
                   </div>
                   <Button 
-                    className="w-full" 
+                    className="w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors font-poppins"
                     onClick={() => handleSubscribe(plan.id)}
                   >
                     Subscribe Now
