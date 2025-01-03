@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { Camera, User } from "lucide-react";
+import { User } from "lucide-react";
 
 interface ProfileFormProps {
   profile: {
@@ -39,6 +39,7 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}-${Date.now()}.${fileExt}`;
 
+      // Upload image to Supabase Storage
       const { error: uploadError, data } = await supabase.storage
         .from('profile-pictures')
         .upload(filePath, file, {
@@ -47,12 +48,14 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
 
       if (uploadError) throw uploadError;
 
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profile-pictures')
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
       
+      // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -128,30 +131,17 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
       <CardContent>
         <div className="space-y-6">
           <div className="flex flex-col items-center space-y-4">
-            <div className="relative">
-              <Avatar className="h-24 w-24">
-                <AvatarImage src={avatarUrl || undefined} />
-                <AvatarFallback>
-                  <User className="h-12 w-12" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -right-2 -top-2">
-                <ImageUpload
-                  value={avatarUrl}
-                  onChange={handleImageUpload}
-                  onRemove={handleImageRemove}
-                >
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="icon"
-                    className="rounded-full h-8 w-8 bg-primary hover:bg-primary/90"
-                  >
-                    <Camera className="h-4 w-4 text-white" />
-                  </Button>
-                </ImageUpload>
-              </div>
-            </div>
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={avatarUrl || undefined} />
+              <AvatarFallback>
+                <User className="h-12 w-12" />
+              </AvatarFallback>
+            </Avatar>
+            <ImageUpload
+              value={avatarUrl}
+              onChange={handleImageUpload}
+              onRemove={handleImageRemove}
+            />
           </div>
 
           <div className="space-y-4">
