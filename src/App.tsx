@@ -10,15 +10,15 @@ import Profile from "./pages/Profile";
 import MembershipPlans from "./pages/MembershipPlans";
 import WorkoutPlan from "./pages/WorkoutPlan";
 import AdminDashboard from "./pages/AdminDashboard";
-import { StrictMode } from "react";
+import React, { StrictMode } from "react";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+    <React.StrictMode>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -32,9 +32,9 @@ const App = () => {
             <Toaster />
             <Sonner />
           </TooltipProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </StrictMode>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </React.StrictMode>
   );
 };
 
