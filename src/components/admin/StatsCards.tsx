@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MembershipPlanStats } from "./stats/MembershipPlanStats";
 import { NewMembershipsStats } from "./stats/NewMembershipsStats";
 import { useSwipeable } from "react-swipeable";
+import { formatPercentage } from "@/lib/utils";
 
 interface StatsCardsProps {
   users: any[];
@@ -79,7 +80,6 @@ const StatsCards = ({
   const handlers = useSwipeable({
     onSwipedLeft: () => togglePage('next'),
     onSwipedRight: () => togglePage('prev'),
-    preventDefaultTouchmoveEvent: true,
     trackMouse: true
   });
 
@@ -111,8 +111,8 @@ const StatsCards = ({
           <Users className="h-4 w-4 text-muted-foreground" />
         </div>
       </CardHeader>
-      <CardContent {...handlers}>
-        <div className="min-h-[200px]">
+      <CardContent>
+        <div className="min-h-[200px]" {...handlers}>
           {currentPage === 'plans' ? (
             <MembershipPlanStats 
               membershipPlans={membershipPlans}
