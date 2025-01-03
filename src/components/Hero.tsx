@@ -95,7 +95,7 @@ const Hero = () => {
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto">
-          <h1 className="font-bebas text-[100px] font-bold leading-none mb-0">
+          <h1 className="font-bebas text-[100px] font-bold leading-[0.85] mb-0">
             FIND YOUR<br />STRENGTH
           </h1>
           <h2 className="font-bebas text-[80px] font-bold leading-none mt-4 mb-8">
