@@ -98,6 +98,16 @@ export default {
         "typewriter": {
           "0%": { width: "0%" },
           "100%": { width: "100%" }
+        },
+        "strength-burst": {
+          "0%, 100%": { 
+            transform: "scale(1)",
+            textShadow: "0 0 0 rgba(0,0,0,0)"
+          },
+          "50%": { 
+            transform: "scale(1.05)",
+            textShadow: "0 0 20px rgba(139,92,246,0.3)"
+          }
         }
       },
       animation: {
@@ -106,7 +116,8 @@ export default {
         "fade-in": "fade-in 0.5s ease-out",
         "content-slide-down": "content-slide-down 0.3s ease-out",
         "content-slide-up": "content-slide-up 0.3s ease-out",
-        "typewriter": "typewriter 4s steps(40) infinite"
+        "typewriter": "typewriter 4s steps(40) infinite",
+        "strength-burst": "strength-burst 2s ease-in-out infinite"
       },
     },
   },

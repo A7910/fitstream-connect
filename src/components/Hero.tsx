@@ -95,7 +95,7 @@ const Hero = () => {
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto">
-          <h1 className="font-bebas text-[40px] md:text-[100px] font-bold leading-[0.85] mb-0">
+          <h1 className="font-bebas text-[40px] md:text-[100px] font-bold leading-[0.85] mb-0 animate-strength-burst">
             FIND YOUR<br />STRENGTH
           </h1>
           <div className="relative rounded-2xl overflow-hidden my-12">
@@ -111,7 +111,6 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Accessibility Section */}
       <div className="text-center py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h3 className="font-bebas text-2xl md:text-3xl mb-4">FITNESS SHOULD BE ACCESSIBLE TO EVERYONE.</h3>
