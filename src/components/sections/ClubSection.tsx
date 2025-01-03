@@ -51,9 +51,9 @@ export const ClubSection = () => {
   }
 
   return (
-    <div className="bg-gradient-to-b from-[#1A1F2C] to-[#2D243F] py-16">
+    <div className="bg-white py-16">
       <div className="container mx-auto px-4">
-        <h3 className="font-bebas text-4xl mb-12 text-white tracking-wider">THE CLUB</h3>
+        <h3 className="font-bebas text-4xl mb-12 text-[#020817] tracking-wider">THE CLUB</h3>
         <div className="space-y-6 max-w-3xl mx-auto">
           {plans?.map((plan) => (
             <Collapsible
@@ -62,8 +62,8 @@ export const ClubSection = () => {
               onOpenChange={() => setOpenPlan(openPlan === plan.id ? null : plan.id)}
             >
               <CollapsibleTrigger className="flex items-center justify-between p-6 bg-[#9b87f5]/10 backdrop-blur-sm rounded-lg w-full hover:bg-[#9b87f5]/20 transition-all border border-[#9b87f5]/20">
-                <h4 className="font-bebas text-2xl text-white">{plan.name}</h4>
-                <span className="text-2xl text-[#D6BCFA]">{openPlan === plan.id ? "-" : "+"}</span>
+                <h4 className="font-bebas text-2xl text-[#020817]">{plan.name}</h4>
+                <span className="text-2xl text-[#9b87f5]">{openPlan === plan.id ? "-" : "+"}</span>
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="p-6 bg-[#1A1F2C]/80 backdrop-blur-sm border border-[#9b87f5]/20 rounded-b-lg mt-1">
