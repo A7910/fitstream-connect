@@ -36,24 +36,24 @@ export const MembershipCard = ({ userId }: { userId: string }) => {
   return (
     <Card className="bg-white shadow-lg border-none">
       <CardHeader>
-        <CardTitle className="text-3xl font-bebas text-primary">Membership Status</CardTitle>
+        <CardTitle className="text-2xl md:text-3xl font-bebas text-primary">Membership Status</CardTitle>
       </CardHeader>
       <CardContent>
         {membership ? (
           <div className="space-y-4">
-            <p className="text-2xl font-bebas text-primary">
+            <p className="text-xl md:text-2xl font-bebas text-primary">
               Current Plan: {membership.membership_plans.name}
             </p>
-            <p className="text-lg font-poppins text-gray-600">
+            <p className="text-base md:text-lg font-poppins text-gray-600">
               Expires: {format(new Date(membership.end_date), 'MMMM dd, yyyy')}
             </p>
-            <p className="text-base font-poppins text-gray-600">
+            <p className="text-sm md:text-base font-poppins text-gray-600">
               {membership.membership_plans.description}
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-lg font-poppins text-gray-600">No active membership</p>
+            <p className="text-base md:text-lg font-poppins text-gray-600">No active membership</p>
             <Button 
               onClick={() => navigate("/membership-plans")}
               className="w-full bg-primary hover:bg-primary/90 text-white font-poppins"
