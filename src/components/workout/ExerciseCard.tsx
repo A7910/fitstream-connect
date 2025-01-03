@@ -20,29 +20,30 @@ interface ExerciseCardProps {
 
 const ExerciseCard = ({ exercise, getExerciseImage }: ExerciseCardProps) => {
   return (
-    <Card key={exercise.id}>
+    <Card className="overflow-hidden bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
       <div className="relative h-48 w-full">
         <img
           src={getExerciseImage(exercise.muscle_group)}
           alt={exercise.name}
-          className="w-full h-full object-cover rounded-t-lg"
+          className="w-full h-full object-cover"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       </div>
-      <CardHeader>
-        <CardTitle className="text-lg">{exercise.name}</CardTitle>
-        <CardDescription>
+      <CardHeader className="relative z-10 -mt-8 bg-white rounded-t-xl">
+        <CardTitle className="font-bebas text-2xl text-primary">{exercise.name}</CardTitle>
+        <CardDescription className="font-poppins text-secondary">
           Muscle Group: {exercise.muscle_group}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-2">
+        <p className="font-poppins text-sm text-gray-600 mb-4">
           {exercise.description}
         </p>
-        <div className="flex justify-between items-center mt-4">
-          <p className="text-sm">
+        <div className="flex justify-between items-center">
+          <p className="font-poppins text-sm text-accent">
             Difficulty: {exercise.difficulty_level}
           </p>
-          <p className="text-sm font-semibold">
+          <p className="font-bebas text-lg text-primary">
             Sets: {exercise.sets}
           </p>
         </div>
