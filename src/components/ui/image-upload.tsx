@@ -59,7 +59,7 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
           htmlFor="image-upload"
           className="cursor-pointer"
         >
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button variant="outline" size="sm" className="gap-2" type="button">
             <Upload className="h-4 w-4" />
             Upload
           </Button>
