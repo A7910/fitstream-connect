@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Activity, Award, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { ClubSection } from "./sections/ClubSection";
+import { TrainingSection } from "./sections/TrainingSection";
 
 const Hero = () => {
   const [session, setSession] = useState(null);
@@ -50,19 +51,18 @@ const Hero = () => {
       if (data) {
         setAnnouncement(data.message);
         setMessageType(data.message_type || "info");
-        setDisplayText(""); // Reset display text for new announcement
+        setDisplayText("");
       }
     } catch (error) {
       console.error("Error:", error);
     }
   };
 
-  // Typing animation effect
   useEffect(() => {
     if (announcement && displayText.length < announcement.length) {
       const timeoutId = setTimeout(() => {
         setDisplayText(announcement.slice(0, displayText.length + 1));
-      }, 50); // Adjust speed as needed
+      }, 50);
       return () => clearTimeout(timeoutId);
     }
   }, [announcement, displayText]);
@@ -125,47 +125,10 @@ const Hero = () => {
       </div>
 
       {/* Training Options */}
-      <div className="py-16">
-        <div className="container mx-auto px-4">
-          <h3 className="font-bebas text-3xl mb-8">TRAININGS</h3>
-          <div className="grid md:grid-cols-3 gap-6">
-            {trainingOptions.map((option, index) => (
-              <div 
-                key={index}
-                className="relative rounded-xl overflow-hidden h-[200px] group cursor-pointer"
-              >
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-all" />
-                <img 
-                  src={option.image} 
-                  alt={option.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute bottom-6 left-6 text-white">
-                  <h4 className="font-bebas text-2xl">{option.title}</h4>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <TrainingSection />
 
       {/* Membership Plans */}
-      <div className="bg-gray-50 py-16">
-        <div className="container mx-auto px-4">
-          <h3 className="font-bebas text-3xl mb-8">THE CLUB</h3>
-          <div className="space-y-4 max-w-3xl mx-auto">
-            {membershipPlans.map((plan, index) => (
-              <div 
-                key={index}
-                className="flex items-center justify-between p-6 bg-white rounded-lg hover:bg-gray-50 cursor-pointer"
-              >
-                <h4 className="font-bebas text-2xl">{plan.name}</h4>
-                <span className="text-2xl">+</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <ClubSection />
 
       {/* Final CTA */}
       <div className="bg-black text-white py-24 text-center">
@@ -182,26 +145,5 @@ const Hero = () => {
     </div>
   );
 };
-
-const trainingOptions = [
-  {
-    title: "PERSONAL TRAINING",
-    image: "/placeholder.svg",
-  },
-  {
-    title: "GROUP FITNESS CLASS",
-    image: "/placeholder.svg",
-  },
-  {
-    title: "FUNCTIONAL TRAINING",
-    image: "/placeholder.svg",
-  },
-];
-
-const membershipPlans = [
-  { name: "BASIC" },
-  { name: "PREMIUM" },
-  { name: "ELITE" },
-];
 
 export default Hero;
