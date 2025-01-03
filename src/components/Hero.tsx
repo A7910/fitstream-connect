@@ -109,9 +109,9 @@ const Hero = () => {
       <div className="relative z-10 pt-24 pb-12 animate-fade-in">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-5xl font-bold text-gray-800 mb-6">
-              Transform Your Fitness Journey with{" "}
-              <span className="text-primary">Obees Fitness</span>
+            <p className="font-poppins text-sm font-semibold tracking-wider mb-4">WELCOME TO OBEES FITNESS</p>
+            <h1 className="font-bebas text-[80px] font-bold leading-none mb-6 text-gray-800">
+              FIND YOUR<br />STRENGTH
             </h1>
             <p className="text-xl text-gray-600 mb-8">
               Your all-in-one platform for gym management, fitness tracking, and
