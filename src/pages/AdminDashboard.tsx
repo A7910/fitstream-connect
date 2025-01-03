@@ -140,7 +140,6 @@ const AdminDashboard = () => {
           membershipsChange={membershipsChange}
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
-          onCustomDateChange={setCustomDate}
           rangeStart={computedDateRange.start}
           rangeEnd={computedDateRange.end}
           onRefresh={handleRefresh}
