@@ -66,14 +66,14 @@ export const ClubSection = () => {
                 <span className="text-2xl text-[#9b87f5]">{openPlan === plan.id ? "-" : "+"}</span>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="p-6 bg-[#1A1F2C]/80 backdrop-blur-sm border border-[#9b87f5]/20 rounded-b-lg mt-1">
-                  <p className="font-poppins text-[#E5DEFF] mb-4">{plan.description}</p>
-                  <div className="text-3xl font-bold text-[#9b87f5] mb-4 font-poppins">
+                <div className="p-6 bg-[#020817] backdrop-blur-sm border border-[#9b87f5]/20 rounded-b-lg mt-1">
+                  <p className="font-poppins text-white mb-4">{plan.description}</p>
+                  <div className="text-3xl font-bold text-white mb-4 font-poppins">
                     {formatPrice(plan.price)}
                   </div>
                   <div className="space-y-2 mb-6">
                     {parseFeatures(plan.features as string).map((feature, index) => (
-                      <div key={index} className="flex items-center text-[#D6BCFA] font-poppins">
+                      <div key={index} className="flex items-center text-white font-poppins">
                         <span className="mr-2 text-[#9b87f5]">•</span>
                         {feature}
                       </div>
