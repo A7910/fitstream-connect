@@ -68,7 +68,7 @@ const Hero = () => {
   }, [announcement, displayText]);
 
   const getAnnouncementStyles = () => {
-    const baseStyles = "rounded-lg p-4 mb-4 text-center animate-fade-in";
+    const baseStyles = "w-full p-4 mb-4 text-center animate-fade-in font-poppins";
     switch (messageType) {
       case "success":
         return cn(baseStyles, "bg-green-100 text-green-800 border border-green-200");
@@ -84,7 +84,7 @@ const Hero = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Announcement Bar */}
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="w-full relative z-10">
         {session && announcement && (
           <div className={getAnnouncementStyles()}>
             <p className="font-medium">{displayText}</p>
