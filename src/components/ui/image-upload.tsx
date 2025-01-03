@@ -16,7 +16,7 @@ export function ImageUpload({ value, onChange, onRemove, children }: ImageUpload
   };
 
   return (
-    <div>
+    <div className="relative">
       <input
         type="file"
         accept="image/*"
@@ -25,10 +25,8 @@ export function ImageUpload({ value, onChange, onRemove, children }: ImageUpload
         id="image-upload"
       />
       <label htmlFor="image-upload" className="cursor-pointer">
-        {children}
+        {children || <div className="bg-gray-200 p-2 rounded-full">Upload</div>}
       </label>
     </div>
   );
 }
-
-import { Input } from "./input";
