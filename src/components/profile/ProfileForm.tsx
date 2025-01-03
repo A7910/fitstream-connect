@@ -126,7 +126,7 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
   return (
     <Card className="bg-white shadow-lg border-none">
       <CardHeader>
-        <CardTitle className="text-3xl font-bebas text-primary">Profile Settings</CardTitle>
+        <CardTitle className="text-3xl font-normal text-primary">Profile Settings</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
