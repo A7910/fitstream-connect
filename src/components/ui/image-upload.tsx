@@ -30,7 +30,7 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex gap-2 items-center">
       <Input
         type="file"
         accept="image/*"
@@ -39,16 +39,16 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
         id="image-upload"
       />
       {preview ? (
-        <div className="relative">
+        <div className="flex items-center gap-2">
           <img
             src={preview}
             alt="Preview"
-            className="w-full h-48 object-cover rounded-lg"
+            className="w-10 h-10 rounded-full object-cover"
           />
           <Button
             variant="destructive"
             size="icon"
-            className="absolute top-2 right-2"
+            className="h-8 w-8"
             onClick={handleRemove}
           >
             <Trash2 className="h-4 w-4" />
@@ -57,14 +57,12 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
       ) : (
         <label
           htmlFor="image-upload"
-          className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-secondary"
+          className="cursor-pointer"
         >
-          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              Click to upload or drag and drop
-            </p>
-          </div>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Upload className="h-4 w-4" />
+            Upload
+          </Button>
         </label>
       )}
     </div>
