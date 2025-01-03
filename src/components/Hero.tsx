@@ -98,10 +98,10 @@ const Hero = () => {
           <h1 className="font-bebas text-[100px] font-bold leading-[0.85] mb-0">
             FIND YOUR<br />STRENGTH
           </h1>
-          <h2 className="font-bebas text-[80px] font-bold leading-none mt-4 mb-8">
-            INSIDE AND OUT.
-          </h2>
           <div className="relative rounded-2xl overflow-hidden my-12">
+            <h2 className="font-bebas text-[80px] font-bold leading-none absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 text-white whitespace-nowrap overflow-hidden animate-typewriter">
+              INSIDE<br />AND OUT.
+            </h2>
             <img 
               src="/lovable-uploads/7e30cabe-eb07-40cd-b33c-8f543e1bc0f1.png" 
               alt="Fitness Training"

@@ -94,6 +94,10 @@ export default {
             opacity: "0",
             transform: "translateY(-10px)"
           }
+        },
+        "typewriter": {
+          "0%": { width: "0%" },
+          "100%": { width: "100%" }
         }
       },
       animation: {
@@ -101,7 +105,8 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out",
         "content-slide-down": "content-slide-down 0.3s ease-out",
-        "content-slide-up": "content-slide-up 0.3s ease-out"
+        "content-slide-up": "content-slide-up 0.3s ease-out",
+        "typewriter": "typewriter 4s steps(40) infinite"
       },
     },
   },
