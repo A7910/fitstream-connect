@@ -82,7 +82,7 @@ export const ClubSection = () => {
                     ))}
                   </div>
                   <Button 
-                    className="w-full bg-[#9b87f5] hover:bg-[#7E69AB] text-white transition-colors font-poppins"
+                    className="w-full bg-white hover:bg-[#f3f3f3] text-[#020817] transition-colors font-poppins"
                     onClick={() => handleSubscribe(plan.id)}
                   >
                     Subscribe Now
