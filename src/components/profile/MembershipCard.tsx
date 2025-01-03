@@ -36,12 +36,12 @@ export const MembershipCard = ({ userId }: { userId: string }) => {
   return (
     <Card className="bg-white shadow-lg border-none">
       <CardHeader>
-        <CardTitle className="text-2xl md:text-3xl font-normal text-primary">Membership Status</CardTitle>
+        <CardTitle className="text-2xl md:text-3xl font-bebas text-primary">Membership Status</CardTitle>
       </CardHeader>
       <CardContent>
         {membership ? (
           <div className="space-y-4">
-            <p className="text-xl md:text-2xl font-normal text-primary">
+            <p className="text-xl md:text-2xl font-bebas text-primary">
               Current Plan: {membership.membership_plans.name}
             </p>
             <p className="text-base md:text-lg font-poppins text-gray-600">

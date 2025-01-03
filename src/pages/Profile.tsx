@@ -56,7 +56,7 @@ const Profile = () => {
       <Navbar />
       <div className="container max-w-4xl mx-auto px-4 py-8">
         <BackButton />
-        <h1 className="text-4xl font-normal text-primary mb-8">Your Profile</h1>
+        <h1 className="text-4xl font-bebas text-primary mb-8">Your Profile</h1>
         <div className="grid gap-6">
           <MembershipCard userId={session.user.id} />
           <ProfileForm 

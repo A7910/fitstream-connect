@@ -170,7 +170,7 @@ const WorkoutPlan = () => {
                       muscleGroups={muscleGroups}
                     />
 
-                    <h3 className="font-normal text-3xl text-primary">
+                    <h3 className="font-bebas text-3xl text-primary">
                       Recommended Exercises for {userGoal.workout_goals.name}
                     </h3>
                     

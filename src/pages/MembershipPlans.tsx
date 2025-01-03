@@ -97,16 +97,16 @@ const MembershipPlans = () => {
   return (
     <div className="container mx-auto py-8">
       <BackButton />
-      <h1 className="text-2xl md:text-3xl font-normal text-primary text-center mb-8">Membership Plans</h1>
+      <h1 className="text-2xl md:text-3xl font-bebas text-primary text-center mb-8">Membership Plans</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans?.map((plan) => (
           <Card key={plan.id} className="flex flex-col bg-white shadow-lg border-none">
             <CardHeader>
-              <CardTitle className="text-xl md:text-2xl font-normal text-primary">{plan.name}</CardTitle>
+              <CardTitle className="text-xl md:text-2xl font-bebas text-primary">{plan.name}</CardTitle>
               <CardDescription className="font-poppins text-sm md:text-base text-gray-600">{plan.description}</CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">
-              <div className="text-2xl md:text-3xl font-normal text-primary mb-4">{formatPrice(plan.price)}</div>
+              <div className="text-2xl md:text-3xl font-bold font-bebas text-primary mb-4">{formatPrice(plan.price)}</div>
               <div className="space-y-2">
                 {parseFeatures(plan.features as string).map((feature, index) => (
                   <div key={index} className="flex items-center font-poppins text-sm md:text-base text-gray-600">
