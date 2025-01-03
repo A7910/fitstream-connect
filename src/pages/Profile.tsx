@@ -40,11 +40,11 @@ const Profile = () => {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container max-w-4xl mx-auto px-4 py-8">
           <div className="bg-white rounded-lg shadow-md p-6">
-            Loading...
+            <p className="text-primary font-bebas text-xl">Loading...</p>
           </div>
         </div>
       </div>
@@ -52,10 +52,11 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container max-w-4xl mx-auto px-4 py-8">
         <BackButton />
+        <h1 className="text-4xl font-bebas text-primary mb-8">Your Profile</h1>
         <div className="grid gap-6">
           <MembershipCard userId={session.user.id} />
           <ProfileForm 

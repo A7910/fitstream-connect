@@ -124,17 +124,17 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
   };
 
   return (
-    <Card>
+    <Card className="bg-white shadow-lg border-none">
       <CardHeader>
-        <CardTitle>Profile Settings</CardTitle>
+        <CardTitle className="text-3xl font-bebas text-primary">Profile Settings</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           <div className="flex flex-col items-center space-y-4">
             <Avatar className="h-24 w-24">
               <AvatarImage src={avatarUrl || undefined} />
-              <AvatarFallback>
-                <User className="h-12 w-12" />
+              <AvatarFallback className="bg-primary/5">
+                <User className="h-12 w-12 text-primary" />
               </AvatarFallback>
             </Avatar>
             <ImageUpload
@@ -146,38 +146,41 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-poppins text-gray-600">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 disabled
+                className="bg-gray-50 font-poppins"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label htmlFor="fullName" className="text-sm font-poppins text-gray-600">Full Name</Label>
               <Input
                 id="fullName"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                className="font-poppins"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Label htmlFor="phoneNumber" className="text-sm font-poppins text-gray-600">Phone Number</Label>
               <Input
                 id="phoneNumber"
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
+                className="font-poppins"
               />
             </div>
 
             <Button
               onClick={updateProfile}
-              className="w-full"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-poppins"
               disabled={isUploading}
             >
               Update Profile
