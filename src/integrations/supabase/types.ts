@@ -277,6 +277,7 @@ export type Database = {
           min_duration_months: number | null
           name: string
           price: number
+          subscribers_count: number
         }
         Insert: {
           created_at?: string
@@ -289,6 +290,7 @@ export type Database = {
           min_duration_months?: number | null
           name: string
           price: number
+          subscribers_count?: number
         }
         Update: {
           created_at?: string
@@ -301,6 +303,7 @@ export type Database = {
           min_duration_months?: number | null
           name?: string
           price?: number
+          subscribers_count?: number
         }
         Relationships: []
       }
