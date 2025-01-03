@@ -2,20 +2,20 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
-import ExerciseCard from "@/components/workout/ExerciseCard";
 import GoalSelector from "@/components/workout/GoalSelector";
 import MuscleGroupFilter from "@/components/workout/MuscleGroupFilter";
 import { BackButton } from "@/components/ui/back-button";
 import AdminControls from "@/components/workout/AdminControls";
+import WorkoutPlanHeader from "@/components/workout/WorkoutPlanHeader";
+import ExerciseList from "@/components/workout/ExerciseList";
 import { useState } from "react";
 
 const WorkoutPlan = () => {
   const navigate = useNavigate();
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("all");
 
-  // Check if user is authenticated and is admin
   const { data: session } = useQuery({
     queryKey: ["session"],
     queryFn: async () => {
@@ -100,7 +100,6 @@ const WorkoutPlan = () => {
       if (!session?.user?.id) return;
 
       if (userGoal) {
-        // Update existing goal
         const { error } = await supabase
           .from("user_workout_goals")
           .update({ goal_id: goalId })
@@ -108,7 +107,6 @@ const WorkoutPlan = () => {
 
         if (error) throw error;
       } else {
-        // Insert new goal
         const { error } = await supabase
           .from("user_workout_goals")
           .insert({
@@ -154,10 +152,7 @@ const WorkoutPlan = () => {
 
           <Card className="bg-white shadow-lg">
             <CardHeader>
-              <CardTitle className="font-bebas text-4xl text-primary">Your Workout Plan</CardTitle>
-              <CardDescription className="font-poppins text-gray-600">
-                Choose your fitness goal and muscle group to see relevant exercises
-              </CardDescription>
+              <WorkoutPlanHeader />
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -178,15 +173,11 @@ const WorkoutPlan = () => {
                     <h3 className="font-bebas text-3xl text-primary">
                       Recommended Exercises for {userGoal.workout_goals.name}
                     </h3>
-                    <div className="grid gap-6 md:grid-cols-2">
-                      {filteredExercises?.map((exercise) => (
-                        <ExerciseCard
-                          key={exercise.id}
-                          exercise={exercise}
-                          getExerciseImage={getExerciseImage}
-                        />
-                      ))}
-                    </div>
+                    
+                    <ExerciseList
+                      exercises={filteredExercises || []}
+                      getExerciseImage={getExerciseImage}
+                    />
                   </div>
                 )}
               </div>
