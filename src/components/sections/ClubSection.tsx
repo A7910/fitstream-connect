@@ -53,7 +53,7 @@ export const ClubSection = () => {
   return (
     <div className="bg-white py-16">
       <div className="container mx-auto px-4">
-        <h3 className="font-bebas text-4xl mb-12 text-[#020817] tracking-wider">THE CLUB</h3>
+        <h3 className="font-bebas text-4xl mb-12 text-[#020817] tracking-wider text-center">MEMBERSHIP PLANS</h3>
         <div className="space-y-6 w-full md:w-[80%] mx-auto">
           {plans?.map((plan) => (
             <Collapsible
