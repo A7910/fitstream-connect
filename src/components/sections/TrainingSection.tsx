@@ -17,7 +17,7 @@ export const TrainingSection = () => {
   return (
     <div className="py-16">
       <div className="container mx-auto px-4">
-        <h3 className="font-bebas text-3xl mb-8">TRAININGS</h3>
+        <h3 className="font-bebas text-3xl mb-8 text-center">TRAININGS</h3>
         <div className="grid md:grid-cols-3 gap-6">
           {trainingOptions.map((option, index) => (
             <div 
