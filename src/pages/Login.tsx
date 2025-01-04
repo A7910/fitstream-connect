@@ -42,13 +42,19 @@ const Login = () => {
   }, [navigate]);
 
   const authOverrides = {
+    elements: {
+      password_confirm: {
+        label: "Confirm Password",
+        placeholder: "Confirm your password",
+      },
+    },
     onSubmit: async (formData: any) => {
       console.log("Form submitted, validating...");
       
       // Only validate passwords for sign up
       if (formData.view === "sign-up") {
         const password = formData.password;
-        const confirmPassword = formData.password_confirm; // Updated to match Supabase's field name
+        const confirmPassword = formData.password_confirm;
         
         if (!password || !confirmPassword) {
           console.log("Missing password or confirmation");
@@ -90,6 +96,8 @@ const Login = () => {
           password_label: "Password (min 6 chars, 1 number, 1 special char)",
           password_input_label: "Password",
           password_input_placeholder: "Your password",
+          confirm_password_label: "Confirm Password",
+          confirm_password_input_placeholder: "Confirm your password",
           confirmation_text: "Check your email for the confirmation link",
         },
       },
@@ -135,6 +143,8 @@ const Login = () => {
                 sign_up: {
                   password_input_placeholder: "Minimum 6 characters, 1 number, 1 symbol",
                   email_input_placeholder: "Your email address",
+                  confirm_password_label: "Confirm Password",
+                  confirm_password_input_placeholder: "Confirm your password",
                   confirmation_text: "Check your email for the confirmation link",
                 },
               },
