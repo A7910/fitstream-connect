@@ -24,7 +24,7 @@ const Login = () => {
         navigate("/");
       }
 
-      if (event === 'SIGNED_UP') {
+      if (event === 'SIGNED_UP' && session) {
         console.log("User signed up successfully");
         toast({
           title: "Sign up successful",
@@ -32,7 +32,7 @@ const Login = () => {
         });
       }
 
-      if (event === 'USER_UPDATED') {
+      if (event === 'USER_UPDATED' && session) {
         console.log("User updated successfully");
       }
     });
@@ -77,14 +77,6 @@ const Login = () => {
             }}
             providers={[]}
             redirectTo={`${window.location.origin}/`}
-            onError={(error) => {
-              console.error("Auth error:", error);
-              toast({
-                title: "Authentication Error",
-                description: error.message,
-                variant: "destructive",
-              });
-            }}
           />
         </div>
       </div>
