@@ -15,6 +15,7 @@ import AttendanceManagement from "@/components/admin/AttendanceManagement";
 import AnnouncementManager from "@/components/admin/AnnouncementManager";
 import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 import { BackButton } from "@/components/ui/back-button";
+import WorkoutManagement from "@/components/admin/WorkoutManagement";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -166,10 +167,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="workout" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <WorkoutGoalManager />
-              <ExerciseManager />
-            </div>
+            <WorkoutManagement />
           </TabsContent>
 
           <TabsContent value="dedicated" className="space-y-4">
