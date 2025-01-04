@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { useToast } from "@/hooks/use-toast";
+import { AuthChangeEvent } from "@supabase/supabase-js";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const Login = () => {
     console.log("Login component mounted");
     console.log("Current origin:", window.location.origin);
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session) => {
       console.log("Auth state changed:", event, session);
       
       if (event === "SIGNED_IN" && session) {
@@ -24,7 +25,7 @@ const Login = () => {
         navigate("/");
       }
 
-      if (event === "SIGNED_UP" && session) {
+      if (event === "SIGNED_UP" as AuthChangeEvent && session) {
         console.log("User signed up successfully");
         toast({
           title: "Sign up successful",

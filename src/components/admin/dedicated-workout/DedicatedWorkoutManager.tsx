@@ -18,16 +18,44 @@ const DedicatedWorkoutManager = () => {
     mutationFn: async ({ weekId, exercises }: { weekId: string, exercises: Array<{ exerciseId: string, sets?: number, reps?: number, notes?: string }> }) => {
       console.log("Creating workout day with exercises:", { weekId, exercises });
       
-      const { data: dayData, error: dayError } = await supabase
+      // First check if day already exists
+      const { data: existingDay, error: dayCheckError } = await supabase
         .from('dedicated_workout_days')
-        .insert([{ week_id: weekId, day_number: selectedDay }])
-        .select()
-        .single();
+        .select('id')
+        .eq('week_id', weekId)
+        .eq('day_number', selectedDay)
+        .maybeSingle();
 
-      if (dayError) throw dayError;
+      if (dayCheckError) throw dayCheckError;
+
+      let dayId;
+
+      if (existingDay) {
+        dayId = existingDay.id;
+        console.log("Using existing day:", dayId);
+        
+        // Delete existing exercises for this day
+        const { error: deleteError } = await supabase
+          .from('dedicated_workout_exercises')
+          .delete()
+          .eq('day_id', dayId);
+
+        if (deleteError) throw deleteError;
+      } else {
+        // Create new day if it doesn't exist
+        const { data: newDay, error: dayError } = await supabase
+          .from('dedicated_workout_days')
+          .insert([{ week_id: weekId, day_number: selectedDay }])
+          .select()
+          .single();
+
+        if (dayError) throw dayError;
+        dayId = newDay.id;
+        console.log("Created new day:", dayId);
+      }
 
       const exercisesWithDayId = exercises.map(exercise => ({
-        day_id: dayData.id,
+        day_id: dayId,
         exercise_id: exercise.exerciseId,
         sets: exercise.sets || 3,
         reps: exercise.reps,
@@ -40,7 +68,7 @@ const DedicatedWorkoutManager = () => {
 
       if (exercisesError) throw exercisesError;
 
-      return dayData;
+      return { dayId };
     },
     onSuccess: () => {
       toast({
