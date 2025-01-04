@@ -12,7 +12,7 @@ interface Exercise {
   workout_goals: { name: string } | null;
   sets: number;
   image_url: string | null;
-  goal_id: string;  // Added this field to match the database schema
+  goal_id: string;
 }
 
 interface ExerciseCardProps {
@@ -24,9 +24,9 @@ interface ExerciseCardProps {
 const ExerciseCard = ({ exercise, onEdit, onDelete }: ExerciseCardProps) => {
   return (
     <div className="p-4 border rounded-lg">
-      <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
         {exercise.image_url && (
-          <div className="w-32 h-32 relative">
+          <div className="w-full md:w-32 h-48 md:h-32 relative">
             <img
               src={exercise.image_url}
               alt={exercise.name}
