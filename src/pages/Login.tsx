@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useToast } from "@/components/ui/use-toast";
-import { Session } from "@supabase/supabase-js";
+import { AuthChangeEvent } from "@supabase/supabase-js";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,14 +19,14 @@ const Login = () => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session);
+    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session) => {
+      console.log("Auth state changed:", _event, session);
       
-      if (event === "SIGNED_IN") {
+      if (_event === "SIGNED_IN") {
         navigate("/profile");
       }
       
-      if (event === "SIGNED_UP") {
+      if (_event === "SIGNED_UP") {
         toast({
           title: "Welcome!",
           description: "Your account has been created successfully.",
