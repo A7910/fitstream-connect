@@ -104,9 +104,10 @@ const DedicatedWorkoutManager = () => {
         .select('id')
         .eq('user_id', selectedUser)
         .eq('week_number', selectedWeek)
-        .single();
+        .maybeSingle();
 
-      if (weekCheckError && weekCheckError.code !== 'PGRST116') {
+      if (weekCheckError) {
+        console.error("Error checking for existing week:", weekCheckError);
         throw weekCheckError;
       }
 
@@ -123,7 +124,10 @@ const DedicatedWorkoutManager = () => {
           .select()
           .single();
 
-        if (weekError) throw weekError;
+        if (weekError) {
+          console.error("Error creating new week:", weekError);
+          throw weekError;
+        }
         weekId = newWeek.id;
         console.log("Created new week:", weekId);
       }
