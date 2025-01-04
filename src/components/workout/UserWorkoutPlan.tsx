@@ -1,8 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState } from "react";
 
 interface Exercise {
   id: string;
@@ -19,10 +25,11 @@ interface WorkoutDay {
 }
 
 const UserWorkoutPlan = () => {
-  const navigate = useNavigate();
+  const [selectedWeek, setSelectedWeek] = useState<string>("");
+  const [selectedDay, setSelectedDay] = useState<string>("");
 
-  const { data: workoutPlan, isLoading } = useQuery({
-    queryKey: ["user-workout-plan"],
+  const { data: workoutWeeks, isLoading: weeksLoading } = useQuery({
+    queryKey: ["user-workout-weeks"],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return null;
@@ -33,11 +40,19 @@ const UserWorkoutPlan = () => {
         .eq("user_id", session.user.id)
         .order("week_number");
 
-      if (weeksError) throw weeksError;
-      if (!weeks?.length) return null;
+      if (weeksError) {
+        console.error("Error fetching weeks:", weeksError);
+        throw weeksError;
+      }
 
-      const currentWeek = weeks[0];
+      return weeks;
+    },
+  });
 
+  const { data: workoutDays, isLoading: daysLoading } = useQuery({
+    queryKey: ["user-workout-days", selectedWeek],
+    enabled: !!selectedWeek,
+    queryFn: async () => {
       const { data: days, error: daysError } = await supabase
         .from("dedicated_workout_days")
         .select(`
@@ -55,13 +70,16 @@ const UserWorkoutPlan = () => {
             )
           )
         `)
-        .eq("week_id", currentWeek.id)
+        .eq("week_id", selectedWeek)
         .order("day_number");
 
-      if (daysError) throw daysError;
+      if (daysError) {
+        console.error("Error fetching days:", daysError);
+        throw daysError;
+      }
 
       return days.map(day => ({
-        day_number: day.day_number,
+        ...day,
         exercises: day.dedicated_workout_exercises.map((exercise: any) => ({
           id: exercise.exercises.id,
           name: exercise.exercises.name,
@@ -74,7 +92,11 @@ const UserWorkoutPlan = () => {
     },
   });
 
-  if (isLoading) {
+  const selectedDayExercises = workoutDays?.find(
+    day => day.id === selectedDay
+  )?.exercises || [];
+
+  if (weeksLoading) {
     return (
       <Card className="w-full">
         <CardHeader>
@@ -89,7 +111,7 @@ const UserWorkoutPlan = () => {
     );
   }
 
-  if (!workoutPlan) {
+  if (!workoutWeeks?.length) {
     return (
       <Card className="w-full">
         <CardHeader>
@@ -99,11 +121,8 @@ const UserWorkoutPlan = () => {
           <div className="flex flex-col items-center space-y-4">
             <p className="text-center text-muted-foreground">
               You don't have a personalized workout plan yet.
-              Visit our workout plan page to get started!
+              Please contact an administrator to get started!
             </p>
-            <Button onClick={() => navigate("/workout-plan")}>
-              View Workout Plans
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -113,20 +132,49 @@ const UserWorkoutPlan = () => {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <span>Your Workout Plan</span>
-          <Button variant="outline" onClick={() => navigate("/workout-plan")}>
-            View All Plans
-          </Button>
-        </CardTitle>
+        <CardTitle>Your Workout Plan</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {workoutPlan.map((day: WorkoutDay) => (
-            <div key={day.day_number} className="space-y-4">
-              <h3 className="font-semibold text-lg">Day {day.day_number}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Select
+              value={selectedWeek}
+              onValueChange={setSelectedWeek}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Week" />
+              </SelectTrigger>
+              <SelectContent>
+                {workoutWeeks.map((week) => (
+                  <SelectItem key={week.id} value={week.id}>
+                    Week {week.week_number}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={selectedDay}
+              onValueChange={setSelectedDay}
+              disabled={!selectedWeek || !workoutDays?.length}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Day" />
+              </SelectTrigger>
+              <SelectContent>
+                {workoutDays?.map((day) => (
+                  <SelectItem key={day.id} value={day.id}>
+                    Day {day.day_number}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedDay && (
+            <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
-                {day.exercises.map((exercise) => (
+                {selectedDayExercises.map((exercise) => (
                   <Card key={exercise.id} className="bg-muted">
                     <CardContent className="p-4">
                       <h4 className="font-medium">{exercise.name}</h4>
@@ -147,7 +195,7 @@ const UserWorkoutPlan = () => {
                 ))}
               </div>
             </div>
-          ))}
+          )}
         </div>
       </CardContent>
     </Card>
