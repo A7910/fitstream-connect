@@ -41,7 +41,7 @@ export const MemberListItem = ({
       }`}
       onClick={() => !isCheckedIn && onSelect(userId)}
     >
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div className="flex items-center space-x-4">
           <Avatar>
             <AvatarImage src={avatarUrl || undefined} />
@@ -60,7 +60,7 @@ export const MemberListItem = ({
           </div>
         </div>
         {isSelected && !isCheckedIn && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 mt-4 sm:mt-0">
             <Button size="sm" onClick={onCheckIn}>
               Check In
             </Button>
