@@ -11,19 +11,38 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Clear any existing session on component mount
+    const clearSession = async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error clearing session:", error);
+      }
+    };
+    clearSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
-      if (session) {
+      
+      if (event === 'SIGNED_IN' && session) {
+        console.log("User signed in successfully, redirecting...");
         navigate("/");
+      } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log("Token refreshed successfully");
+      } else if (event === 'USER_UPDATED') {
+        console.log("User data updated");
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log("Cleaning up auth listener");
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const authOverrides = {
     elements: {
-      // Add confirmation password field
       confirmPassword: {
         label: "Confirm Password",
         placeholder: "Confirm your password",
