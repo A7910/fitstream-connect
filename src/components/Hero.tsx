@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ClubSection } from "./sections/ClubSection";
 import { TrainingSection } from "./sections/TrainingSection";
+import UserWorkoutPlan from "./workout/UserWorkoutPlan";
 
 const Hero = () => {
   const [session, setSession] = useState(null);
@@ -111,9 +112,20 @@ const Hero = () => {
         </div>
       </div>
 
+      {/* Workout Plan Section (Only shown to logged-in users) */}
+      {session && (
+        <div className="bg-gray-50 py-16">
+          <div className="container mx-auto px-4">
+            <UserWorkoutPlan />
+          </div>
+        </div>
+      )}
+
       <div className="text-center py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h3 className="font-bebas text-2xl md:text-3xl mb-4">FITNESS SHOULD BE ACCESSIBLE TO EVERYONE.</h3>
+          <h3 className="font-bebas text-2xl md:text-3xl mb-4">
+            FITNESS SHOULD BE ACCESSIBLE TO EVERYONE.
+          </h3>
           <p className="text-gray-600 max-w-2xl mx-auto mb-6">
             Whether you're a seasoned athlete or just starting out, our expert trainers are here to guide you through your fitness journey. We believe in creating an inclusive environment where everyone can thrive.
           </p>
