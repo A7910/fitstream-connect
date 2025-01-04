@@ -6,13 +6,24 @@ import { User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface UserSelectorProps {
   selectedUser: string | null;
   onUserSelect: (userId: string) => void;
 }
 
+const USERS_PER_PAGE = 8;
+
 const UserSelector = ({ selectedUser, onUserSelect }: UserSelectorProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   
   const { data: users = [], isLoading } = useQuery({
@@ -44,6 +55,24 @@ const UserSelector = ({ selectedUser, onUserSelect }: UserSelectorProps) => {
     membership.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+  const endIndex = startIndex + USERS_PER_PAGE;
+  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset to first page when search query changes
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  // Generate page numbers
+  const pageNumbers = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pageNumbers.push(i);
+  }
+
   return (
     <div className="space-y-4">
       <Label>Select User</Label>
@@ -51,12 +80,12 @@ const UserSelector = ({ selectedUser, onUserSelect }: UserSelectorProps) => {
         type="search"
         placeholder="Search users..."
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={(e) => handleSearch(e.target.value)}
         className="mb-4"
       />
       <ScrollArea className="h-[400px] rounded-md border">
         <div className="p-4 space-y-2">
-          {filteredUsers.map((membership) => (
+          {currentUsers.map((membership) => (
             <div
               key={membership.user_id}
               className={`flex items-center space-x-3 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${
@@ -82,6 +111,38 @@ const UserSelector = ({ selectedUser, onUserSelect }: UserSelectorProps) => {
           )}
         </div>
       </ScrollArea>
+      
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            
+            {pageNumbers.map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(page)}
+                  isActive={currentPage === page}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 };
