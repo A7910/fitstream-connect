@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
+import DedicatedWorkoutManager from "@/components/admin/dedicated-workout/DedicatedWorkoutManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -150,6 +151,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="workout">Workout Plans</TabsTrigger>
+            <TabsTrigger value="dedicated">Dedicated Workout</TabsTrigger>
             <TabsTrigger value="announcements">Announcements</TabsTrigger>
           </TabsList>
 
@@ -166,6 +168,10 @@ const AdminDashboard = () => {
               <WorkoutGoalManager />
               <ExerciseManager />
             </div>
+          </TabsContent>
+
+          <TabsContent value="dedicated" className="space-y-4">
+            <DedicatedWorkoutManager />
           </TabsContent>
 
           <TabsContent value="announcements" className="space-y-4">

@@ -176,6 +176,109 @@ export type Database = {
           },
         ]
       }
+      dedicated_workout_days: {
+        Row: {
+          created_at: string
+          day_number: number
+          id: string
+          week_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_number: number
+          id?: string
+          week_id: string
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          id?: string
+          week_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dedicated_workout_days_week_id_fkey"
+            columns: ["week_id"]
+            isOneToOne: false
+            referencedRelation: "dedicated_workout_weeks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dedicated_workout_exercises: {
+        Row: {
+          created_at: string
+          day_id: string
+          exercise_id: string
+          id: string
+          notes: string | null
+          reps: number | null
+          sets: number
+        }
+        Insert: {
+          created_at?: string
+          day_id: string
+          exercise_id: string
+          id?: string
+          notes?: string | null
+          reps?: number | null
+          sets?: number
+        }
+        Update: {
+          created_at?: string
+          day_id?: string
+          exercise_id?: string
+          id?: string
+          notes?: string | null
+          reps?: number | null
+          sets?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dedicated_workout_exercises_day_id_fkey"
+            columns: ["day_id"]
+            isOneToOne: false
+            referencedRelation: "dedicated_workout_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dedicated_workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dedicated_workout_weeks: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          week_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          week_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dedicated_workout_weeks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           created_at: string
