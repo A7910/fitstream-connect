@@ -5,36 +5,10 @@ import { MemberListItem } from "./MemberListItem";
 import { useAttendanceActions } from "./useAttendanceActions";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-interface Profile {
-  full_name: string | null;
-  phone_number: string | null;
-  avatar_url: string | null;
-}
-
-interface ActiveUser {
-  user_id: string;
-  profiles?: Profile;
-  start_date: string;
-  end_date: string;
-  isCheckedIn?: boolean;
-}
+import { MobileCarouselView } from "./MobileCarouselView";
+import { type ActiveUser } from "./types";
+import { DesktopUserList } from "./DesktopUserList";
 
 const USERS_PER_PAGE = 8;
 
@@ -102,60 +76,6 @@ export const ActiveMembersList = () => {
     );
   }
 
-  const renderUserList = () => {
-    if (isMobile) {
-      return (
-        <Carousel className="w-full">
-          <CarouselContent>
-            {filteredUsers.map((user) => (
-              <CarouselItem key={user.user_id}>
-                <div className="p-1">
-                  <MemberListItem
-                    key={user.user_id}
-                    userId={user.user_id}
-                    fullName={user.profiles?.full_name}
-                    phoneNumber={user.profiles?.phone_number}
-                    avatarUrl={user.profiles?.avatar_url}
-                    startDate={user.start_date}
-                    endDate={user.end_date}
-                    isSelected={selectedUserId === user.user_id}
-                    isCheckedIn={false}
-                    onSelect={setSelectedUserId}
-                    onCheckIn={() => handleCheckIn(user.user_id)}
-                    onCheckOut={() => handleCheckOut(user.user_id)}
-                  />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
-      );
-    }
-
-    return (
-      <div className="grid gap-4">
-        {paginatedUsers.map((user) => (
-          <MemberListItem
-            key={user.user_id}
-            userId={user.user_id}
-            fullName={user.profiles?.full_name}
-            phoneNumber={user.profiles?.phone_number}
-            avatarUrl={user.profiles?.avatar_url}
-            startDate={user.start_date}
-            endDate={user.end_date}
-            isSelected={selectedUserId === user.user_id}
-            isCheckedIn={false}
-            onSelect={setSelectedUserId}
-            onCheckIn={() => handleCheckIn(user.user_id)}
-            onCheckOut={() => handleCheckOut(user.user_id)}
-          />
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-4">
       <div className="relative">
@@ -171,42 +91,26 @@ export const ActiveMembersList = () => {
         />
       </div>
 
-      {renderUserList()}
-
-      {!isMobile && filteredUsers.length === 0 && (
-        <p className="text-center text-muted-foreground py-8">
-          No active members available for check-in
-        </p>
-      )}
-
-      {!isMobile && totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  onClick={() => setCurrentPage(page)}
-                  isActive={currentPage === page}
-                  className="cursor-pointer"
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      {isMobile ? (
+        <MobileCarouselView
+          users={filteredUsers}
+          selectedUserId={selectedUserId}
+          setSelectedUserId={setSelectedUserId}
+          handleCheckIn={handleCheckIn}
+          handleCheckOut={handleCheckOut}
+        />
+      ) : (
+        <DesktopUserList
+          users={paginatedUsers}
+          selectedUserId={selectedUserId}
+          setSelectedUserId={setSelectedUserId}
+          handleCheckIn={handleCheckIn}
+          handleCheckOut={handleCheckOut}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          filteredUsers={filteredUsers}
+        />
       )}
     </div>
   );
