@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Pencil, Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import ExerciseCard from "./ExerciseCard";
 
 interface Exercise {
   id: string;
@@ -124,64 +125,12 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
         </div>
 
         {paginatedExercises?.map((exercise) => (
-          <div
+          <ExerciseCard
             key={exercise.id}
-            className="p-4 border rounded-lg"
-          >
-            <div className="flex gap-4">
-              {exercise.image_url && (
-                <div className="w-32 h-32 relative">
-                  <img
-                    src={exercise.image_url}
-                    alt={exercise.name}
-                    className="w-full h-full object-cover rounded-lg"
-                    onError={(e) => {
-                      console.error("Error loading image:", exercise.image_url);
-                      e.currentTarget.src = "/placeholder.svg";
-                    }}
-                  />
-                </div>
-              )}
-              <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-medium">{exercise.name}</h4>
-                    <p className="text-sm text-muted-foreground">{exercise.description}</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <span className="text-xs bg-secondary px-2 py-1 rounded">
-                        {exercise.muscle_group}
-                      </span>
-                      <span className="text-xs bg-secondary px-2 py-1 rounded">
-                        {exercise.difficulty_level}
-                      </span>
-                      <span className="text-xs bg-secondary px-2 py-1 rounded">
-                        {exercise.workout_goals?.name}
-                      </span>
-                      <span className="text-xs bg-secondary px-2 py-1 rounded">
-                        Sets: {exercise.sets}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setEditingExercise(exercise)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => deleteExercise.mutate(exercise.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            exercise={exercise}
+            onEdit={setEditingExercise}
+            onDelete={(id) => deleteExercise.mutate(id)}
+          />
         ))}
 
         {totalPages > 1 && (
