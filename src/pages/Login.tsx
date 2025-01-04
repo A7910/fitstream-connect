@@ -12,7 +12,7 @@ const Login = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event);
+      console.log("Auth state changed:", event, session);
       if (session) {
         navigate("/");
       }
@@ -22,37 +22,53 @@ const Login = () => {
   }, [navigate]);
 
   const authOverrides = {
+    elements: {
+      // Add confirmation password field
+      confirmPassword: {
+        label: "Confirm Password",
+        placeholder: "Confirm your password",
+      },
+    },
     onSubmit: async (formData: any) => {
-      console.log("Form submitted:", formData);
+      console.log("Form submitted, validating...");
       
-      // Password requirements
-      const password = formData.password;
-      const confirmPassword = formData.confirmPassword;
-      
-      const minLength = password.length >= 6;
-      const hasNumber = /\d/.test(password);
-      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-      const passwordsMatch = password === confirmPassword;
+      // Only validate passwords for sign up
+      if (formData.view === "sign-up") {
+        const password = formData.password;
+        const confirmPassword = formData.confirmPassword;
+        
+        if (!password || !confirmPassword) {
+          console.log("Missing password or confirmation");
+          return {
+            error: {
+              message: "Both password and confirmation are required",
+            }
+          };
+        }
 
-      const errors: string[] = [];
+        const minLength = password.length >= 6;
+        const hasNumber = /\d/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        const passwordsMatch = password === confirmPassword;
 
-      if (!minLength) errors.push("Password must be at least 6 characters long");
-      if (!hasNumber) errors.push("Password must contain at least one number");
-      if (!hasSpecialChar) errors.push("Password must contain at least one special character");
-      if (!passwordsMatch) errors.push("Passwords do not match");
+        const errors: string[] = [];
 
-      if (errors.length > 0) {
-        console.log("Validation failed:", errors);
-        // Return false to prevent form submission
-        return {
-          error: {
-            message: errors.join(", "),
-          }
-        };
+        if (!minLength) errors.push("Password must be at least 6 characters long");
+        if (!hasNumber) errors.push("Password must contain at least one number");
+        if (!hasSpecialChar) errors.push("Password must contain at least one special character");
+        if (!passwordsMatch) errors.push("Passwords do not match");
+
+        if (errors.length > 0) {
+          console.log("Validation failed:", errors);
+          return {
+            error: {
+              message: errors.join(", "),
+            }
+          };
+        }
       }
 
-      console.log("Validation passed, proceeding with signup");
-      // Return true to allow form submission
+      console.log("Validation passed, proceeding with auth");
       return true;
     },
     localization: {
@@ -61,12 +77,6 @@ const Login = () => {
           password_label: "Password (min 6 chars, 1 number, 1 special char)",
           confirmation_text: "Check your email for the confirmation link",
         },
-      },
-    },
-    elements: {
-      confirmPassword: {
-        label: "Confirm Password",
-        placeholder: "Confirm your password",
       },
     },
   };
@@ -109,6 +119,7 @@ const Login = () => {
               variables: {
                 sign_up: {
                   password_input_placeholder: "Minimum 6 characters, 1 number, 1 symbol",
+                  email_input_placeholder: "Your email address",
                   confirmation_text: "Check your email for the confirmation link",
                 },
               },
