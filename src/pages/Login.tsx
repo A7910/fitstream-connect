@@ -19,12 +19,12 @@ const Login = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
       
-      if (event === 'SIGNED_IN' && session) {
+      if (event === "SIGNED_IN" && session) {
         console.log("User signed in successfully, redirecting...");
         navigate("/");
       }
 
-      if (event === 'SIGNED_UP' && session) {
+      if (event === "SIGNED_UP" && session) {
         console.log("User signed up successfully");
         toast({
           title: "Sign up successful",
@@ -32,7 +32,7 @@ const Login = () => {
         });
       }
 
-      if (event === 'USER_UPDATED' && session) {
+      if (event === "USER_UPDATED" && session) {
         console.log("User updated successfully");
       }
     });
