@@ -41,46 +41,27 @@ export const useMemberships = () => {
     try {
       console.log("Handling membership action:", { userId, planId, action, startDate, endDate });
 
-      // Get the user's current membership if it exists
-      const { data: existingMembership, error: fetchError } = await supabase
-        .from("user_memberships")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (fetchError) throw fetchError;
-
       if (action === 'activate') {
         if (!planId) {
           throw new Error("No plan selected");
         }
 
-        let membershipStartDate = startDate;
-        let membershipEndDate = endDate;
+        const { data: existingMembership, error: fetchError } = await supabase
+          .from("user_memberships")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
 
-        // If dates aren't provided, calculate them based on the last membership
-        if (!startDate || !endDate) {
-          if (existingMembership) {
-            // If there's an existing membership, start from its end date
-            membershipStartDate = new Date(existingMembership.end_date);
-            membershipEndDate = new Date(existingMembership.end_date);
-            membershipEndDate.setMonth(membershipEndDate.getMonth() + 1);
-          } else {
-            // If no existing membership, start from today
-            membershipStartDate = new Date();
-            membershipEndDate = new Date();
-            membershipEndDate.setMonth(membershipEndDate.getMonth() + 1);
-          }
+        if (fetchError) throw fetchError;
+
+        let membershipStartDate = startDate || new Date();
+        let membershipEndDate = endDate || new Date();
+        
+        if (!endDate) {
+          membershipEndDate.setMonth(membershipEndDate.getMonth() + 1);
         }
 
-        console.log("Calculated membership dates:", { 
-          membershipStartDate, 
-          membershipEndDate,
-          existingMembership 
-        });
-
         if (existingMembership) {
-          // Update existing membership
           const { error: updateError } = await supabase
             .from("user_memberships")
             .update({
@@ -93,7 +74,6 @@ export const useMemberships = () => {
 
           if (updateError) throw updateError;
         } else {
-          // Create new membership if none exists
           const { error: insertError } = await supabase
             .from("user_memberships")
             .insert({
@@ -107,35 +87,16 @@ export const useMemberships = () => {
           if (insertError) throw insertError;
         }
       } else {
-        // Deactivate membership if it exists
-        if (existingMembership) {
-          const { error: deactivateError } = await supabase
-            .from("user_memberships")
-            .update({ status: "inactive" })
-            .eq("user_id", userId);
+        const { error: deactivateError } = await supabase
+          .from("user_memberships")
+          .update({ status: "inactive" })
+          .eq("user_id", userId);
 
-          if (deactivateError) throw deactivateError;
-        }
+        if (deactivateError) throw deactivateError;
       }
 
-      // Invalidate queries to refresh the data
       await queryClient.invalidateQueries({ queryKey: ["all-memberships"] });
       
-      // Wait for the database to update
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Refetch the specific user's memberships
-      const { data: updatedMemberships } = await supabase
-        .from("user_memberships")
-        .select("*")
-        .eq("user_id", userId);
-
-      // Force refresh the UI with the updated data
-      queryClient.setQueryData(["all-memberships"], (oldData: any[]) => {
-        if (!oldData) return updatedMemberships;
-        return oldData.filter(m => m.user_id !== userId).concat(updatedMemberships || []);
-      });
-
       toast({
         title: `Membership ${action === 'activate' ? 'activated' : 'deactivated'} successfully`,
         description: `The user's membership has been ${action === 'activate' ? 'activated' : 'deactivated'}.`,
