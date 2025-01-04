@@ -5,7 +5,6 @@ import { MemberListItem } from "./MemberListItem";
 import { useAttendanceActions } from "./useAttendanceActions";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { Pagination } from "@/components/ui/pagination";
 
 interface Profile {
   full_name: string | null;
@@ -21,12 +20,9 @@ interface ActiveUser {
   isCheckedIn?: boolean;
 }
 
-const USERS_PER_PAGE = 8;
-
 export const ActiveMembersList = () => {
   const { selectedUserId, setSelectedUserId, handleCheckIn, handleCheckOut } = useAttendanceActions();
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: activeUsers = [], isLoading: isLoadingUsers } = useQuery<ActiveUser[]>({
     queryKey: ["active-users"],
@@ -75,10 +71,6 @@ export const ActiveMembersList = () => {
     user.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
-  const startIndex = (currentPage - 1) * USERS_PER_PAGE;
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
-
   if (isLoadingUsers) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -94,16 +86,13 @@ export const ActiveMembersList = () => {
         <Input
           placeholder="Search by name..."
           value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setCurrentPage(1); // Reset to first page on search
-          }}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-8"
         />
       </div>
 
       <div className="grid gap-4">
-        {paginatedUsers.map((user) => (
+        {filteredUsers.map((user) => (
           <MemberListItem
             key={user.user_id}
             userId={user.user_id}
@@ -125,14 +114,6 @@ export const ActiveMembersList = () => {
           </p>
         )}
       </div>
-
-      {totalPages > 1 && (
-        <Pagination
-          page={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      )}
     </div>
   );
 };
