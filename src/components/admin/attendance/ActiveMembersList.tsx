@@ -13,6 +13,14 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Profile {
   full_name: string | null;
@@ -34,8 +42,9 @@ export const ActiveMembersList = () => {
   const { selectedUserId, setSelectedUserId, handleCheckIn, handleCheckOut } = useAttendanceActions();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const isMobile = useIsMobile();
 
-  const { data: activeUsers = [], isLoading: isLoadingUsers } = useQuery<ActiveUser[]>({
+  const { data: activeUsers = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["active-users"],
     queryFn: async () => {
       const today = new Date();
@@ -58,7 +67,6 @@ export const ActiveMembersList = () => {
 
       if (membershipError) throw membershipError;
       
-      // Check which users are already checked in today
       const { data: todayAttendance } = await supabase
         .from("attendance")
         .select("user_id")
@@ -75,7 +83,7 @@ export const ActiveMembersList = () => {
           return nameA.localeCompare(nameB);
         });
     },
-    refetchInterval: 60000, // Refetch every minute to handle day changes
+    refetchInterval: 60000,
   });
 
   const filteredUsers = activeUsers.filter(user =>
@@ -94,21 +102,39 @@ export const ActiveMembersList = () => {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="relative">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by name..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setCurrentPage(1); // Reset to first page on search
-          }}
-          className="pl-8"
-        />
-      </div>
+  const renderUserList = () => {
+    if (isMobile) {
+      return (
+        <Carousel className="w-full">
+          <CarouselContent>
+            {filteredUsers.map((user) => (
+              <CarouselItem key={user.user_id}>
+                <div className="p-1">
+                  <MemberListItem
+                    key={user.user_id}
+                    userId={user.user_id}
+                    fullName={user.profiles?.full_name}
+                    phoneNumber={user.profiles?.phone_number}
+                    avatarUrl={user.profiles?.avatar_url}
+                    startDate={user.start_date}
+                    endDate={user.end_date}
+                    isSelected={selectedUserId === user.user_id}
+                    isCheckedIn={false}
+                    onSelect={setSelectedUserId}
+                    onCheckIn={() => handleCheckIn(user.user_id)}
+                    onCheckOut={() => handleCheckOut(user.user_id)}
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+      );
+    }
 
+    return (
       <div className="grid gap-4">
         {paginatedUsers.map((user) => (
           <MemberListItem
@@ -126,14 +152,34 @@ export const ActiveMembersList = () => {
             onCheckOut={() => handleCheckOut(user.user_id)}
           />
         ))}
-        {filteredUsers.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">
-            No active members available for check-in
-          </p>
-        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by name..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="pl-8"
+        />
       </div>
 
-      {totalPages > 1 && (
+      {renderUserList()}
+
+      {!isMobile && filteredUsers.length === 0 && (
+        <p className="text-center text-muted-foreground py-8">
+          No active members available for check-in
+        </p>
+      )}
+
+      {!isMobile && totalPages > 1 && (
         <Pagination>
           <PaginationContent>
             <PaginationItem>
