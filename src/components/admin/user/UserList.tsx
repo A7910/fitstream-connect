@@ -64,7 +64,7 @@ const UserList = ({ users, membershipPlans, onMembershipAction, statusFilter, on
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -115,7 +115,7 @@ const UserList = ({ users, membershipPlans, onMembershipAction, statusFilter, on
       {paginatedUsers.map((user) => (
         <div
           key={user.id}
-          className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+          className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors space-y-4 sm:space-y-0"
         >
           <div className="flex items-center space-x-4">
             <Avatar>
@@ -126,7 +126,7 @@ const UserList = ({ users, membershipPlans, onMembershipAction, statusFilter, on
             </Avatar>
             <div className="space-y-1">
               <p className="font-medium">{user.full_name}</p>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <MembershipStatus membership={user.membership} />
                 <span className="text-sm text-muted-foreground">
                   ({getMembershipPlanName(user.membership?.plan_id)})
