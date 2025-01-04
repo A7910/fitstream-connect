@@ -70,17 +70,38 @@ const DedicatedWorkoutManager = () => {
     }
 
     try {
-      // First, ensure we have a week record
-      const { data: weekData, error: weekError } = await supabase
+      // First, check if week already exists
+      const { data: existingWeek, error: weekCheckError } = await supabase
         .from('dedicated_workout_weeks')
-        .insert([{ user_id: selectedUser, week_number: selectedWeek }])
-        .select()
+        .select('id')
+        .eq('user_id', selectedUser)
+        .eq('week_number', selectedWeek)
         .single();
 
-      if (weekError) throw weekError;
+      if (weekCheckError && weekCheckError.code !== 'PGRST116') {
+        throw weekCheckError;
+      }
+
+      let weekId;
+      
+      if (existingWeek) {
+        weekId = existingWeek.id;
+        console.log("Using existing week:", weekId);
+      } else {
+        // Create new week if it doesn't exist
+        const { data: newWeek, error: weekError } = await supabase
+          .from('dedicated_workout_weeks')
+          .insert([{ user_id: selectedUser, week_number: selectedWeek }])
+          .select()
+          .single();
+
+        if (weekError) throw weekError;
+        weekId = newWeek.id;
+        console.log("Created new week:", weekId);
+      }
 
       await createWorkoutMutation.mutateAsync({
-        weekId: weekData.id,
+        weekId,
         exercises
       });
     } catch (error) {
