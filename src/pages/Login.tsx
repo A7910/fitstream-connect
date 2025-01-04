@@ -125,6 +125,7 @@ const Login = () => {
               },
             }}
             providers={[]}
+            redirectTo={window.location.origin}
             localization={{
               variables: {
                 sign_up: {
