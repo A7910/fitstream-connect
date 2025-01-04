@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
 import DedicatedWorkoutManager from "@/components/admin/dedicated-workout/DedicatedWorkoutManager";
+import AssignedWorkoutViewer from "@/components/admin/workout/AssignedWorkoutViewer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -152,6 +153,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="workout">Workout Plans</TabsTrigger>
             <TabsTrigger value="dedicated">Dedicated Workout</TabsTrigger>
+            <TabsTrigger value="assigned">Assigned Workouts</TabsTrigger>
             <TabsTrigger value="announcements">Announcements</TabsTrigger>
           </TabsList>
 
@@ -172,6 +174,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="dedicated" className="space-y-4">
             <DedicatedWorkoutManager />
+          </TabsContent>
+
+          <TabsContent value="assigned" className="space-y-4">
+            <AssignedWorkoutViewer />
           </TabsContent>
 
           <TabsContent value="announcements" className="space-y-4">
