@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import WorkoutPlansSection from "@/components/admin/workout/WorkoutPlansSection";
+import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
+import ExerciseManager from "@/components/admin/ExerciseManager";
 import DedicatedWorkoutManager from "@/components/admin/dedicated-workout/DedicatedWorkoutManager";
 import AssignedWorkoutViewer from "@/components/admin/workout/AssignedWorkoutViewer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -165,7 +166,10 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="workout" className="space-y-4">
-            <WorkoutPlansSection />
+            <div className="grid gap-4 md:grid-cols-2">
+              <WorkoutGoalManager />
+              <ExerciseManager />
+            </div>
           </TabsContent>
 
           <TabsContent value="dedicated" className="space-y-4">

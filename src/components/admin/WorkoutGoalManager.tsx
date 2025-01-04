@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Trash2 } from "lucide-react";
-import { Pagination } from "@/components/ui/pagination";
 import {
   Card,
   CardContent,
@@ -16,17 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-interface WorkoutGoalManagerProps {
-  page?: number;
-  itemsPerPage?: number;
-  onPageChange?: (page: number) => void;
-}
-
-const WorkoutGoalManager = ({ 
-  page = 1, 
-  itemsPerPage = 5,
-  onPageChange 
-}: WorkoutGoalManagerProps) => {
+const WorkoutGoalManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newGoal, setNewGoal] = useState({
@@ -34,29 +23,16 @@ const WorkoutGoalManager = ({
     description: "",
   });
 
-  const { data: workoutGoalsData, isLoading } = useQuery({
-    queryKey: ["workoutGoals", page],
+  const { data: workoutGoals, isLoading } = useQuery({
+    queryKey: ["workoutGoals"],
     queryFn: async () => {
-      // First get total count
-      const { count, error: countError } = await supabase
-        .from("workout_goals")
-        .select("*", { count: 'exact', head: true });
-
-      if (countError) throw countError;
-
-      // Then get paginated data
       const { data, error } = await supabase
         .from("workout_goals")
         .select("*")
-        .range((page - 1) * itemsPerPage, page * itemsPerPage - 1)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
-
-      return {
-        goals: data,
-        totalPages: Math.ceil((count || 0) / itemsPerPage)
-      };
+      return data;
     },
   });
 
@@ -154,7 +130,7 @@ const WorkoutGoalManager = ({
               <p>Loading goals...</p>
             ) : (
               <div className="space-y-4">
-                {workoutGoalsData?.goals?.map((goal) => (
+                {workoutGoals?.map((goal) => (
                   <div
                     key={goal.id}
                     className="p-4 border rounded-lg"
@@ -174,15 +150,6 @@ const WorkoutGoalManager = ({
                     </div>
                   </div>
                 ))}
-                {workoutGoalsData?.totalPages > 1 && (
-                  <div className="mt-4 flex justify-center">
-                    <Pagination
-                      page={page}
-                      totalPages={workoutGoalsData.totalPages}
-                      onPageChange={onPageChange || (() => {})}
-                    />
-                  </div>
-                )}
               </div>
             )}
           </div>

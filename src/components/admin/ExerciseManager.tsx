@@ -10,19 +10,8 @@ import {
 import ExerciseForm from "./exercise/ExerciseForm";
 import ExerciseList from "./exercise/ExerciseList";
 import { useToast } from "@/components/ui/use-toast";
-import { Pagination } from "@/components/ui/pagination";
 
-interface ExerciseManagerProps {
-  page?: number;
-  itemsPerPage?: number;
-  onPageChange?: (page: number) => void;
-}
-
-const ExerciseManager = ({ 
-  page = 1, 
-  itemsPerPage = 5,
-  onPageChange 
-}: ExerciseManagerProps) => {
+const ExerciseManager = () => {
   const { toast } = useToast();
 
   const { data: workoutGoals } = useQuery({
@@ -47,19 +36,11 @@ const ExerciseManager = ({
     },
   });
 
-  const { data: exercisesData, isLoading, error } = useQuery({
-    queryKey: ["exercises", page],
+  const { data: exercises, isLoading, error } = useQuery({
+    queryKey: ["exercises"],
     queryFn: async () => {
       console.log("Fetching exercises...");
       try {
-        // First get total count
-        const { count, error: countError } = await supabase
-          .from("exercises")
-          .select("*", { count: 'exact', head: true });
-
-        if (countError) throw countError;
-
-        // Then get paginated data
         const { data, error } = await supabase
           .from("exercises")
           .select(`
@@ -68,7 +49,6 @@ const ExerciseManager = ({
               name
             )
           `)
-          .range((page - 1) * itemsPerPage, page * itemsPerPage - 1)
           .order("created_at", { ascending: false });
         
         if (error) {
@@ -83,14 +63,11 @@ const ExerciseManager = ({
 
         if (!data) {
           console.log("No exercises found");
-          return { exercises: [], totalPages: 0 };
+          return [];
         }
 
         console.log("Fetched exercises successfully:", data);
-        return { 
-          exercises: data, 
-          totalPages: Math.ceil((count || 0) / itemsPerPage)
-        };
+        return data;
       } catch (error) {
         console.error("Error in exercise query:", error);
         toast({
@@ -119,19 +96,10 @@ const ExerciseManager = ({
           <div className="mt-6">
             <h3 className="text-lg font-semibold mb-4">Existing Exercises</h3>
             <ExerciseList 
-              exercises={exercisesData?.exercises || []} 
+              exercises={exercises || []} 
               isLoading={isLoading} 
               workoutGoals={workoutGoals}
             />
-            {exercisesData?.totalPages > 1 && (
-              <div className="mt-4 flex justify-center">
-                <Pagination
-                  page={page}
-                  totalPages={exercisesData.totalPages}
-                  onPageChange={onPageChange || (() => {})}
-                />
-              </div>
-            )}
           </div>
         </div>
       </CardContent>
