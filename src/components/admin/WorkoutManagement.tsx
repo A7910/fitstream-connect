@@ -57,9 +57,13 @@ const WorkoutManagement = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <TabsList>
+            <TabsList className="w-full grid grid-cols-2 h-11">
               {tabs.map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.id}>
+                <TabsTrigger 
+                  key={tab.id} 
+                  value={tab.id}
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
                   {tab.label}
                 </TabsTrigger>
               ))}
