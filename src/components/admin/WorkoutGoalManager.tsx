@@ -127,6 +127,7 @@ const WorkoutGoalManager = () => {
           <Button 
             onClick={() => createGoal.mutate()}
             disabled={!newGoal.name}
+            className="w-full sm:w-auto"
           >
             Create Goal
           </Button>
@@ -142,8 +143,8 @@ const WorkoutGoalManager = () => {
                     key={goal.id}
                     className="p-4 border rounded-lg"
                   >
-                    <div className="flex justify-between items-start">
-                      <div>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                      <div className="flex-1">
                         <h4 className="font-medium">{goal.name}</h4>
                         <p className="text-sm text-muted-foreground">{goal.description}</p>
                       </div>
@@ -151,6 +152,7 @@ const WorkoutGoalManager = () => {
                         variant="destructive"
                         size="icon"
                         onClick={() => deleteGoal.mutate(goal.id)}
+                        className="self-end sm:self-start"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -159,11 +161,12 @@ const WorkoutGoalManager = () => {
                 ))}
 
                 {totalPages > 1 && (
-                  <div className="flex justify-center gap-2 mt-4">
+                  <div className="flex flex-col sm:flex-row justify-center items-center gap-2 mt-4">
                     <Button
                       variant="outline"
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
+                      className="w-full sm:w-auto"
                     >
                       Previous
                     </Button>
@@ -174,6 +177,7 @@ const WorkoutGoalManager = () => {
                       variant="outline"
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
+                      className="w-full sm:w-auto"
                     >
                       Next
                     </Button>
