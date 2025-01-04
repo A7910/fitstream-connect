@@ -6,12 +6,15 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     console.log("Login component mounted");
+    console.log("Current origin:", window.location.origin);
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
@@ -20,13 +23,25 @@ const Login = () => {
         console.log("User signed in successfully, redirecting...");
         navigate("/");
       }
+
+      if (event === 'SIGNED_UP') {
+        console.log("User signed up successfully");
+        toast({
+          title: "Sign up successful",
+          description: "Please check your email to confirm your account.",
+        });
+      }
+
+      if (event === 'USER_UPDATED') {
+        console.log("User updated successfully");
+      }
     });
 
     return () => {
       console.log("Cleaning up auth listener");
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, toast]);
 
   return (
     <div className="min-h-screen pt-24 pb-12 bg-gray-50">
@@ -61,8 +76,15 @@ const Login = () => {
               },
             }}
             providers={[]}
-            redirectTo={window.location.origin}
-            view="sign_in"
+            redirectTo={`${window.location.origin}/`}
+            onError={(error) => {
+              console.error("Auth error:", error);
+              toast({
+                title: "Authentication Error",
+                description: error.message,
+                variant: "destructive",
+              });
+            }}
           />
         </div>
       </div>
