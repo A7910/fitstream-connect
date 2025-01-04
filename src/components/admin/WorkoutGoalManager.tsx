@@ -15,6 +15,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+const ITEMS_PER_PAGE = 5;
+
 const WorkoutGoalManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -22,6 +24,7 @@ const WorkoutGoalManager = () => {
     name: "",
     description: "",
   });
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: workoutGoals, isLoading } = useQuery({
     queryKey: ["workoutGoals"],
@@ -91,6 +94,10 @@ const WorkoutGoalManager = () => {
     },
   });
 
+  const totalPages = Math.ceil((workoutGoals?.length || 0) / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedGoals = workoutGoals?.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   return (
     <Card>
       <CardHeader>
@@ -130,7 +137,7 @@ const WorkoutGoalManager = () => {
               <p>Loading goals...</p>
             ) : (
               <div className="space-y-4">
-                {workoutGoals?.map((goal) => (
+                {paginatedGoals?.map((goal) => (
                   <div
                     key={goal.id}
                     className="p-4 border rounded-lg"
@@ -150,6 +157,28 @@ const WorkoutGoalManager = () => {
                     </div>
                   </div>
                 ))}
+
+                {totalPages > 1 && (
+                  <div className="flex justify-center gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <span className="py-2">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

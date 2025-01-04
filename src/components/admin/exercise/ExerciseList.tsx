@@ -11,6 +11,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ExerciseForm from "./ExerciseForm";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Exercise {
   id: string;
@@ -30,10 +37,14 @@ interface ExerciseListProps {
   workoutGoals: Array<{ id: string; name: string; }> | undefined;
 }
 
+const ITEMS_PER_PAGE = 5;
+
 const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [selectedGoal, setSelectedGoal] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const deleteExercise = useMutation({
     mutationFn: async (id: string) => {
@@ -78,6 +89,14 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
     setEditingExercise(null);
   };
 
+  const filteredExercises = exercises?.filter(exercise => 
+    selectedGoal === "all" || exercise.workout_goals?.name === workoutGoals?.find(g => g.id === selectedGoal)?.name
+  ) || [];
+
+  const totalPages = Math.ceil((filteredExercises?.length || 0) / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedExercises = filteredExercises?.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   if (isLoading) {
     return <p>Loading exercises...</p>;
   }
@@ -85,7 +104,26 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
   return (
     <>
       <div className="space-y-4">
-        {exercises?.map((exercise) => (
+        <div className="flex items-center gap-4">
+          <Select
+            value={selectedGoal}
+            onValueChange={setSelectedGoal}
+          >
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by goal" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Goals</SelectItem>
+              {workoutGoals?.map((goal) => (
+                <SelectItem key={goal.id} value={goal.id}>
+                  {goal.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {paginatedExercises?.map((exercise) => (
           <div
             key={exercise.id}
             className="p-4 border rounded-lg"
@@ -145,6 +183,28 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
             </div>
           </div>
         ))}
+
+        {totalPages > 1 && (
+          <div className="flex justify-center gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </Button>
+            <span className="py-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
 
       <Dialog open={!!editingExercise} onOpenChange={handleClose}>
