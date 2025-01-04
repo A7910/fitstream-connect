@@ -15,6 +15,23 @@ import AttendanceManagement from "@/components/admin/AttendanceManagement";
 import AnnouncementManager from "@/components/admin/AnnouncementManager";
 import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 import { BackButton } from "@/components/ui/back-button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { 
+  Users, 
+  CalendarCheck, 
+  Dumbbell, 
+  Target, 
+  ClipboardList,
+  Bell,
+  ChevronDown
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -22,6 +39,8 @@ const AdminDashboard = () => {
   const queryClient = useQueryClient();
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [customDate, setCustomDate] = useState<Date>();
+  const [activeTab, setActiveTab] = useState("users");
+  const isMobile = useIsMobile();
 
   const { data: session } = useQuery({
     queryKey: ["session"],
@@ -72,12 +91,10 @@ const AdminDashboard = () => {
     customDate
   );
 
-  // Calculate visits change percentage
   const visitsChange = visitsData.yesterday !== 0
     ? ((visitsData.today - visitsData.yesterday) / visitsData.yesterday) * 100
     : 0;
 
-  // Calculate memberships change percentage
   const membershipsChange = membershipsComparison.previous !== 0
     ? ((membershipsComparison.current - membershipsComparison.previous) / membershipsComparison.previous) * 100
     : membershipsComparison.current > 0 ? 100 : 0;
@@ -127,6 +144,15 @@ const AdminDashboard = () => {
   if (!session || isAdmin === undefined) return null;
   if (!isAdmin) return null;
 
+  const tabItems = [
+    { id: "users", label: "Users", icon: <Users className="h-4 w-4" /> },
+    { id: "attendance", label: "Attendance", icon: <CalendarCheck className="h-4 w-4" /> },
+    { id: "workout", label: "Workout Plans", icon: <Dumbbell className="h-4 w-4" /> },
+    { id: "dedicated", label: "Dedicated Workout", icon: <Target className="h-4 w-4" /> },
+    { id: "assigned", label: "Assigned Workouts", icon: <ClipboardList className="h-4 w-4" /> },
+    { id: "announcements", label: "Announcements", icon: <Bell className="h-4 w-4" /> },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -147,18 +173,40 @@ const AdminDashboard = () => {
           onRefresh={handleRefresh}
         />
 
-        <Tabs defaultValue="users" className="space-y-4">
+        {isMobile ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full mb-4 flex items-center justify-between">
+                {tabItems.find(tab => tab.id === activeTab)?.label}
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-full">
+              {tabItems.map((item) => (
+                <DropdownMenuItem
+                  key={item.id}
+                  className="flex items-center gap-2"
+                  onClick={() => setActiveTab(item.id)}
+                >
+                  {item.icon}
+                  {item.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
           <TabsList>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="attendance">Attendance</TabsTrigger>
-            <TabsTrigger value="workout">Workout Plans</TabsTrigger>
-            <TabsTrigger value="dedicated">Dedicated Workout</TabsTrigger>
-            <TabsTrigger value="assigned">Assigned Workouts</TabsTrigger>
-            <TabsTrigger value="announcements">Announcements</TabsTrigger>
+            {tabItems.map((item) => (
+              <TabsTrigger key={item.id} value={item.id}>
+                {item.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
+        )}
 
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsContent value="users" className="space-y-4">
-            <UserManagement memberships={memberships} />
+            <UserManagement />
           </TabsContent>
 
           <TabsContent value="attendance" className="space-y-4">
