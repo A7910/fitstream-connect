@@ -42,6 +42,12 @@ const UserList = ({ users, membershipPlans, onMembershipAction, statusFilter, on
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const getMembershipPlanName = (planId: string | null) => {
+    if (!planId) return 'No Plan';
+    const plan = membershipPlans.find(p => p.id === planId);
+    return plan ? plan.name : 'Unknown Plan';
+  };
+
   const filteredUsers = users.filter(user => {
     const nameMatch = user.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
     if (!nameMatch) return false;
@@ -120,7 +126,12 @@ const UserList = ({ users, membershipPlans, onMembershipAction, statusFilter, on
             </Avatar>
             <div className="space-y-1">
               <p className="font-medium">{user.full_name}</p>
-              <MembershipStatus membership={user.membership} />
+              <div className="flex items-center gap-2">
+                <MembershipStatus membership={user.membership} />
+                <span className="text-sm text-muted-foreground">
+                  ({getMembershipPlanName(user.membership?.plan_id)})
+                </span>
+              </div>
               <div className="text-sm text-muted-foreground">
                 {user.phone_number}
               </div>
