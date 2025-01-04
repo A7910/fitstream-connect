@@ -6,7 +6,7 @@ import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
 import DedicatedWorkoutManager from "@/components/admin/dedicated-workout/DedicatedWorkoutManager";
 import AssignedWorkoutViewer from "@/components/admin/workout/AssignedWorkoutViewer";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
@@ -15,7 +15,6 @@ import AttendanceManagement from "@/components/admin/AttendanceManagement";
 import AnnouncementManager from "@/components/admin/AnnouncementManager";
 import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 import { BackButton } from "@/components/ui/back-button";
-import { AdminTabNavigation } from "./navigation/AdminTabNavigation";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -23,7 +22,6 @@ const AdminDashboard = () => {
   const queryClient = useQueryClient();
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [customDate, setCustomDate] = useState<Date>();
-  const [activeTab, setActiveTab] = useState("users");
 
   const { data: session } = useQuery({
     queryKey: ["session"],
@@ -74,10 +72,12 @@ const AdminDashboard = () => {
     customDate
   );
 
+  // Calculate visits change percentage
   const visitsChange = visitsData.yesterday !== 0
     ? ((visitsData.today - visitsData.yesterday) / visitsData.yesterday) * 100
     : 0;
 
+  // Calculate memberships change percentage
   const membershipsChange = membershipsComparison.previous !== 0
     ? ((membershipsComparison.current - membershipsComparison.previous) / membershipsComparison.previous) * 100
     : membershipsComparison.current > 0 ? 100 : 0;
@@ -147,8 +147,15 @@ const AdminDashboard = () => {
           onRefresh={handleRefresh}
         />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <AdminTabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <Tabs defaultValue="users" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="attendance">Attendance</TabsTrigger>
+            <TabsTrigger value="workout">Workout Plans</TabsTrigger>
+            <TabsTrigger value="dedicated">Dedicated Workout</TabsTrigger>
+            <TabsTrigger value="assigned">Assigned Workouts</TabsTrigger>
+            <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          </TabsList>
 
           <TabsContent value="users" className="space-y-4">
             <UserManagement memberships={memberships} />

@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -10,8 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { WorkoutUserList } from "./WorkoutUserList";
-import { ExerciseDetails } from "./ExerciseDetails";
+
+const USERS_PER_PAGE = 8;
 
 const AssignedWorkoutViewer = () => {
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -128,20 +132,49 @@ const AssignedWorkoutViewer = () => {
       <CardHeader>
         <CardTitle>Assigned Workouts</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <WorkoutUserList
-              users={filteredUsers}
-              selectedUser={selectedUser}
-              searchQuery={searchQuery}
-              onUserSelect={(userId) => {
-                setSelectedUser(userId);
-                setSelectedWeek(null);
-                setSelectedDay(null);
-              }}
-              onSearchChange={setSearchQuery}
+            <Input
+              type="search"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
+            <ScrollArea className="h-[400px] rounded-md border">
+              <div className="p-4 space-y-2">
+                {filteredUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className={`flex items-center space-x-3 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${
+                      selectedUser === user.id ? "bg-muted" : ""
+                    }`}
+                    onClick={() => {
+                      setSelectedUser(user.id);
+                      setSelectedWeek(null);
+                      setSelectedDay(null);
+                    }}
+                  >
+                    <Avatar>
+                      <AvatarImage src={user.avatar_url || undefined} />
+                      <AvatarFallback>
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium">
+                      {user.full_name || "Unnamed User"}
+                    </span>
+                  </div>
+                ))}
+                {filteredUsers.length === 0 && (
+                  <div className="text-sm text-muted-foreground text-center py-4">
+                    {searchQuery
+                      ? "No users found matching your search"
+                      : "No users with assigned workouts"}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </div>
 
           <div className="space-y-6">
@@ -187,10 +220,45 @@ const AssignedWorkoutViewer = () => {
                 {selectedDay && (
                   <div className="space-y-4">
                     <h3 className="font-semibold">Assigned Exercises</h3>
-                    <ExerciseDetails
-                      exercises={exercises}
-                      isLoadingExercises={isLoadingExercises}
-                    />
+                    {isLoadingExercises ? (
+                      <div className="flex items-center justify-center p-4">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {exercises.map((exercise) => (
+                          <div
+                            key={exercise.id}
+                            className="p-4 border rounded-lg space-y-2"
+                          >
+                            <h4 className="font-medium">
+                              {exercise.exercises.name}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              {exercise.exercises.description}
+                            </p>
+                            <div className="text-sm">
+                              <p>Sets: {exercise.sets}</p>
+                              <p>Reps: {exercise.reps || "Not specified"}</p>
+                              {exercise.notes && <p>Notes: {exercise.notes}</p>}
+                            </div>
+                            <div className="flex gap-2 text-xs">
+                              <span className="px-2 py-1 bg-muted rounded-full">
+                                {exercise.exercises.muscle_group}
+                              </span>
+                              <span className="px-2 py-1 bg-muted rounded-full">
+                                {exercise.exercises.difficulty_level}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                        {exercises.length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            No exercises assigned for this day
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
