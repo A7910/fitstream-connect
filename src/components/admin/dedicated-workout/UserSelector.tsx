@@ -17,7 +17,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 
 interface UserSelectorProps {
@@ -28,9 +27,10 @@ interface UserSelectorProps {
 const UserSelector = ({ selectedUser, onUserSelect }: UserSelectorProps) => {
   const [open, setOpen] = useState(false);
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery({
     queryKey: ["active-users"],
     queryFn: async () => {
+      console.log("Fetching active users...");
       const { data: memberships, error } = await supabase
         .from("user_memberships")
         .select(`
@@ -47,19 +47,25 @@ const UserSelector = ({ selectedUser, onUserSelect }: UserSelectorProps) => {
         console.error("Error fetching users:", error);
         throw error;
       }
+
+      if (!memberships) {
+        console.log("No memberships found");
+        return [];
+      }
       
       // Filter out duplicates and null profiles
       const uniqueUsers = memberships
-        .filter(m => m.profiles)
+        .filter(m => m.profiles) // Filter out null profiles
         .filter((m, index, self) => 
           index === self.findIndex(t => t.user_id === m.user_id)
         );
 
+      console.log("Filtered users:", uniqueUsers);
       return uniqueUsers;
     },
   });
 
-  const selectedUserName = users?.find(u => u.user_id === selectedUser)?.profiles?.full_name;
+  const selectedUserName = users.find(u => u.user_id === selectedUser)?.profiles?.full_name;
 
   return (
     <div className="space-y-2">
@@ -85,7 +91,7 @@ const UserSelector = ({ selectedUser, onUserSelect }: UserSelectorProps) => {
             <CommandInput placeholder="Search users..." />
             <CommandEmpty>No user found.</CommandEmpty>
             <CommandGroup className="max-h-[300px] overflow-y-auto">
-              {users?.map((membership) => (
+              {users.map((membership) => (
                 <CommandItem
                   key={membership.user_id}
                   value={membership.profiles?.full_name || ""}
