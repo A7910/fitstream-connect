@@ -6,7 +6,7 @@ interface ExerciseTagProps {
 
 const ExerciseTag = ({ label }: ExerciseTagProps) => {
   return (
-    <span className="text-xs bg-secondary text-white px-2 py-1 rounded">
+    <span className="inline-flex text-xs bg-secondary text-white px-2 py-1 rounded whitespace-nowrap">
       {label}
     </span>
   );

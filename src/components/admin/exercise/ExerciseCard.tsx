@@ -43,7 +43,7 @@ const ExerciseCard = ({ exercise, onEdit, onDelete }: ExerciseCardProps) => {
             <div>
               <h4 className="font-medium">{exercise.name}</h4>
               <p className="text-sm text-muted-foreground">{exercise.description}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-2 flex flex-row flex-wrap items-center gap-2">
                 <ExerciseTag label={exercise.muscle_group} />
                 <ExerciseTag label={exercise.difficulty_level} />
                 {exercise.workout_goals?.name && (
