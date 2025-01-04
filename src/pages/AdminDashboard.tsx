@@ -6,7 +6,7 @@ import WorkoutGoalManager from "@/components/admin/WorkoutGoalManager";
 import ExerciseManager from "@/components/admin/ExerciseManager";
 import DedicatedWorkoutManager from "@/components/admin/dedicated-workout/DedicatedWorkoutManager";
 import AssignedWorkoutViewer from "@/components/admin/workout/AssignedWorkoutViewer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import AdminHeader from "@/components/admin/AdminHeader";
 import StatsCards from "@/components/admin/StatsCards";
@@ -15,23 +15,7 @@ import AttendanceManagement from "@/components/admin/AttendanceManagement";
 import AnnouncementManager from "@/components/admin/AnnouncementManager";
 import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 import { BackButton } from "@/components/ui/back-button";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { 
-  Users, 
-  CalendarCheck, 
-  Dumbbell, 
-  Target, 
-  ClipboardList,
-  Bell,
-  ChevronDown
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AdminTabNavigation } from "./navigation/AdminTabNavigation";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -40,7 +24,6 @@ const AdminDashboard = () => {
   const [dateRange, setDateRange] = useState<DateRange>("week");
   const [customDate, setCustomDate] = useState<Date>();
   const [activeTab, setActiveTab] = useState("users");
-  const isMobile = useIsMobile();
 
   const { data: session } = useQuery({
     queryKey: ["session"],
@@ -144,15 +127,6 @@ const AdminDashboard = () => {
   if (!session || isAdmin === undefined) return null;
   if (!isAdmin) return null;
 
-  const tabItems = [
-    { id: "users", label: "Users", icon: <Users className="h-4 w-4" /> },
-    { id: "attendance", label: "Attendance", icon: <CalendarCheck className="h-4 w-4" /> },
-    { id: "workout", label: "Workout Plans", icon: <Dumbbell className="h-4 w-4" /> },
-    { id: "dedicated", label: "Dedicated Workout", icon: <Target className="h-4 w-4" /> },
-    { id: "assigned", label: "Assigned Workouts", icon: <ClipboardList className="h-4 w-4" /> },
-    { id: "announcements", label: "Announcements", icon: <Bell className="h-4 w-4" /> },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -173,40 +147,11 @@ const AdminDashboard = () => {
           onRefresh={handleRefresh}
         />
 
-        {isMobile ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full mb-4 flex items-center justify-between">
-                {tabItems.find(tab => tab.id === activeTab)?.label}
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-full">
-              {tabItems.map((item) => (
-                <DropdownMenuItem
-                  key={item.id}
-                  className="flex items-center gap-2"
-                  onClick={() => setActiveTab(item.id)}
-                >
-                  {item.icon}
-                  {item.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <TabsList>
-            {tabItems.map((item) => (
-              <TabsTrigger key={item.id} value={item.id}>
-                {item.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        )}
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <AdminTabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+
           <TabsContent value="users" className="space-y-4">
-            <UserManagement />
+            <UserManagement memberships={memberships} />
           </TabsContent>
 
           <TabsContent value="attendance" className="space-y-4">
