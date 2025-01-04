@@ -39,11 +39,11 @@ const ExerciseCard = ({ exercise, onEdit, onDelete }: ExerciseCardProps) => {
           </div>
         )}
         <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <div>
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div className="w-full">
               <h4 className="font-medium">{exercise.name}</h4>
-              <p className="text-sm text-muted-foreground">{exercise.description}</p>
-              <div className="mt-2 flex flex-row flex-wrap items-center gap-2">
+              <p className="text-sm text-muted-foreground mb-2">{exercise.description}</p>
+              <div className="flex flex-row flex-wrap items-center gap-2">
                 <ExerciseTag label={exercise.muscle_group} />
                 <ExerciseTag label={exercise.difficulty_level} />
                 {exercise.workout_goals?.name && (
@@ -52,7 +52,7 @@ const ExerciseCard = ({ exercise, onEdit, onDelete }: ExerciseCardProps) => {
                 <ExerciseTag label={`Sets: ${exercise.sets}`} />
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-row md:flex-col gap-2">
               <Button
                 variant="outline"
                 size="icon"
