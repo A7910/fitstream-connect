@@ -12,6 +12,7 @@ interface Exercise {
   workout_goals: { name: string } | null;
   sets: number;
   image_url: string | null;
+  goal_id: string;  // Added this field to match the database schema
 }
 
 interface ExerciseCardProps {
