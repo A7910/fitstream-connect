@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { User } from "lucide-react";
@@ -30,6 +30,11 @@ export const MemberListItem = ({
   onCheckIn,
   onCheckOut,
 }: MemberListItemProps) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return isValid(date) ? format(date, 'PP') : 'Invalid date';
+  };
+
   return (
     <div
       className={`p-4 border rounded-lg cursor-pointer transition-all duration-300 transform ${
@@ -55,7 +60,7 @@ export const MemberListItem = ({
               {phoneNumber || "No phone number"}
             </p>
             <p className="text-sm text-muted-foreground">
-              Membership: {format(new Date(startDate), 'PP')} - {format(new Date(endDate), 'PP')}
+              Membership: {formatDate(startDate)} - {formatDate(endDate)}
             </p>
           </div>
         </div>
