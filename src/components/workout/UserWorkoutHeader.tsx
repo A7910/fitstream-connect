@@ -7,11 +7,16 @@ export const UserWorkoutHeader = () => {
   return (
     <CardHeader>
       <CardTitle>
-        {isLoading
-          ? "Loading..."
-          : profile?.full_name
-          ? `${profile.full_name}, Here is your workout plan`
-          : "Here is your workout plan"}
+        {isLoading ? (
+          "Loading..."
+        ) : profile?.full_name ? (
+          <>
+            <span className="font-bold">{profile.full_name}</span>
+            <span>, Here is your workout plan</span>
+          </>
+        ) : (
+          "Here is your workout plan"
+        )}
       </CardTitle>
     </CardHeader>
   );
