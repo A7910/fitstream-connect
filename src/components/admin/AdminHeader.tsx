@@ -10,7 +10,7 @@ const AdminHeader = ({ onLogout }: AdminHeaderProps) => {
   return (
     <div className="flex justify-between items-center mb-8">
       <div>
-        <h1 className="text-3xl font-bold">Muneeb Chupa</h1>
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="mt-4">
           <AdminLogo />
         </div>
