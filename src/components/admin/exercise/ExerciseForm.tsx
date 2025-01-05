@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import ExerciseFormFields from "./form/ExerciseFormFields";
 import { uploadExerciseImage, updateExercise, createExercise } from "@/utils/exercise-operations";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ExerciseFormProps {
   workoutGoals: Array<{ id: string; name: string; }> | undefined;
@@ -36,6 +37,19 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
 
   const mutation = useMutation({
     mutationFn: async () => {
+      // First verify admin status
+      const { data: adminCheck } = await supabase
+        .from('admin_users')
+        .select('user_id')
+        .single();
+      
+      console.log("Admin check result:", adminCheck);
+      
+      if (!adminCheck) {
+        console.error("User is not an admin");
+        throw new Error("Unauthorized: User is not an admin");
+      }
+
       console.log("Starting mutation for exercise:", exercise?.id ? "update" : "create");
       console.log("Current exercise data:", newExercise);
       
@@ -61,6 +75,15 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
 
         if (exercise?.id) {
           console.log("Updating existing exercise with ID:", exercise.id);
+          // Direct database query to check current exercise data
+          const { data: currentExercise } = await supabase
+            .from('exercises')
+            .select('*')
+            .eq('id', exercise.id)
+            .single();
+          
+          console.log("Current exercise in database:", currentExercise);
+          
           const updatedExercise = await updateExercise(exercise.id, exerciseData);
           console.log("Exercise updated successfully:", updatedExercise);
           return updatedExercise;
