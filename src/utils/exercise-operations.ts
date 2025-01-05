@@ -43,10 +43,24 @@ export const uploadExerciseImage = async (imageFile: File, oldImageUrl: string |
 };
 
 export const updateExercise = async (exerciseId: string, updateData: any) => {
-  console.log("Updating exercise with ID:", exerciseId);
+  console.log("Starting exercise update process...");
+  console.log("Exercise ID:", exerciseId);
   console.log("Update data:", updateData);
-  
+
   try {
+    // First verify the exercise exists
+    const { data: existingExercise, error: checkError } = await supabase
+      .from('exercises')
+      .select()
+      .eq('id', exerciseId)
+      .single();
+
+    if (checkError || !existingExercise) {
+      console.error("Exercise not found:", exerciseId);
+      throw new Error("Exercise not found");
+    }
+
+    // Proceed with update
     const { data, error } = await supabase
       .from('exercises')
       .update(updateData)
@@ -57,16 +71,11 @@ export const updateExercise = async (exerciseId: string, updateData: any) => {
           name
         )
       `)
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error("Error updating exercise:", error);
       throw error;
-    }
-
-    if (!data) {
-      console.error("No exercise found with ID:", exerciseId);
-      throw new Error("Exercise not found");
     }
 
     console.log("Exercise updated successfully:", data);
@@ -78,7 +87,8 @@ export const updateExercise = async (exerciseId: string, updateData: any) => {
 };
 
 export const createExercise = async (exerciseData: any) => {
-  console.log("Creating exercise with data:", exerciseData);
+  console.log("Creating new exercise...");
+  console.log("Exercise data:", exerciseData);
   
   try {
     const { data, error } = await supabase
@@ -90,16 +100,11 @@ export const createExercise = async (exerciseData: any) => {
           name
         )
       `)
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error("Error creating exercise:", error);
       throw error;
-    }
-
-    if (!data) {
-      console.error("Failed to create exercise");
-      throw new Error("Failed to create exercise");
     }
 
     console.log("Exercise created successfully:", data);
