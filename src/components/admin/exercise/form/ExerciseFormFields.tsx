@@ -24,6 +24,7 @@ interface ExerciseFormFieldsProps {
   onFieldChange: (field: string, value: any) => void;
   imageFile: File | null;
   setImageFile: (file: File | null) => void;
+  imagePreview: string | null;
 }
 
 const ExerciseFormFields = ({
@@ -32,6 +33,7 @@ const ExerciseFormFields = ({
   onFieldChange,
   imageFile,
   setImageFile,
+  imagePreview,
 }: ExerciseFormFieldsProps) => {
   return (
     <>
@@ -55,14 +57,25 @@ const ExerciseFormFields = ({
       </div>
       <div className="space-y-2">
         <Label>Exercise Image</Label>
-        <ImageUpload
-          value={exercise.image_url}
-          onChange={(file) => setImageFile(file)}
-          onRemove={() => {
-            setImageFile(null);
-            onFieldChange("image_url", null);
-          }}
-        />
+        <div className="space-y-4">
+          <ImageUpload
+            value={imagePreview}
+            onChange={(file) => setImageFile(file)}
+            onRemove={() => {
+              setImageFile(null);
+              onFieldChange("image_url", null);
+            }}
+          />
+          {imagePreview && (
+            <div className="relative w-40 h-40 rounded-lg overflow-hidden">
+              <img
+                src={imagePreview}
+                alt="Exercise preview"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="muscleGroup">Muscle Group</Label>

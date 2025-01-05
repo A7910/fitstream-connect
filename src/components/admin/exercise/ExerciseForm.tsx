@@ -34,10 +34,11 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
     image_url: exercise?.image_url || null,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(exercise?.image_url || null);
 
   const mutation = useMutation({
     mutationFn: async () => {
-      // First verify admin status - check specifically for the current user
+      // First verify admin status
       const { data: adminCheck, error: adminError } = await supabase
         .from('admin_users')
         .select('user_id')
@@ -74,22 +75,13 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
           difficulty_level: newExercise.difficulty_level,
           goal_id: newExercise.goal_id,
           sets: newExercise.sets,
-          ...(imageUrl && { image_url: imageUrl })
+          image_url: imageUrl
         };
 
         console.log("Prepared exercise data:", exerciseData);
 
         if (exercise?.id) {
           console.log("Updating existing exercise with ID:", exercise.id);
-          // Direct database query to check current exercise data
-          const { data: currentExercise } = await supabase
-            .from('exercises')
-            .select('*')
-            .eq('id', exercise.id)
-            .maybeSingle();
-          
-          console.log("Current exercise in database:", currentExercise);
-          
           const updatedExercise = await updateExercise(exercise.id, exerciseData);
           console.log("Exercise updated successfully:", updatedExercise);
           return updatedExercise;
@@ -121,6 +113,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
           image_url: null,
         });
         setImageFile(null);
+        setImagePreview(null);
       }
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
       onSuccess?.();
@@ -145,7 +138,19 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
           setNewExercise(prev => ({ ...prev, [field]: value }));
         }}
         imageFile={imageFile}
-        setImageFile={setImageFile}
+        setImageFile={(file) => {
+          setImageFile(file);
+          if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+          } else {
+            setImagePreview(null);
+          }
+        }}
+        imagePreview={imagePreview}
       />
       <div className="flex justify-end gap-2 mt-6">
         <Button 
