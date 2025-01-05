@@ -16,6 +16,7 @@ interface ExerciseFormProps {
     goal_id: string;
     sets: number;
     image_url: string | null;
+    video_url: string | null;
   };
   onSuccess?: () => void;
 }
@@ -31,8 +32,10 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
     goal_id: exercise?.goal_id || "",
     sets: exercise?.sets || 3,
     image_url: exercise?.image_url || null,
+    video_url: exercise?.video_url || null,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
 
   const uploadImage = async () => {
     if (!imageFile) return newExercise.image_url;
@@ -67,16 +70,54 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
     }
   };
 
+  const uploadVideo = async () => {
+    if (!videoFile) return newExercise.video_url;
+
+    const fileExt = videoFile.name.split('.').pop();
+    const filePath = `${crypto.randomUUID()}.${fileExt}`;
+
+    console.log("Starting video upload process...");
+    console.log("File path:", filePath);
+
+    try {
+      const { error: uploadError, data } = await supabase.storage
+        .from('exercise-videos')
+        .upload(filePath, videoFile);
+
+      if (uploadError) {
+        console.error("Video upload error:", uploadError);
+        throw uploadError;
+      }
+
+      console.log("Video uploaded successfully:", data);
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('exercise-videos')
+        .getPublicUrl(filePath);
+
+      console.log("Generated public URL:", publicUrl);
+      return publicUrl;
+    } catch (error) {
+      console.error("Error in uploadVideo:", error);
+      throw error;
+    }
+  };
+
   const mutation = useMutation({
     mutationFn: async () => {
       console.log("Starting mutation with exercise:", exercise?.id ? "update" : "create");
       
-      let imageUrl = await uploadImage();
+      let [imageUrl, videoUrl] = await Promise.all([
+        uploadImage(),
+        uploadVideo()
+      ]);
+
       console.log("Image URL after upload:", imageUrl);
+      console.log("Video URL after upload:", videoUrl);
 
       try {
         if (exercise?.id) {
-          // If updating and there's a new image, delete the old one
+          // If updating and there's a new image/video, delete the old ones
           if (imageFile && exercise.image_url) {
             const oldImagePath = exercise.image_url.split('/').pop();
             if (oldImagePath) {
@@ -87,11 +128,22 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
             }
           }
 
+          if (videoFile && exercise.video_url) {
+            const oldVideoPath = exercise.video_url.split('/').pop();
+            if (oldVideoPath) {
+              console.log("Deleting old video:", oldVideoPath);
+              await supabase.storage
+                .from('exercise-videos')
+                .remove([oldVideoPath]);
+            }
+          }
+
           const { data, error } = await supabase
             .from('exercises')
             .update({ 
               ...newExercise, 
-              image_url: imageUrl || newExercise.image_url 
+              image_url: imageUrl || newExercise.image_url,
+              video_url: videoUrl || newExercise.video_url
             })
             .eq('id', exercise.id)
             .select('*')
@@ -107,7 +159,11 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
         } else {
           const { data, error } = await supabase
             .from('exercises')
-            .insert([{ ...newExercise, image_url: imageUrl }])
+            .insert([{ 
+              ...newExercise, 
+              image_url: imageUrl,
+              video_url: videoUrl
+            }])
             .select('*')
             .maybeSingle();
 
@@ -137,8 +193,10 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
         goal_id: "",
         sets: 3,
         image_url: null,
+        video_url: null,
       });
       setImageFile(null);
+      setVideoFile(null);
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
       onSuccess?.();
     },
@@ -160,6 +218,8 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
         onFieldChange={(field, value) => setNewExercise(prev => ({ ...prev, [field]: value }))}
         imageFile={imageFile}
         setImageFile={setImageFile}
+        videoFile={videoFile}
+        setVideoFile={setVideoFile}
       />
       <div className="flex justify-end gap-2 mt-6">
         <Button 

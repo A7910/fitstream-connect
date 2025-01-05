@@ -12,6 +12,7 @@ interface Exercise {
   workout_goals: { name: string } | null;
   sets: number;
   image_url: string | null;
+  video_url: string | null;
   goal_id: string;
 }
 
@@ -25,19 +26,32 @@ const ExerciseCard = ({ exercise, onEdit, onDelete }: ExerciseCardProps) => {
   return (
     <div className="p-4 border rounded-lg">
       <div className="flex flex-col md:flex-row gap-4">
-        {exercise.image_url && (
-          <div className="w-full md:w-32 h-48 md:h-32 relative">
-            <img
-              src={exercise.image_url}
-              alt={exercise.name}
-              className="w-full h-full object-cover rounded-lg"
-              onError={(e) => {
-                console.error("Error loading image:", exercise.image_url);
-                e.currentTarget.src = "/placeholder.svg";
-              }}
-            />
-          </div>
-        )}
+        <div className="w-full md:w-32 space-y-4">
+          {exercise.image_url && (
+            <div className="h-48 md:h-32 relative">
+              <img
+                src={exercise.image_url}
+                alt={exercise.name}
+                className="w-full h-full object-cover rounded-lg"
+                onError={(e) => {
+                  console.error("Error loading image:", exercise.image_url);
+                  e.currentTarget.src = "/placeholder.svg";
+                }}
+              />
+            </div>
+          )}
+          {exercise.video_url && (
+            <div className="h-48 md:h-32 relative">
+              <video
+                src={exercise.video_url}
+                controls
+                className="w-full h-full object-cover rounded-lg"
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          )}
+        </div>
         <div className="flex-1">
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
             <div className="w-full">

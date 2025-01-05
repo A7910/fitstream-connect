@@ -19,11 +19,14 @@ interface ExerciseFormFieldsProps {
     goal_id: string;
     sets: number;
     image_url: string | null;
+    video_url: string | null;
   };
   workoutGoals: Array<{ id: string; name: string; }> | undefined;
   onFieldChange: (field: string, value: any) => void;
   imageFile: File | null;
   setImageFile: (file: File | null) => void;
+  videoFile: File | null;
+  setVideoFile: (file: File | null) => void;
 }
 
 const ExerciseFormFields = ({
@@ -32,7 +35,20 @@ const ExerciseFormFields = ({
   onFieldChange,
   imageFile,
   setImageFile,
+  videoFile,
+  setVideoFile,
 }: ExerciseFormFieldsProps) => {
+  const handleVideoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type.startsWith('video/')) {
+        setVideoFile(file);
+      } else {
+        console.error('Invalid file type. Please upload a video file.');
+      }
+    }
+  };
+
   return (
     <>
       <div className="space-y-2">
@@ -63,6 +79,36 @@ const ExerciseFormFields = ({
             onFieldChange("image_url", null);
           }}
         />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="exerciseVideo">Exercise Video</Label>
+        <Input
+          id="exerciseVideo"
+          type="file"
+          accept="video/*"
+          onChange={handleVideoChange}
+          className="cursor-pointer"
+        />
+        {exercise.video_url && (
+          <div className="mt-2">
+            <video 
+              src={exercise.video_url} 
+              controls 
+              className="max-w-full h-auto rounded-lg"
+            >
+              Your browser does not support the video tag.
+            </video>
+            <button
+              onClick={() => {
+                setVideoFile(null);
+                onFieldChange("video_url", null);
+              }}
+              className="mt-2 text-sm text-red-600 hover:text-red-700"
+            >
+              Remove video
+            </button>
+          </div>
+        )}
       </div>
       <div className="space-y-2">
         <Label htmlFor="muscleGroup">Muscle Group</Label>
