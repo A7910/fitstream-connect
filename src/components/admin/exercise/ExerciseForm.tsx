@@ -110,11 +110,15 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
                 name
               )
             `)
-            .single();
+            .maybeSingle();
 
           if (error) {
             console.error("Error updating exercise:", error);
             throw error;
+          }
+
+          if (!data) {
+            throw new Error("Exercise not found");
           }
           
           console.log("Exercise updated successfully:", data);
@@ -129,11 +133,15 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
                 name
               )
             `)
-            .single();
+            .maybeSingle();
 
           if (error) {
             console.error("Error creating exercise:", error);
             throw error;
+          }
+
+          if (!data) {
+            throw new Error("Failed to create exercise");
           }
           
           console.log("Exercise created successfully:", data);
