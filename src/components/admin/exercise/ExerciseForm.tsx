@@ -36,7 +36,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
 
   const mutation = useMutation({
     mutationFn: async () => {
-      console.log("Starting mutation with exercise:", exercise?.id ? "update" : "create");
+      console.log("Starting mutation for exercise:", exercise?.id ? "update" : "create");
       console.log("Current exercise data:", newExercise);
       
       try {
@@ -57,8 +57,10 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
         };
 
         if (exercise?.id) {
+          console.log("Updating existing exercise with ID:", exercise.id);
           return await updateExercise(exercise.id, exerciseData);
         } else {
+          console.log("Creating new exercise");
           return await createExercise(exerciseData);
         }
       } catch (error) {
@@ -71,16 +73,18 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
         title: "Success",
         description: `Exercise ${exercise ? 'updated' : 'created'} successfully`,
       });
-      setNewExercise({
-        name: "",
-        description: "",
-        muscle_group: "",
-        difficulty_level: "",
-        goal_id: "",
-        sets: 3,
-        image_url: null,
-      });
-      setImageFile(null);
+      if (!exercise) {
+        setNewExercise({
+          name: "",
+          description: "",
+          muscle_group: "",
+          difficulty_level: "",
+          goal_id: "",
+          sets: 3,
+          image_url: null,
+        });
+        setImageFile(null);
+      }
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
       onSuccess?.();
     },

@@ -43,7 +43,8 @@ export const uploadExerciseImage = async (imageFile: File, oldImageUrl: string |
 };
 
 export const updateExercise = async (exerciseId: string, updateData: any) => {
-  console.log("Updating exercise with data:", updateData);
+  console.log("Updating exercise with ID:", exerciseId);
+  console.log("Update data:", updateData);
   
   const { data, error } = await supabase
     .from('exercises')
