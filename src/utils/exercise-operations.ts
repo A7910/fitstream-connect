@@ -48,6 +48,20 @@ export const updateExercise = async (exerciseId: string, updateData: any) => {
   console.log("Update data:", updateData);
 
   try {
+    // First verify the exercise exists
+    const { data: existingExercise, error: checkError } = await supabase
+      .from('exercises')
+      .select('*')
+      .eq('id', exerciseId)
+      .single();
+
+    if (checkError) {
+      console.error("Error checking existing exercise:", checkError);
+      throw checkError;
+    }
+
+    console.log("Existing exercise:", existingExercise);
+
     const { data, error } = await supabase
       .from('exercises')
       .update(updateData)
