@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import ExerciseFormFields from "./form/ExerciseFormFields";
+import { uploadExerciseImage, updateExercise, createExercise } from "@/utils/exercise-operations";
 
 interface ExerciseFormProps {
   workoutGoals: Array<{ id: string; name: string; }> | undefined;
@@ -34,118 +34,32 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const uploadImage = async () => {
-    if (!imageFile) return newExercise.image_url;
-
-    const fileExt = imageFile.name.split('.').pop();
-    const filePath = `${crypto.randomUUID()}.${fileExt}`;
-
-    console.log("Starting image upload process...");
-    console.log("File path:", filePath);
-
-    try {
-      const { error: uploadError, data } = await supabase.storage
-        .from('exercise-images')
-        .upload(filePath, imageFile);
-
-      if (uploadError) {
-        console.error("Image upload error:", uploadError);
-        throw uploadError;
-      }
-
-      console.log("Image uploaded successfully:", data);
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('exercise-images')
-        .getPublicUrl(filePath);
-
-      console.log("Generated public URL:", publicUrl);
-      return publicUrl;
-    } catch (error) {
-      console.error("Error in uploadImage:", error);
-      throw error;
-    }
-  };
-
   const mutation = useMutation({
     mutationFn: async () => {
       console.log("Starting mutation with exercise:", exercise?.id ? "update" : "create");
       console.log("Current exercise data:", newExercise);
       
-      let imageUrl = imageFile ? await uploadImage() : newExercise.image_url;
-      console.log("Image URL after upload:", imageUrl);
-
       try {
+        let imageUrl = newExercise.image_url;
+        if (imageFile) {
+          imageUrl = await uploadExerciseImage(imageFile, exercise?.image_url);
+        }
+        console.log("Image URL after upload:", imageUrl);
+
+        const exerciseData = {
+          name: newExercise.name,
+          description: newExercise.description,
+          muscle_group: newExercise.muscle_group,
+          difficulty_level: newExercise.difficulty_level,
+          goal_id: newExercise.goal_id,
+          sets: newExercise.sets,
+          ...(imageUrl && { image_url: imageUrl })
+        };
+
         if (exercise?.id) {
-          // If updating and there's a new image, delete the old one
-          if (imageFile && exercise.image_url) {
-            const oldImagePath = exercise.image_url.split('/').pop();
-            if (oldImagePath) {
-              console.log("Deleting old image:", oldImagePath);
-              await supabase.storage
-                .from('exercise-images')
-                .remove([oldImagePath]);
-            }
-          }
-
-          const updateData = {
-            name: newExercise.name,
-            description: newExercise.description,
-            muscle_group: newExercise.muscle_group,
-            difficulty_level: newExercise.difficulty_level,
-            goal_id: newExercise.goal_id,
-            sets: newExercise.sets,
-            ...(imageUrl && { image_url: imageUrl })
-          };
-
-          console.log("Updating exercise with data:", updateData);
-
-          const { data, error } = await supabase
-            .from('exercises')
-            .update(updateData)
-            .eq('id', exercise.id)
-            .select(`
-              *,
-              workout_goals (
-                name
-              )
-            `)
-            .maybeSingle();
-
-          if (error) {
-            console.error("Error updating exercise:", error);
-            throw error;
-          }
-
-          if (!data) {
-            throw new Error("Exercise not found");
-          }
-          
-          console.log("Exercise updated successfully:", data);
-          return data;
+          return await updateExercise(exercise.id, exerciseData);
         } else {
-          const { data, error } = await supabase
-            .from('exercises')
-            .insert([{ ...newExercise, image_url: imageUrl }])
-            .select(`
-              *,
-              workout_goals (
-                name
-              )
-            `)
-            .maybeSingle();
-
-          if (error) {
-            console.error("Error creating exercise:", error);
-            throw error;
-          }
-
-          if (!data) {
-            throw new Error("Failed to create exercise");
-          }
-          
-          console.log("Exercise created successfully:", data);
-          return data;
+          return await createExercise(exerciseData);
         }
       } catch (error) {
         console.error("Error in mutation:", error);
@@ -170,11 +84,11 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
       onSuccess?.();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error saving exercise:", error);
       toast({
         title: "Error",
-        description: `Failed to ${exercise ? 'update' : 'create'} exercise. Please try again.`,
+        description: error.message || `Failed to ${exercise ? 'update' : 'create'} exercise. Please try again.`,
         variant: "destructive",
       });
     },
