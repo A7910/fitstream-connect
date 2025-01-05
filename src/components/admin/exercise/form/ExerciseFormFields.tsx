@@ -1,6 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Select,
   SelectContent,
@@ -29,6 +30,8 @@ const ExerciseFormFields = ({
   exercise,
   workoutGoals,
   onFieldChange,
+  imageFile,
+  setImageFile,
 }: ExerciseFormFieldsProps) => {
   return (
     <>
@@ -48,6 +51,17 @@ const ExerciseFormFields = ({
           value={exercise.description}
           onChange={(e) => onFieldChange("description", e.target.value)}
           placeholder="Enter exercise description"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Exercise Image</Label>
+        <ImageUpload
+          value={exercise.image_url}
+          onChange={(file) => setImageFile(file)}
+          onRemove={() => {
+            setImageFile(null);
+            onFieldChange("image_url", null);
+          }}
         />
       </div>
       <div className="space-y-2">
