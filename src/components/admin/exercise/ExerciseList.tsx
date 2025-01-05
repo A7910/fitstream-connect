@@ -30,6 +30,7 @@ interface Exercise {
   sets: number;
   goal_id: string;
   image_url: string | null;
+  video_url: string | null;
 }
 
 interface ExerciseListProps {
@@ -59,6 +60,16 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
           await supabase.storage
             .from('exercise-images')
             .remove([imagePath]);
+        }
+      }
+
+      if (exercise?.video_url) {
+        const videoPath = exercise.video_url.split('/').pop();
+        if (videoPath) {
+          console.log("Deleting video:", videoPath);
+          await supabase.storage
+            .from('exercise-videos')
+            .remove([videoPath]);
         }
       }
 
