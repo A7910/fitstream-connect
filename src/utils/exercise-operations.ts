@@ -48,24 +48,6 @@ export const updateExercise = async (exerciseId: string, updateData: any) => {
   console.log("Update data:", updateData);
 
   try {
-    // First verify the exercise exists
-    const { data: existingExercise, error: checkError } = await supabase
-      .from('exercises')
-      .select('*')
-      .eq('id', exerciseId)
-      .maybeSingle();
-
-    if (checkError) {
-      console.error("Error checking exercise:", checkError);
-      throw checkError;
-    }
-
-    if (!existingExercise) {
-      console.error("Exercise not found:", exerciseId);
-      throw new Error("Exercise not found");
-    }
-
-    // Proceed with update only if exercise exists
     const { data, error } = await supabase
       .from('exercises')
       .update(updateData)
@@ -76,7 +58,7 @@ export const updateExercise = async (exerciseId: string, updateData: any) => {
           name
         )
       `)
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error("Error updating exercise:", error);
@@ -110,7 +92,7 @@ export const createExercise = async (exerciseData: any) => {
           name
         )
       `)
-      .maybeSingle();
+      .single();
 
     if (error) {
       console.error("Error creating exercise:", error);

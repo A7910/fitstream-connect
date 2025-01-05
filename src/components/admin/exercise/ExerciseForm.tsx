@@ -42,9 +42,10 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
       try {
         let imageUrl = newExercise.image_url;
         if (imageFile) {
+          console.log("Uploading new image file...");
           imageUrl = await uploadExerciseImage(imageFile, exercise?.image_url);
+          console.log("New image URL:", imageUrl);
         }
-        console.log("Image URL after upload:", imageUrl);
 
         const exerciseData = {
           name: newExercise.name,
@@ -56,19 +57,26 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
           ...(imageUrl && { image_url: imageUrl })
         };
 
+        console.log("Prepared exercise data:", exerciseData);
+
         if (exercise?.id) {
           console.log("Updating existing exercise with ID:", exercise.id);
-          return await updateExercise(exercise.id, exerciseData);
+          const updatedExercise = await updateExercise(exercise.id, exerciseData);
+          console.log("Exercise updated successfully:", updatedExercise);
+          return updatedExercise;
         } else {
           console.log("Creating new exercise");
-          return await createExercise(exerciseData);
+          const newExerciseData = await createExercise(exerciseData);
+          console.log("Exercise created successfully:", newExerciseData);
+          return newExerciseData;
         }
       } catch (error) {
         console.error("Error in mutation:", error);
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Mutation completed successfully:", data);
       toast({
         title: "Success",
         description: `Exercise ${exercise ? 'updated' : 'created'} successfully`,
@@ -103,7 +111,10 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
       <ExerciseFormFields
         exercise={newExercise}
         workoutGoals={workoutGoals}
-        onFieldChange={(field, value) => setNewExercise(prev => ({ ...prev, [field]: value }))}
+        onFieldChange={(field, value) => {
+          console.log(`Updating field ${field} with value:`, value);
+          setNewExercise(prev => ({ ...prev, [field]: value }));
+        }}
         imageFile={imageFile}
         setImageFile={setImageFile}
       />
