@@ -46,56 +46,66 @@ export const updateExercise = async (exerciseId: string, updateData: any) => {
   console.log("Updating exercise with ID:", exerciseId);
   console.log("Update data:", updateData);
   
-  const { data, error } = await supabase
-    .from('exercises')
-    .update(updateData)
-    .eq('id', exerciseId)
-    .select(`
-      *,
-      workout_goals (
-        name
-      )
-    `)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from('exercises')
+      .update(updateData)
+      .eq('id', exerciseId)
+      .select(`
+        *,
+        workout_goals (
+          name
+        )
+      `)
+      .maybeSingle();
 
-  if (error) {
-    console.error("Error updating exercise:", error);
+    if (error) {
+      console.error("Error updating exercise:", error);
+      throw error;
+    }
+
+    if (!data) {
+      console.error("No exercise found with ID:", exerciseId);
+      throw new Error("Exercise not found");
+    }
+
+    console.log("Exercise updated successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in updateExercise:", error);
     throw error;
   }
-
-  if (!data) {
-    console.error("No exercise found with ID:", exerciseId);
-    throw new Error("Exercise not found");
-  }
-
-  console.log("Exercise updated successfully:", data);
-  return data;
 };
 
 export const createExercise = async (exerciseData: any) => {
   console.log("Creating exercise with data:", exerciseData);
   
-  const { data, error } = await supabase
-    .from('exercises')
-    .insert([exerciseData])
-    .select(`
-      *,
-      workout_goals (
-        name
-      )
-    `)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from('exercises')
+      .insert([exerciseData])
+      .select(`
+        *,
+        workout_goals (
+          name
+        )
+      `)
+      .maybeSingle();
 
-  if (error) {
-    console.error("Error creating exercise:", error);
+    if (error) {
+      console.error("Error creating exercise:", error);
+      throw error;
+    }
+
+    if (!data) {
+      console.error("Failed to create exercise");
+      throw new Error("Failed to create exercise");
+    }
+
+    console.log("Exercise created successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in createExercise:", error);
     throw error;
   }
-
-  if (!data) {
-    console.error("Failed to create exercise");
-    throw new Error("Failed to create exercise");
-  }
-
-  console.log("Exercise created successfully:", data);
-  return data;
 };
