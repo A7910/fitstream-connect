@@ -70,8 +70,9 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
   const mutation = useMutation({
     mutationFn: async () => {
       console.log("Starting mutation with exercise:", exercise?.id ? "update" : "create");
+      console.log("Current exercise data:", newExercise);
       
-      let imageUrl = await uploadImage();
+      let imageUrl = imageFile ? await uploadImage() : newExercise.image_url;
       console.log("Image URL after upload:", imageUrl);
 
       try {
@@ -87,14 +88,23 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
             }
           }
 
+          const updateData = {
+            name: newExercise.name,
+            description: newExercise.description,
+            muscle_group: newExercise.muscle_group,
+            difficulty_level: newExercise.difficulty_level,
+            goal_id: newExercise.goal_id,
+            sets: newExercise.sets,
+            ...(imageUrl && { image_url: imageUrl })
+          };
+
+          console.log("Updating exercise with data:", updateData);
+
           const { data, error } = await supabase
             .from('exercises')
-            .update({ 
-              ...newExercise, 
-              image_url: imageUrl || newExercise.image_url 
-            })
+            .update(updateData)
             .eq('id', exercise.id)
-            .select('*')
+            .select('*, workout_goals (name)')
             .maybeSingle();
 
           if (error) {
@@ -108,7 +118,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
           const { data, error } = await supabase
             .from('exercises')
             .insert([{ ...newExercise, image_url: imageUrl }])
-            .select('*')
+            .select('*, workout_goals (name)')
             .maybeSingle();
 
           if (error) {
