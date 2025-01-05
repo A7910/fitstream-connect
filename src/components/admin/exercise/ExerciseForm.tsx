@@ -37,14 +37,20 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
 
   const mutation = useMutation({
     mutationFn: async () => {
-      // First verify admin status
-      const { data: adminCheck } = await supabase
+      // First verify admin status - check specifically for the current user
+      const { data: adminCheck, error: adminError } = await supabase
         .from('admin_users')
         .select('user_id')
-        .single();
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .maybeSingle();
       
       console.log("Admin check result:", adminCheck);
       
+      if (adminError) {
+        console.error("Error checking admin status:", adminError);
+        throw new Error("Error verifying admin status");
+      }
+
       if (!adminCheck) {
         console.error("User is not an admin");
         throw new Error("Unauthorized: User is not an admin");
@@ -80,7 +86,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
             .from('exercises')
             .select('*')
             .eq('id', exercise.id)
-            .single();
+            .maybeSingle();
           
           console.log("Current exercise in database:", currentExercise);
           
