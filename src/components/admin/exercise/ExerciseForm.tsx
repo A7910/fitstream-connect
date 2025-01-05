@@ -104,8 +104,13 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
             .from('exercises')
             .update(updateData)
             .eq('id', exercise.id)
-            .select('*, workout_goals (name)')
-            .maybeSingle();
+            .select(`
+              *,
+              workout_goals (
+                name
+              )
+            `)
+            .single();
 
           if (error) {
             console.error("Error updating exercise:", error);
@@ -118,8 +123,13 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
           const { data, error } = await supabase
             .from('exercises')
             .insert([{ ...newExercise, image_url: imageUrl }])
-            .select('*, workout_goals (name)')
-            .maybeSingle();
+            .select(`
+              *,
+              workout_goals (
+                name
+              )
+            `)
+            .single();
 
           if (error) {
             console.error("Error creating exercise:", error);
