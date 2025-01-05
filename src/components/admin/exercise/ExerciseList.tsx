@@ -175,6 +175,7 @@ const ExerciseList = ({ exercises, isLoading, workoutGoals }: ExerciseListProps)
                 workoutGoals={workoutGoals}
                 exercise={editingExercise}
                 onSuccess={handleClose}
+                isEditing={true}
               />
             </div>
           )}

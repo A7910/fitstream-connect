@@ -19,9 +19,10 @@ interface ExerciseFormProps {
     image_url: string | null;
   };
   onSuccess?: () => void;
+  isEditing?: boolean;
 }
 
-const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) => {
+const ExerciseForm = ({ workoutGoals, exercise, onSuccess, isEditing = false }: ExerciseFormProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [newExercise, setNewExercise] = useState({
@@ -146,6 +147,7 @@ const ExerciseForm = ({ workoutGoals, exercise, onSuccess }: ExerciseFormProps) 
         }}
         imageFile={imageFile}
         setImageFile={setImageFile}
+        isEditing={isEditing}
       />
       <div className="flex justify-end gap-2 mt-6">
         <Button 
