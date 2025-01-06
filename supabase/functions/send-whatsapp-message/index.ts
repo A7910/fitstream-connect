@@ -32,6 +32,7 @@ serve(async (req) => {
 
     const apiUrl = `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
     console.log('Using API URL:', apiUrl);
+    console.log('Using token (first 10 chars):', WHATSAPP_ACCESS_TOKEN?.substring(0, 10));
 
     const requestBody = {
       messaging_product: "whatsapp",
@@ -63,7 +64,9 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: responseData.error || 'Failed to send message',
-          details: responseData 
+          details: responseData,
+          statusCode: response.status,
+          statusText: response.statusText
         }),
         { 
           status: response.status,
