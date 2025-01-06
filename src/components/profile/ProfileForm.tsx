@@ -101,8 +101,31 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
     }
   };
 
+  const validatePhoneNumber = (number: string) => {
+    // Remove any spaces or special characters
+    const cleanNumber = number.replace(/\s+/g, '').replace(/[^\d]/g, '');
+    
+    // Check if the number starts with Pakistan's country code (92)
+    if (!cleanNumber.startsWith('92')) {
+      toast.error("Please enter the number with country code (92)");
+      return false;
+    }
+    
+    // Check if the number is of valid length (92 + 10 digits)
+    if (cleanNumber.length !== 12) {
+      toast.error("Please enter a valid Pakistani phone number (92XXXXXXXXXX)");
+      return false;
+    }
+    
+    return true;
+  };
+
   const updateProfile = async () => {
     try {
+      if (!validatePhoneNumber(phoneNumber)) {
+        return;
+      }
+
       const updates = {
         id: userId,
         full_name: fullName,
@@ -168,12 +191,13 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber" className="text-sm font-poppins text-gray-600">Phone Number</Label>
+              <Label htmlFor="phoneNumber" className="text-sm font-poppins text-gray-600">Phone Number (92XXXXXXXXXX)</Label>
               <Input
                 id="phoneNumber"
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="92XXXXXXXXXX"
                 className="font-poppins"
               />
             </div>
