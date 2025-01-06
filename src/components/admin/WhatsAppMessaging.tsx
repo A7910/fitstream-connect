@@ -155,7 +155,7 @@ const WhatsAppMessaging = () => {
               <SelectValue placeholder="Select a language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="en_US">US English</SelectItem>
+              <SelectItem value="en_US">English(US)</SelectItem>
             </SelectContent>
           </Select>
         </div>
