@@ -29,14 +29,10 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
   const [open, setOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryCode>("US");
 
-  const handleCountrySelect = (countryCode: string) => {
-    // Find the country object from our list
-    const country = countries.find(c => c.code === countryCode);
-    if (!country) return;
-
-    setSelectedCountry(country.code);
+  const handleCountrySelect = (countryCode: CountryCode) => {
+    setSelectedCountry(countryCode);
     const phoneNumber = value.replace(/\D/g, '');
-    const newValue = `+${getCountryCallingCode(country.code)}${phoneNumber}`;
+    const newValue = `+${getCountryCallingCode(countryCode)}${phoneNumber}`;
     onChange(newValue);
     setOpen(false);
   };
@@ -87,12 +83,12 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
             <Command>
               <CommandInput placeholder="Search country..." />
               <CommandEmpty>No country found.</CommandEmpty>
-              <CommandGroup>
+              <CommandGroup className="max-h-[300px] overflow-y-auto">
                 {countries.map((country) => (
                   <CommandItem
                     key={country.code}
                     value={country.code}
-                    onSelect={handleCountrySelect}
+                    onSelect={() => handleCountrySelect(country.code)}
                   >
                     <Check
                       className={cn(
