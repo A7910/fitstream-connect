@@ -1,35 +1,63 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
+const WHATSAPP_ACCESS_TOKEN = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
+const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
+const WHATSAPP_BUSINESS_ACCOUNT_ID = Deno.env.get('WHATSAPP_BUSINESS_ACCOUNT_ID');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const WHATSAPP_ACCESS_TOKEN = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
-const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
-
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { phoneNumber, templateName, languageCode } = await req.json();
-    console.log('Received request:', { phoneNumber, templateName, languageCode });
-    
-    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID || !WHATSAPP_BUSINESS_ACCOUNT_ID) {
       console.error('Missing WhatsApp configuration:', { 
         hasToken: !!WHATSAPP_ACCESS_TOKEN, 
         hasPhoneId: !!WHATSAPP_PHONE_NUMBER_ID,
+        hasBusinessId: !!WHATSAPP_BUSINESS_ACCOUNT_ID,
         tokenLength: WHATSAPP_ACCESS_TOKEN?.length,
         phoneIdLength: WHATSAPP_PHONE_NUMBER_ID?.length
       });
       throw new Error('WhatsApp configuration is missing');
     }
 
-    // Format phone number (remove any spaces, dashes, or parentheses)
-    const formattedPhoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
+    const { pathname } = new URL(req.url);
+    
+    // New endpoint to fetch templates
+    if (pathname === "/templates") {
+      console.log('Fetching WhatsApp templates');
+      const templatesUrl = `https://graph.facebook.com/v17.0/${WHATSAPP_BUSINESS_ACCOUNT_ID}/message_templates`;
+      
+      const response = await fetch(templatesUrl, {
+        headers: {
+          'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const templatesData = await response.json();
+      console.log('Templates response:', templatesData);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch templates: ${JSON.stringify(templatesData.error)}`);
+      }
+
+      return new Response(JSON.stringify(templatesData), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Existing message sending logic
+    const { phoneNumber, templateName, languageCode } = await req.json();
+    console.log('Received request:', { phoneNumber, templateName, languageCode });
+
+    // Format phone number (remove '+' if present)
+    const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber;
     console.log('Formatted phone number:', formattedPhoneNumber);
 
     const apiUrl = `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
@@ -48,6 +76,7 @@ serve(async (req) => {
         }
       }
     };
+
     console.log('Request body:', requestBody);
 
     const response = await fetch(apiUrl, {
@@ -79,29 +108,26 @@ serve(async (req) => {
           status: response.status,
           statusText: response.statusText
         }),
-        { 
-          status: response.status,
+        {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: response.status,
         }
       );
     }
 
     return new Response(
       JSON.stringify(responseData),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
 
   } catch (error) {
-    console.error('Function error:', error);
+    console.error('Error processing request:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message || 'Internal server error',
-        details: error 
-      }),
+      JSON.stringify({ error: error.message }),
       { 
-        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+        status: 500,
+      },
     );
   }
-});
+})

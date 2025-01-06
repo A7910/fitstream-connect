@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,12 +7,54 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
+interface Template {
+  name: string;
+  language: string;
+  status: string;
+}
+
 const WhatsAppMessaging = () => {
   const { toast } = useToast();
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [templateName, setTemplateName] = useState("hello_world");
-  const [languageCode, setLanguageCode] = useState("en_US");
+  const [templateName, setTemplateName] = useState("");
+  const [languageCode, setLanguageCode] = useState("en");
   const [isSending, setIsSending] = useState(false);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [templates, setTemplates] = useState<Template[]>([]);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    setIsLoadingTemplates(true);
+    try {
+      console.log('Fetching WhatsApp templates');
+      const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
+        body: {},
+        path: '/templates'
+      });
+
+      if (error) {
+        console.error('Error fetching templates:', error);
+        throw error;
+      }
+
+      console.log('Templates response:', data);
+      if (data.data) {
+        setTemplates(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch templates:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load message templates. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!phoneNumber || !templateName) {
@@ -90,11 +132,17 @@ const WhatsAppMessaging = () => {
           </label>
           <Select value={templateName} onValueChange={setTemplateName}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a template" />
+              <SelectValue placeholder={isLoadingTemplates ? "Loading templates..." : "Select a template"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="hello_world">Hello World</SelectItem>
-              {/* Add more templates as needed */}
+              {templates.map((template) => (
+                <SelectItem 
+                  key={`${template.name}_${template.language}`} 
+                  value={template.name}
+                >
+                  {template.name} ({template.status})
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -107,8 +155,10 @@ const WhatsAppMessaging = () => {
               <SelectValue placeholder="Select a language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="en_US">English (US)</SelectItem>
-              <SelectItem value="en_GB">English (UK)</SelectItem>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="es">Spanish</SelectItem>
+              <SelectItem value="pt">Portuguese</SelectItem>
+              <SelectItem value="ar">Arabic</SelectItem>
               {/* Add more languages as needed */}
             </SelectContent>
           </Select>
