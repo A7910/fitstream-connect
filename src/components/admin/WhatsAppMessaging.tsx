@@ -17,7 +17,7 @@ const WhatsAppMessaging = () => {
   const { toast } = useToast();
   const [phoneNumber, setPhoneNumber] = useState("");
   const [templateName, setTemplateName] = useState("");
-  const [languageCode, setLanguageCode] = useState("en");
+  const [languageCode, setLanguageCode] = useState("en_US");
   const [isSending, setIsSending] = useState(false);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -155,10 +155,7 @@ const WhatsAppMessaging = () => {
               <SelectValue placeholder="Select a language" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="en">English</SelectItem>
-              <SelectItem value="es">Spanish</SelectItem>
-              <SelectItem value="pt">Portuguese</SelectItem>
-              <SelectItem value="ar">Arabic</SelectItem>
+              <SelectItem value="en_US">US English</SelectItem>
             </SelectContent>
           </Select>
         </div>
