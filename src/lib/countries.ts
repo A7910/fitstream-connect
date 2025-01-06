@@ -21,5 +21,5 @@ export const countries: Country[] = [
   { name: 'Brazil', code: "BR", flag: '🇧🇷' },
   { name: 'Mexico', code: "MX", flag: '🇲🇽' },
   { name: 'Russia', code: "RU", flag: '🇷🇺' },
-  { name: 'South Korea', code: "KR", flag: '🇰🇷' },
+  { name: 'South Korea', code: "KR", flag: '🇰🇷' }
 ];

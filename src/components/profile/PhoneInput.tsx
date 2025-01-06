@@ -29,10 +29,12 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
   const [open, setOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryCode>("US");
 
-  const handleCountrySelect = (country: CountryCode) => {
-    setSelectedCountry(country);
+  const handleCountrySelect = (countryValue: string) => {
+    // Extract country code from the value (format: "Country Name Code +XX")
+    const code = countryValue.split(" ")[1] as CountryCode;
+    setSelectedCountry(code);
     const phoneNumber = value.replace(/\D/g, '');
-    const newValue = `+${getCountryCallingCode(country)}${phoneNumber}`;
+    const newValue = `+${getCountryCallingCode(code)}${phoneNumber}`;
     onChange(newValue);
     setOpen(false);
   };
@@ -85,8 +87,8 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
                 {countries.map((country) => (
                   <CommandItem
                     key={country.code}
-                    value={`${country.name} ${country.code} +${getCountryCallingCode(country.code as CountryCode)}`}
-                    onSelect={() => handleCountrySelect(country.code as CountryCode)}
+                    value={`${country.name} ${country.code}`}
+                    onSelect={handleCountrySelect}
                   >
                     <Check
                       className={cn(
@@ -94,7 +96,7 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
                         selectedCountry === country.code ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    {country.flag} {country.name} (+{getCountryCallingCode(country.code as CountryCode)})
+                    {country.flag} {country.name} (+{getCountryCallingCode(country.code)})
                   </CommandItem>
                 ))}
               </CommandGroup>
