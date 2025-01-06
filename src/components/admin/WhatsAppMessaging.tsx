@@ -22,6 +22,13 @@ const WhatsAppMessaging = () => {
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
 
+  const formatTemplateName = (name: string) => {
+    // Remove underscores and split into words
+    const words = name.split('_');
+    // Capitalize first letter of each word and join with spaces
+    return words.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+  };
+
   useEffect(() => {
     fetchTemplates();
   }, []);
@@ -140,7 +147,7 @@ const WhatsAppMessaging = () => {
                   key={`${template.name}_${template.language}`} 
                   value={template.name}
                 >
-                  {template.name} ({template.status})
+                  {formatTemplateName(template.name)}
                 </SelectItem>
               ))}
             </SelectContent>
