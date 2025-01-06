@@ -50,7 +50,7 @@ export const MemberListItem = ({
             </AvatarFallback>
           </Avatar>
           <div className="space-y-1">
-            <p className="font-medium group-hover:text-white transition-colors duration-300">{fullName || "N/A"}</p>
+            <p className="font-medium">{fullName || "N/A"}</p>
             <p className="text-sm text-muted-foreground">
               {phoneNumber || "No phone number"}
             </p>
