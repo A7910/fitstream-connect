@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
@@ -10,14 +10,15 @@ import { Loader2 } from "lucide-react";
 const WhatsAppMessaging = () => {
   const { toast } = useToast();
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [message, setMessage] = useState("");
+  const [templateName, setTemplateName] = useState("hello_world");
+  const [languageCode, setLanguageCode] = useState("en_US");
   const [isSending, setIsSending] = useState(false);
 
   const handleSendMessage = async () => {
-    if (!phoneNumber || !message) {
+    if (!phoneNumber || !templateName) {
       toast({
         title: "Missing Information",
-        description: "Please provide both phone number and message",
+        description: "Please provide both phone number and template",
         variant: "destructive",
       });
       return;
@@ -25,10 +26,14 @@ const WhatsAppMessaging = () => {
 
     setIsSending(true);
     try {
-      console.log('Sending WhatsApp message:', { phoneNumber, message });
+      console.log('Sending WhatsApp template message:', { phoneNumber, templateName, languageCode });
       
       const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
-        body: { phoneNumber, message },
+        body: { 
+          phoneNumber, 
+          templateName,
+          languageCode
+        },
       });
 
       console.log('WhatsApp API response:', { data, error });
@@ -50,7 +55,6 @@ const WhatsAppMessaging = () => {
 
       // Clear the form
       setPhoneNumber("");
-      setMessage("");
     } catch (error) {
       console.error('Error sending WhatsApp message:', error);
       toast({
@@ -75,26 +79,43 @@ const WhatsAppMessaging = () => {
           </label>
           <Input
             id="phoneNumber"
-            placeholder="e.g., +1234567890"
+            placeholder="e.g., 923235896643"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
           />
         </div>
         <div className="space-y-2">
-          <label htmlFor="message" className="text-sm font-medium">
-            Message
+          <label htmlFor="template" className="text-sm font-medium">
+            Message Template
           </label>
-          <Textarea
-            id="message"
-            placeholder="Enter your message..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="min-h-[100px]"
-          />
+          <Select value={templateName} onValueChange={setTemplateName}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a template" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hello_world">Hello World</SelectItem>
+              {/* Add more templates as needed */}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <label htmlFor="language" className="text-sm font-medium">
+            Language
+          </label>
+          <Select value={languageCode} onValueChange={setLanguageCode}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en_US">English (US)</SelectItem>
+              <SelectItem value="en_GB">English (UK)</SelectItem>
+              {/* Add more languages as needed */}
+            </SelectContent>
+          </Select>
         </div>
         <Button 
           onClick={handleSendMessage} 
-          disabled={isSending || !phoneNumber || !message}
+          disabled={isSending || !phoneNumber || !templateName}
           className="w-full"
         >
           {isSending ? (

@@ -15,8 +15,8 @@ serve(async (req) => {
   }
 
   try {
-    const { phoneNumber, message } = await req.json();
-    console.log('Received request:', { phoneNumber, message });
+    const { phoneNumber, templateName, languageCode } = await req.json();
+    console.log('Received request:', { phoneNumber, templateName, languageCode });
     
     if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
       console.error('Missing WhatsApp configuration:', { 
@@ -31,10 +31,15 @@ serve(async (req) => {
     console.log('Formatted phone number:', formattedPhoneNumber);
 
     const requestBody = {
-      messaging_product: 'whatsapp',
+      messaging_product: "whatsapp",
       to: formattedPhoneNumber,
-      type: 'text',
-      text: { body: message },
+      type: "template",
+      template: {
+        name: templateName,
+        language: {
+          code: languageCode
+        }
+      }
     };
     console.log('Request body:', requestBody);
 
