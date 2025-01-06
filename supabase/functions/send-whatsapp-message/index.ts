@@ -19,17 +19,15 @@ serve(async (req) => {
       console.error('Missing WhatsApp configuration:', { 
         hasToken: !!WHATSAPP_ACCESS_TOKEN, 
         hasPhoneId: !!WHATSAPP_PHONE_NUMBER_ID,
-        hasBusinessId: !!WHATSAPP_BUSINESS_ACCOUNT_ID,
-        tokenLength: WHATSAPP_ACCESS_TOKEN?.length,
-        phoneIdLength: WHATSAPP_PHONE_NUMBER_ID?.length
+        hasBusinessId: !!WHATSAPP_BUSINESS_ACCOUNT_ID
       });
       throw new Error('WhatsApp configuration is missing');
     }
 
-    const { pathname } = new URL(req.url);
-    
-    // New endpoint to fetch templates
-    if (pathname === "/templates") {
+    const { action, phoneNumber, templateName, languageCode } = await req.json();
+    console.log('Received request:', { action, phoneNumber, templateName, languageCode });
+
+    if (action === 'getTemplates') {
       console.log('Fetching WhatsApp templates');
       const templatesUrl = `https://graph.facebook.com/v17.0/${WHATSAPP_BUSINESS_ACCOUNT_ID}/message_templates`;
       
@@ -52,73 +50,64 @@ serve(async (req) => {
       });
     }
 
-    // Existing message sending logic
-    const { phoneNumber, templateName, languageCode } = await req.json();
-    console.log('Received request:', { phoneNumber, templateName, languageCode });
-
-    // Format phone number (remove '+' if present)
-    const formattedPhoneNumber = phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber;
-    console.log('Formatted phone number:', formattedPhoneNumber);
-
-    const apiUrl = `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
-    console.log('Using API URL:', apiUrl);
-    console.log('Access Token length:', WHATSAPP_ACCESS_TOKEN.length);
-    console.log('Phone Number ID:', WHATSAPP_PHONE_NUMBER_ID);
-
-    const requestBody = {
-      messaging_product: "whatsapp",
-      to: formattedPhoneNumber,
-      type: "template",
-      template: {
-        name: templateName,
-        language: {
-          code: languageCode
-        }
+    if (action === 'sendMessage') {
+      if (!phoneNumber || !templateName) {
+        throw new Error('Missing required parameters for sending message');
       }
-    };
 
-    console.log('Request body:', requestBody);
+      const apiUrl = `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
+      console.log('Using API URL:', apiUrl);
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+      const requestBody = {
+        messaging_product: "whatsapp",
+        to: phoneNumber,
+        type: "template",
+        template: {
+          name: templateName,
+          language: {
+            code: languageCode || 'en'
+          }
+        }
+      };
 
-    const responseData = await response.json();
-    console.log('WhatsApp API response:', {
-      status: response.status,
-      statusText: response.statusText,
-      data: responseData
-    });
+      console.log('Request body:', requestBody);
 
-    if (!response.ok) {
-      console.error('WhatsApp API error:', {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const responseData = await response.json();
+      console.log('WhatsApp API response:', {
         status: response.status,
         statusText: response.statusText,
-        error: responseData
+        data: responseData
       });
+
+      if (!response.ok) {
+        return new Response(
+          JSON.stringify({ 
+            error: responseData.error || 'Failed to send message',
+            details: responseData
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: response.status,
+          }
+        );
+      }
+
       return new Response(
-        JSON.stringify({ 
-          error: responseData.error || 'Failed to send message',
-          details: responseData,
-          status: response.status,
-          statusText: response.statusText
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: response.status,
-        }
+        JSON.stringify(responseData),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    return new Response(
-      JSON.stringify(responseData),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    throw new Error(`Unknown action: ${action}`);
 
   } catch (error) {
     console.error('Error processing request:', error);

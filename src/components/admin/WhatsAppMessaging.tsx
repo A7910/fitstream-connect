@@ -31,8 +31,7 @@ const WhatsAppMessaging = () => {
     try {
       console.log('Fetching WhatsApp templates');
       const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
-        body: {},
-        path: '/templates'
+        body: { action: 'getTemplates' }
       });
 
       if (error) {
@@ -72,6 +71,7 @@ const WhatsAppMessaging = () => {
       
       const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
         body: { 
+          action: 'sendMessage',
           phoneNumber: phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber, 
           templateName,
           languageCode
@@ -159,7 +159,6 @@ const WhatsAppMessaging = () => {
               <SelectItem value="es">Spanish</SelectItem>
               <SelectItem value="pt">Portuguese</SelectItem>
               <SelectItem value="ar">Arabic</SelectItem>
-              {/* Add more languages as needed */}
             </SelectContent>
           </Select>
         </div>
