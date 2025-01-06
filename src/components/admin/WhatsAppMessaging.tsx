@@ -30,7 +30,7 @@ const WhatsAppMessaging = () => {
       
       const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
         body: { 
-          phoneNumber, 
+          phoneNumber: phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber, 
           templateName,
           languageCode
         },
@@ -55,7 +55,7 @@ const WhatsAppMessaging = () => {
 
       // Clear the form
       setPhoneNumber("");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending WhatsApp message:', error);
       toast({
         title: "Error",
@@ -79,7 +79,7 @@ const WhatsAppMessaging = () => {
           </label>
           <Input
             id="phoneNumber"
-            placeholder="e.g., 923235896643"
+            placeholder="e.g., +923235896643"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
           />
