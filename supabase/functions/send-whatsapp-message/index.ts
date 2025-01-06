@@ -16,10 +16,20 @@ serve(async (req) => {
 
   try {
     const { phoneNumber, message } = await req.json();
-    console.log('Sending WhatsApp message to:', phoneNumber);
+    console.log('Request payload:', { phoneNumber, message });
+    console.log('Using WhatsApp Phone Number ID:', WHATSAPP_PHONE_NUMBER_ID);
 
     // Format phone number (remove any spaces, dashes, or parentheses)
     const formattedPhoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
+    console.log('Formatted phone number:', formattedPhoneNumber);
+
+    const requestBody = {
+      messaging_product: 'whatsapp',
+      to: formattedPhoneNumber,
+      type: 'text',
+      text: { body: message },
+    };
+    console.log('Request body:', JSON.stringify(requestBody));
 
     const response = await fetch(
       `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
@@ -29,19 +39,16 @@ serve(async (req) => {
           'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: formattedPhoneNumber,
-          type: 'text',
-          text: { body: message },
-        }),
+        body: JSON.stringify(requestBody),
       }
     );
 
     const data = await response.json();
+    console.log('WhatsApp API response status:', response.status);
     console.log('WhatsApp API response:', data);
 
     if (!response.ok) {
+      console.error('WhatsApp API error:', data.error);
       throw new Error(data.error?.message || 'Failed to send WhatsApp message');
     }
 
@@ -49,7 +56,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error sending WhatsApp message:', error);
+    console.error('Error in send-whatsapp-message function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
