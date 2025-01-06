@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { parsePhoneNumber, AsYouType, getCountryCallingCode } from 'libphonenumber-js';
+import { parsePhoneNumber, AsYouType, getCountryCallingCode, CountryCode } from 'libphonenumber-js';
 import { countries } from "@/lib/countries";
 
 interface PhoneInputProps {
@@ -27,9 +27,9 @@ interface PhoneInputProps {
 
 export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
   const [open, setOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<string>("US");
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>("US");
 
-  const handleCountrySelect = (country: string) => {
+  const handleCountrySelect = (country: CountryCode) => {
     setSelectedCountry(country);
     const phoneNumber = value.replace(/\D/g, '');
     const newValue = `+${getCountryCallingCode(country)}${phoneNumber}`;
@@ -85,8 +85,8 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
                 {countries.map((country) => (
                   <CommandItem
                     key={country.code}
-                    value={`${country.name} ${country.code} +${getCountryCallingCode(country.code)}`}
-                    onSelect={() => handleCountrySelect(country.code)}
+                    value={`${country.name} ${country.code} +${getCountryCallingCode(country.code as CountryCode)}`}
+                    onSelect={() => handleCountrySelect(country.code as CountryCode)}
                   >
                     <Check
                       className={cn(
@@ -94,7 +94,7 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
                         selectedCountry === country.code ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    {country.flag} {country.name} (+{getCountryCallingCode(country.code)})
+                    {country.flag} {country.name} (+{getCountryCallingCode(country.code as CountryCode)})
                   </CommandItem>
                 ))}
               </CommandGroup>
