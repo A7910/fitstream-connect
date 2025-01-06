@@ -1,12 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const WHATSAPP_ACCESS_TOKEN = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
-const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const WHATSAPP_ACCESS_TOKEN = Deno.env.get('WHATSAPP_ACCESS_TOKEN');
+const WHATSAPP_PHONE_NUMBER_ID = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -16,8 +16,15 @@ serve(async (req) => {
 
   try {
     const { phoneNumber, message } = await req.json();
-    console.log('Request payload:', { phoneNumber, message });
-    console.log('Using WhatsApp Phone Number ID:', WHATSAPP_PHONE_NUMBER_ID);
+    console.log('Received request:', { phoneNumber, message });
+    
+    if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+      console.error('Missing WhatsApp configuration:', { 
+        hasToken: !!WHATSAPP_ACCESS_TOKEN, 
+        hasPhoneId: !!WHATSAPP_PHONE_NUMBER_ID 
+      });
+      throw new Error('WhatsApp configuration is missing');
+    }
 
     // Format phone number (remove any spaces, dashes, or parentheses)
     const formattedPhoneNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
@@ -29,7 +36,7 @@ serve(async (req) => {
       type: 'text',
       text: { body: message },
     };
-    console.log('Request body:', JSON.stringify(requestBody));
+    console.log('Request body:', requestBody);
 
     const response = await fetch(
       `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
@@ -43,22 +50,29 @@ serve(async (req) => {
       }
     );
 
-    const data = await response.json();
-    console.log('WhatsApp API response status:', response.status);
-    console.log('WhatsApp API response:', data);
+    const responseData = await response.json();
+    console.log('WhatsApp API response:', responseData);
 
     if (!response.ok) {
-      console.error('WhatsApp API error:', data.error);
-      throw new Error(data.error?.message || 'Failed to send WhatsApp message');
+      console.error('WhatsApp API error:', responseData);
+      return new Response(
+        JSON.stringify({ error: responseData.error || 'Failed to send message' }),
+        { 
+          status: response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  } catch (error) {
-    console.error('Error in send-whatsapp-message function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify(responseData),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Function error:', error);
+    return new Response(
+      JSON.stringify({ error: error.message || 'Internal server error' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

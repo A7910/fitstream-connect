@@ -25,11 +25,23 @@ const WhatsAppMessaging = () => {
 
     setIsSending(true);
     try {
+      console.log('Sending WhatsApp message:', { phoneNumber, message });
+      
       const { data, error } = await supabase.functions.invoke('send-whatsapp-message', {
         body: { phoneNumber, message },
       });
 
-      if (error) throw error;
+      console.log('WhatsApp API response:', { data, error });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('WhatsApp API error:', data.error);
+        throw new Error(data.error.message || 'Failed to send WhatsApp message');
+      }
 
       toast({
         title: "Message Sent",
@@ -43,7 +55,7 @@ const WhatsAppMessaging = () => {
       console.error('Error sending WhatsApp message:', error);
       toast({
         title: "Error",
-        description: "Failed to send WhatsApp message. Please try again.",
+        description: error.message || "Failed to send WhatsApp message. Please try again.",
         variant: "destructive",
       });
     } finally {
