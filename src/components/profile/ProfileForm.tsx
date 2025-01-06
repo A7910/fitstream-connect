@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { User } from "lucide-react";
+import { PhoneInput } from "./PhoneInput";
+import { parsePhoneNumber } from "libphonenumber-js";
 
 interface ProfileFormProps {
   profile: {
@@ -24,6 +26,7 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [phoneError, setPhoneError] = useState<string>("");
 
   useEffect(() => {
     if (profile) {
@@ -33,13 +36,21 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
     }
   }, [profile]);
 
+  const validatePhoneNumber = (number: string) => {
+    try {
+      const phoneNumber = parsePhoneNumber(number);
+      return phoneNumber?.isValid() || false;
+    } catch {
+      return false;
+    }
+  };
+
   const handleImageUpload = async (file: File) => {
     try {
       setIsUploading(true);
       const fileExt = file.name.split('.').pop();
       const filePath = `${userId}-${Date.now()}.${fileExt}`;
 
-      // Upload image to Supabase Storage
       const { error: uploadError, data } = await supabase.storage
         .from('profile-pictures')
         .upload(filePath, file, {
@@ -48,14 +59,12 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('profile-pictures')
         .getPublicUrl(filePath);
 
       setAvatarUrl(publicUrl);
       
-      // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: publicUrl })
@@ -102,6 +111,16 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
   };
 
   const updateProfile = async () => {
+    if (!phoneNumber) {
+      setPhoneError("Phone number is required");
+      return;
+    }
+
+    if (!validatePhoneNumber(phoneNumber)) {
+      setPhoneError("Please enter a valid phone number");
+      return;
+    }
+
     try {
       const updates = {
         id: userId,
@@ -117,6 +136,7 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
 
       if (error) throw error;
       toast.success("Profile updated successfully");
+      setPhoneError("");
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Error updating profile");
@@ -167,16 +187,11 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phoneNumber" className="text-sm font-poppins text-gray-600">Phone Number</Label>
-              <Input
-                id="phoneNumber"
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                className="font-poppins"
-              />
-            </div>
+            <PhoneInput
+              value={phoneNumber}
+              onChange={setPhoneNumber}
+              error={phoneError}
+            />
 
             <Button
               onClick={updateProfile}
