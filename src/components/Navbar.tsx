@@ -18,89 +18,75 @@ const Navbar = () => {
 
   useEffect(() => {
     const getSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error("Error fetching session:", error);
-          return;
-        }
-
-        setSession(session);
-
-        if (session) {
-          // Fetch the admin status
-          const { data: adminData, error: adminError } = await supabase
-            .from("admin_users")
-            .select()
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-
-          if (adminError) {
-            console.error("Error fetching admin status:", adminError);
-          }
-
-          setIsAdmin(!!adminData);
-        }
-      } catch (error) {
-        console.error("Error in getSession:", error);
-      }
-    };
-
-    // Get session on mount
-    getSession();
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.id);
-
-      if (event === "SIGNED_OUT") {
-        setSession(null);
-        setIsAdmin(false);
-        navigate("/");
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error fetching session:", error);
         return;
       }
-
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+      setSession(session);
+  
+      if (session) {
+        // Fetch the admin status
+        const { data, error: adminError } = await supabase
+          .from("admin_users")
+          .select()
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+  
+        if (adminError) {
+          console.error("Error fetching admin status:", adminError);
+        }
+  
+        setIsAdmin(!!data); // If there's data, the user is an admin
+      }
+    };
+  
+    // Get session on mount
+    getSession();
+  
+    // Listen for auth state changes (sign in/out)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setSession(session);
-
         if (session) {
-          try {
-            // Fetch admin status after sign-in
-            const { data: adminData, error: adminError } = await supabase
+          // Fetch admin status after sign-in
+          const fetchAdminStatus = async () => {
+            const { data, error: adminError } = await supabase
               .from("admin_users")
               .select()
               .eq("user_id", session.user.id)
               .maybeSingle();
-
+  
             if (adminError) {
               console.error("Error fetching admin status:", adminError);
-              return;
             }
-
-            setIsAdmin(!!adminData);
-          } catch (error) {
-            console.error("Error checking admin status:", error);
-          }
+  
+            setIsAdmin(!!data); // If data exists, user is admin
+          };
+  
+          fetchAdminStatus();
         }
+      } else if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setIsAdmin(false);
       }
     });
-
+  
     return () => {
+      // Cleanup subscription on component unmount
       subscription?.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-
+      
       setSession(null);
       setIsAdmin(false);
       navigate("/");
-
+      
       toast({
         title: "Logged out successfully",
         description: "You have been logged out of your account",
@@ -128,7 +114,7 @@ const Navbar = () => {
               <span className="text-[25px] font-bebas">Obees Fitness</span>
             </Link>
           </div>
-
+          
           <div className="flex items-center md:hidden">
             <Button variant="ghost" size="icon" onClick={toggleMenu}>
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
