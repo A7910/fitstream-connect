@@ -21,7 +21,9 @@ serve(async (req) => {
     if (!WHATSAPP_ACCESS_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
       console.error('Missing WhatsApp configuration:', { 
         hasToken: !!WHATSAPP_ACCESS_TOKEN, 
-        hasPhoneId: !!WHATSAPP_PHONE_NUMBER_ID 
+        hasPhoneId: !!WHATSAPP_PHONE_NUMBER_ID,
+        tokenLength: WHATSAPP_ACCESS_TOKEN?.length,
+        phoneIdLength: WHATSAPP_PHONE_NUMBER_ID?.length
       });
       throw new Error('WhatsApp configuration is missing');
     }
@@ -32,7 +34,8 @@ serve(async (req) => {
 
     const apiUrl = `https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
     console.log('Using API URL:', apiUrl);
-    console.log('Using token (first 10 chars):', WHATSAPP_ACCESS_TOKEN?.substring(0, 10));
+    console.log('Access Token length:', WHATSAPP_ACCESS_TOKEN.length);
+    console.log('Phone Number ID:', WHATSAPP_PHONE_NUMBER_ID);
 
     const requestBody = {
       messaging_product: "whatsapp",
@@ -57,15 +60,23 @@ serve(async (req) => {
     });
 
     const responseData = await response.json();
-    console.log('WhatsApp API response:', responseData);
+    console.log('WhatsApp API response:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: responseData
+    });
 
     if (!response.ok) {
-      console.error('WhatsApp API error:', responseData);
+      console.error('WhatsApp API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: responseData
+      });
       return new Response(
         JSON.stringify({ 
           error: responseData.error || 'Failed to send message',
           details: responseData,
-          statusCode: response.status,
+          status: response.status,
           statusText: response.statusText
         }),
         { 
