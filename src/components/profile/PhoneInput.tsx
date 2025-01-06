@@ -29,12 +29,14 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
   const [open, setOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<CountryCode>("US");
 
-  const handleCountrySelect = (countryValue: string) => {
-    // Extract country code from the value (format: "Country Name Code +XX")
-    const code = countryValue.split(" ")[1] as CountryCode;
-    setSelectedCountry(code);
+  const handleCountrySelect = (countryCode: string) => {
+    // Find the country object from our list
+    const country = countries.find(c => c.code === countryCode);
+    if (!country) return;
+
+    setSelectedCountry(country.code);
     const phoneNumber = value.replace(/\D/g, '');
-    const newValue = `+${getCountryCallingCode(code)}${phoneNumber}`;
+    const newValue = `+${getCountryCallingCode(country.code)}${phoneNumber}`;
     onChange(newValue);
     setOpen(false);
   };
@@ -54,6 +56,8 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
     }
   };
 
+  const selectedCountryData = countries.find(c => c.code === selectedCountry);
+
   return (
     <div className="space-y-2">
       <Label htmlFor="phoneNumber" className="text-sm font-poppins text-gray-600">
@@ -68,10 +72,10 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
               aria-expanded={open}
               className="w-[140px] justify-between"
             >
-              {selectedCountry ? (
+              {selectedCountryData ? (
                 <span>
-                  {countries.find((c) => c.code === selectedCountry)?.flag}{" "}
-                  +{getCountryCallingCode(selectedCountry)}
+                  {selectedCountryData.flag}{" "}
+                  +{getCountryCallingCode(selectedCountryData.code)}
                 </span>
               ) : (
                 "Select country"
@@ -83,11 +87,11 @@ export const PhoneInput = ({ value, onChange, error }: PhoneInputProps) => {
             <Command>
               <CommandInput placeholder="Search country..." />
               <CommandEmpty>No country found.</CommandEmpty>
-              <CommandGroup className="max-h-[300px] overflow-y-auto">
+              <CommandGroup>
                 {countries.map((country) => (
                   <CommandItem
                     key={country.code}
-                    value={`${country.name} ${country.code}`}
+                    value={country.code}
                     onSelect={handleCountrySelect}
                   >
                     <Check
