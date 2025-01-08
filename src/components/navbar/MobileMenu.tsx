@@ -18,7 +18,7 @@ export const MobileMenu = ({ isMenuOpen, session, isAdmin, handleLogout }: Mobil
           : "max-h-0 opacity-0 overflow-hidden"
       }`}
     >
-      <div className="px-2 pt-2 pb-3 space-y-1">
+      <div className="px-2 pt-2 pb-3 space-y-2 flex flex-col">
         <NavLinks session={session} isAdmin={isAdmin} handleLogout={handleLogout} />
         {!session && (
           <Link to="/login" className="block">
