@@ -53,7 +53,7 @@ export const GenerateInvoiceDialog = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("membership_plans")
-        .select("id, name, price");
+        .select("id, name, price, duration_months");  // Added duration_months to the selection
       if (error) throw error;
       return data;
     },
