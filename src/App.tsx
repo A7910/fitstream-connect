@@ -10,16 +10,16 @@ import Profile from "./pages/Profile";
 import MembershipPlans from "./pages/MembershipPlans";
 import WorkoutPlan from "./pages/WorkoutPlan";
 import AdminDashboard from "./pages/AdminDashboard";
-import React, { StrictMode } from "react";
+import * as React from "react";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <StrictMode>
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
@@ -31,10 +31,10 @@ const App = () => {
             </Routes>
             <Toaster />
             <Sonner />
-          </TooltipProvider>
-        </QueryClientProvider>
-      </BrowserRouter>
-    </StrictMode>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 };
 
