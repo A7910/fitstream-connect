@@ -64,24 +64,20 @@ export const GenerateInvoiceDialog = () => {
       const plan = plans?.find((p) => p.id === values.planId);
       if (!plan) throw new Error("Plan not found");
 
-      // First create the membership
+      // Get the latest active membership for this user and plan
       const { data: membership, error: membershipError } = await supabase
         .from("user_memberships")
-        .insert({
-          user_id: values.userId,
-          plan_id: values.planId,
-          start_date: new Date().toISOString(),
-          end_date: new Date(
-            new Date().setMonth(new Date().getMonth() + (plan?.duration_months || 1))
-          ).toISOString(),
-          status: "active",
-        })
         .select()
+        .eq("user_id", values.userId)
+        .eq("plan_id", values.planId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .single();
 
       if (membershipError) throw membershipError;
 
-      // Then create the invoice manually instead of relying on the trigger
+      // Create the invoice
       const { error: invoiceError } = await supabase
         .from("invoices")
         .insert({
@@ -100,7 +96,7 @@ export const GenerateInvoiceDialog = () => {
 
       toast({
         title: "Invoice generated successfully",
-        description: "The invoice has been created and the membership has been activated.",
+        description: "The invoice has been created.",
       });
       setOpen(false);
     } catch (error) {
