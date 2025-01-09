@@ -53,7 +53,7 @@ export const GenerateInvoiceDialog = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("membership_plans")
-        .select("id, name, price, duration_months");  // Added duration_months to the selection
+        .select("id, name, price, duration_months");
       if (error) throw error;
       return data;
     },
@@ -64,7 +64,8 @@ export const GenerateInvoiceDialog = () => {
       const plan = plans?.find((p) => p.id === values.planId);
       if (!plan) throw new Error("Plan not found");
 
-      const { error: membershipError } = await supabase
+      // First create the membership
+      const { data: membership, error: membershipError } = await supabase
         .from("user_memberships")
         .insert({
           user_id: values.userId,
@@ -74,9 +75,26 @@ export const GenerateInvoiceDialog = () => {
             new Date().setMonth(new Date().getMonth() + (plan?.duration_months || 1))
           ).toISOString(),
           status: "active",
-        });
+        })
+        .select()
+        .single();
 
       if (membershipError) throw membershipError;
+
+      // Then create the invoice manually instead of relying on the trigger
+      const { error: invoiceError } = await supabase
+        .from("invoices")
+        .insert({
+          user_id: values.userId,
+          membership_id: membership.id,
+          plan_id: values.planId,
+          amount: plan.price,
+          status: 'paid',
+          payment_mode: values.paymentMode,
+          paid_at: new Date().toISOString(),
+        });
+
+      if (invoiceError) throw invoiceError;
 
       toast({
         title: "Invoice generated successfully",
