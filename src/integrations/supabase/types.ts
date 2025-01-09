@@ -323,6 +323,67 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          invoice_number: string
+          membership_id: string
+          paid_at: string | null
+          payment_mode: string | null
+          plan_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          invoice_number: string
+          membership_id: string
+          paid_at?: string | null
+          payment_mode?: string | null
+          plan_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          invoice_number?: string
+          membership_id?: string
+          paid_at?: string | null
+          payment_mode?: string | null
+          plan_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "user_memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_history: {
         Row: {
           created_at: string

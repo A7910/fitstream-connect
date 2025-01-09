@@ -14,6 +14,7 @@ import UserManagement from "@/components/admin/UserManagement";
 import AttendanceManagement from "@/components/admin/AttendanceManagement";
 import AnnouncementManager from "@/components/admin/AnnouncementManager";
 import WhatsAppMessaging from "@/components/admin/WhatsAppMessaging";
+import FinancialsTab from "@/components/admin/financials/FinancialsTab";
 import { useAnalyticsData, DateRange } from "@/hooks/useAnalyticsData";
 import { BackButton } from "@/components/ui/back-button";
 import WorkoutManagement from "@/components/admin/WorkoutManagement";
@@ -158,6 +159,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="assigned">Assigned Workouts</TabsTrigger>
             <TabsTrigger value="announcements">Announcements</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+            <TabsTrigger value="financials">Financials</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="space-y-4">
@@ -186,6 +188,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="whatsapp" className="space-y-4">
             <WhatsAppMessaging />
+          </TabsContent>
+
+          <TabsContent value="financials" className="space-y-4">
+            <FinancialsTab />
           </TabsContent>
         </Tabs>
       </div>
