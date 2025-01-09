@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InvoicesTab from "./InvoicesTab";
+import ExpensesTab from "./ExpensesTab";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
 
 const FinancialsTab = () => {
@@ -8,11 +9,15 @@ const FinancialsTab = () => {
       <div className="flex justify-between items-center">
         <TabsList>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="expenses">Expenses</TabsTrigger>
         </TabsList>
         <GenerateInvoiceDialog />
       </div>
       <TabsContent value="invoices">
         <InvoicesTab />
+      </TabsContent>
+      <TabsContent value="expenses">
+        <ExpensesTab />
       </TabsContent>
     </Tabs>
   );
