@@ -680,42 +680,6 @@ export type Database = {
           },
         ]
       }
-      videos: {
-        Row: {
-          category: string
-          created_at: string
-          description: string | null
-          difficulty_level: string
-          duration: number | null
-          id: string
-          thumbnail_url: string | null
-          title: string
-          url: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          description?: string | null
-          difficulty_level: string
-          duration?: number | null
-          id?: string
-          thumbnail_url?: string | null
-          title: string
-          url: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          description?: string | null
-          difficulty_level?: string
-          duration?: number | null
-          id?: string
-          thumbnail_url?: string | null
-          title?: string
-          url?: string
-        }
-        Relationships: []
-      }
       workout_goals: {
         Row: {
           created_at: string
