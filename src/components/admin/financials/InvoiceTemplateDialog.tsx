@@ -48,11 +48,39 @@ interface TemplateForm {
   };
 }
 
+const defaultValues: TemplateForm = {
+  name: "",
+  isDefault: false,
+  header: {
+    logo: true,
+    companyName: "Gym Name",
+    companyAddress: "",
+    companyContact: "",
+  },
+  body: {
+    showMemberDetails: true,
+    showPlanDetails: true,
+    showPaymentDetails: true,
+  },
+  footer: {
+    showTerms: true,
+    terms: "Thank you for your business!",
+    showSignature: true,
+  },
+  style: {
+    primaryColor: "#000000",
+    secondaryColor: "#666666",
+    fontFamily: "Helvetica",
+  },
+};
+
 export const InvoiceTemplateDialog = () => {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const form = useForm<TemplateForm>();
+  const form = useForm<TemplateForm>({
+    defaultValues,
+  });
 
   const { data: templates } = useQuery({
     queryKey: ["invoice-templates"],
@@ -67,6 +95,7 @@ export const InvoiceTemplateDialog = () => {
 
   const createTemplateMutation = useMutation({
     mutationFn: async (values: TemplateForm) => {
+      console.log("Submitting template with values:", values); // Debug log
       const { error } = await supabase.from("invoice_templates").insert({
         name: values.name,
         is_default: values.isDefault,
@@ -82,6 +111,7 @@ export const InvoiceTemplateDialog = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoice-templates"] });
       setOpen(false);
+      form.reset(defaultValues);
       toast({
         title: "Template created",
         description: "The invoice template has been created successfully.",
@@ -98,6 +128,14 @@ export const InvoiceTemplateDialog = () => {
   });
 
   const onSubmit = (values: TemplateForm) => {
+    if (!values.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Template name is required",
+        variant: "destructive",
+      });
+      return;
+    }
     createTemplateMutation.mutate(values);
   };
 
@@ -119,7 +157,7 @@ export const InvoiceTemplateDialog = () => {
                 <FormItem>
                   <FormLabel>Template Name</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} required />
                   </FormControl>
                 </FormItem>
               )}
@@ -164,7 +202,7 @@ export const InvoiceTemplateDialog = () => {
                   <FormItem>
                     <FormLabel>Company Name</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} required />
                     </FormControl>
                   </FormItem>
                 )}
