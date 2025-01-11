@@ -46,7 +46,7 @@ export const useMemberships = () => {
         .from("user_memberships")
         .select("*")
         .eq("user_id", userId)
-        .maybeSingle();
+        .maybeSingle(); // Changed from .single() to .maybeSingle()
 
       if (fetchError) throw fetchError;
 
