@@ -7,11 +7,15 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { InvoicePDF } from "./InvoicePDF";
+import { InvoiceTemplateDialog } from "./InvoiceTemplateDialog";
 
 const InvoicesTab = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
+  const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
 
   const { data: invoices, isLoading } = useQuery({
     queryKey: ["invoices"],
@@ -25,6 +29,19 @@ const InvoicesTab = () => {
         `)
         .order("created_at", { ascending: false });
 
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: defaultTemplate } = useQuery({
+    queryKey: ["default-template"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invoice_templates")
+        .select("*")
+        .eq("is_default", true)
+        .single();
       if (error) throw error;
       return data;
     },
@@ -72,6 +89,10 @@ const InvoicesTab = () => {
     }
   };
 
+  const handleViewPDF = (invoice: any) => {
+    setSelectedInvoice(invoice);
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -80,27 +101,30 @@ const InvoicesTab = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Invoices</h2>
-        {selectedInvoices.length > 0 && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">Delete Selected</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the selected invoices.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => deleteInvoiceMutation.mutate(selectedInvoices)}>
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <div className="flex gap-2">
+          <InvoiceTemplateDialog />
+          {selectedInvoices.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">Delete Selected</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the selected invoices.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => deleteInvoiceMutation.mutate(selectedInvoices)}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -119,6 +143,7 @@ const InvoicesTab = () => {
               <TableHead>Status</TableHead>
               <TableHead>Payment Mode</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -145,6 +170,25 @@ const InvoicesTab = () => {
                 </TableCell>
                 <TableCell>{invoice.payment_mode || '-'}</TableCell>
                 <TableCell>{format(new Date(invoice.created_at), 'MMM dd, yyyy')}</TableCell>
+                <TableCell>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewPDF(invoice)}
+                      >
+                        View PDF
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl">
+                      <InvoicePDF
+                        invoice={selectedInvoice}
+                        template={defaultTemplate?.template_data}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
