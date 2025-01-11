@@ -37,13 +37,36 @@ const InvoicesTab = () => {
   const { data: defaultTemplate } = useQuery({
     queryKey: ["default-template"],
     queryFn: async () => {
+      // First try to get all default templates
       const { data, error } = await supabase
         .from("invoice_templates")
         .select("*")
         .eq("is_default", true)
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1);
+
       if (error) throw error;
-      return data;
+
+      // If no default template exists, show a warning
+      if (!data || data.length === 0) {
+        toast({
+          title: "No default template",
+          description: "Please create a default invoice template.",
+          variant: "warning",
+        });
+        return null;
+      }
+
+      // If multiple default templates exist, show a warning and use the most recent one
+      if (data.length > 1) {
+        toast({
+          title: "Multiple default templates",
+          description: "Using the most recent default template. Please ensure only one template is set as default.",
+          variant: "warning",
+        });
+      }
+
+      return data[0];
     },
   });
 
