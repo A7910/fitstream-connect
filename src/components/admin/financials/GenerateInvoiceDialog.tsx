@@ -13,7 +13,6 @@ import { Form, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { DatePicker } from "@/components/ui/date-picker";
-import { addDays } from "date-fns";
 import { InvoiceMemberSelect } from "./generate-invoice/InvoiceMemberSelect";
 import { InvoicePlanSelect } from "./generate-invoice/InvoicePlanSelect";
 import { InvoicePaymentModeSelect } from "./generate-invoice/InvoicePaymentModeSelect";
@@ -30,7 +29,7 @@ export const GenerateInvoiceDialog = () => {
   const { toast } = useToast();
   const form = useForm<GenerateInvoiceForm>({
     defaultValues: {
-      dueDate: addDays(new Date(), 7),
+      dueDate: new Date(),
     },
   });
 
