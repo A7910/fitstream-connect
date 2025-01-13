@@ -64,7 +64,6 @@ export const GenerateInvoiceDialog = () => {
         throw new Error("Plan not found");
       }
 
-      // Get the membership using maybeSingle() instead of single()
       const { data: membership, error: membershipError } = await supabase
         .from("user_memberships")
         .select()
@@ -145,7 +144,7 @@ export const GenerateInvoiceDialog = () => {
                   <FormLabel>Due Date</FormLabel>
                   <DatePicker 
                     date={field.value} 
-                    onDateChange={(date) => field.onChange(date || new Date())} 
+                    onDateChange={field.onChange}
                   />
                 </FormItem>
               )}
