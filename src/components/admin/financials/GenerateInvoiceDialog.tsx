@@ -143,7 +143,10 @@ export const GenerateInvoiceDialog = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Due Date</FormLabel>
-                  <DatePicker date={field.value} onDateChange={field.onChange} />
+                  <DatePicker 
+                    date={field.value} 
+                    onDateChange={(date) => field.onChange(date || new Date())} 
+                  />
                 </FormItem>
               )}
             />
