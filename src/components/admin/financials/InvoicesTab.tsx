@@ -191,9 +191,9 @@ const InvoicesTab = () => {
               <TableHead>Plan</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Due Date</TableHead>
               <TableHead>Payment Mode</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Due Date</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -225,11 +225,11 @@ const InvoicesTab = () => {
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell>{invoice.payment_mode || '-'}</TableCell>
+                <TableCell>{format(new Date(invoice.created_at), 'MMM dd, yyyy')}</TableCell>
                 <TableCell>
                   {invoice.due_date ? format(new Date(invoice.due_date), 'MMM dd, yyyy') : '-'}
                 </TableCell>
-                <TableCell>{invoice.payment_mode || '-'}</TableCell>
-                <TableCell>{format(new Date(invoice.created_at), 'MMM dd, yyyy')}</TableCell>
                 <TableCell>
                   <Dialog>
                     <DialogTrigger asChild>
