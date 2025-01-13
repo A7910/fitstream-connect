@@ -10,6 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { InvoicePDF } from "./InvoicePDF";
 import { InvoiceTemplateDialog } from "./InvoiceTemplateDialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const InvoicesTab = () => {
   const { toast } = useToast();
@@ -67,6 +68,31 @@ const InvoicesTab = () => {
     },
   });
 
+  const updateInvoiceStatusMutation = useMutation({
+    mutationFn: async ({ invoiceId, status }: { invoiceId: string; status: string }) => {
+      const { error } = await supabase
+        .from("invoices")
+        .update({ status })
+        .eq("id", invoiceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast({
+        title: "Status updated",
+        description: "Invoice status has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating status",
+        description: "There was an error updating the invoice status. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Error updating invoice status:", error);
+    },
+  });
+
   const deleteInvoiceMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       const { error } = await supabase
@@ -111,6 +137,10 @@ const InvoicesTab = () => {
 
   const handleViewPDF = (invoice: any) => {
     setSelectedInvoice(invoice);
+  };
+
+  const handleStatusChange = (invoiceId: string, status: string) => {
+    updateInvoiceStatusMutation.mutate({ invoiceId, status });
   };
 
   if (isLoading) {
@@ -161,6 +191,7 @@ const InvoicesTab = () => {
               <TableHead>Plan</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Due Date</TableHead>
               <TableHead>Payment Mode</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Actions</TableHead>
@@ -180,13 +211,22 @@ const InvoicesTab = () => {
                 <TableCell>{invoice.membership_plans?.name}</TableCell>
                 <TableCell>${invoice.amount}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-1 rounded-full text-sm ${
-                    invoice.status === 'paid' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {invoice.status}
-                  </span>
+                  <Select
+                    value={invoice.status}
+                    onValueChange={(value) => handleStatusChange(invoice.id, value)}
+                  >
+                    <SelectTrigger className="w-[110px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  {invoice.due_date ? format(new Date(invoice.due_date), 'MMM dd, yyyy') : '-'}
                 </TableCell>
                 <TableCell>{invoice.payment_mode || '-'}</TableCell>
                 <TableCell>{format(new Date(invoice.created_at), 'MMM dd, yyyy')}</TableCell>

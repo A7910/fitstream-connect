@@ -387,6 +387,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          due_date: string | null
           id: string
           invoice_number: string
           membership_id: string
@@ -399,6 +400,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          due_date?: string | null
           id?: string
           invoice_number: string
           membership_id: string
@@ -411,6 +413,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          due_date?: string | null
           id?: string
           invoice_number?: string
           membership_id?: string
@@ -711,6 +714,10 @@ export type Database = {
         Returns: undefined
       }
       update_expired_memberships: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_overdue_invoices: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
