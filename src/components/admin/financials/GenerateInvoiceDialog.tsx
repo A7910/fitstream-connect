@@ -57,9 +57,14 @@ export const GenerateInvoiceDialog = () => {
 
   const onSubmit = async (values: GenerateInvoiceForm) => {
     try {
+      console.log("Generating invoice with values:", values);
+      
       const plan = plans?.find((p) => p.id === values.planId);
-      if (!plan) throw new Error("Plan not found");
+      if (!plan) {
+        throw new Error("Plan not found");
+      }
 
+      // Get the membership using maybeSingle() instead of single()
       const { data: membership, error: membershipError } = await supabase
         .from("user_memberships")
         .select()
@@ -67,12 +72,21 @@ export const GenerateInvoiceDialog = () => {
         .eq("plan_id", values.planId)
         .eq("status", "active")
         .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (membershipError) throw membershipError;
+      console.log("Fetched membership:", membership);
 
-      const { error: invoiceError } = await supabase
+      if (membershipError) {
+        console.error("Error fetching membership:", membershipError);
+        throw membershipError;
+      }
+
+      if (!membership) {
+        console.error("No active membership found");
+        throw new Error("No active membership found for this user and plan");
+      }
+
+      const { data: invoice, error: invoiceError } = await supabase
         .from("invoices")
         .insert({
           user_id: values.userId,
@@ -83,20 +97,27 @@ export const GenerateInvoiceDialog = () => {
           payment_mode: values.paymentMode,
           due_date: values.dueDate.toISOString(),
           invoice_number: 'PENDING'
-        });
+        })
+        .select()
+        .single();
 
-      if (invoiceError) throw invoiceError;
+      if (invoiceError) {
+        console.error("Error creating invoice:", invoiceError);
+        throw invoiceError;
+      }
+
+      console.log("Invoice generated successfully:", invoice);
 
       toast({
         title: "Invoice generated successfully",
         description: "The invoice has been created.",
       });
       setOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating invoice:", error);
       toast({
         title: "Error generating invoice",
-        description: "There was an error generating the invoice. Please try again.",
+        description: error.message || "There was an error generating the invoice. Please try again.",
         variant: "destructive",
       });
     }
