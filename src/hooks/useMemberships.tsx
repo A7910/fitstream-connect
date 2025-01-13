@@ -41,15 +41,6 @@ export const useMemberships = () => {
     try {
       console.log("Handling membership action:", { userId, planId, action, startDate, endDate });
 
-      // Get the user's current membership if it exists
-      const { data: existingMembership, error: fetchError } = await supabase
-        .from("user_memberships")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle(); // Changed from .single() to .maybeSingle()
-
-      if (fetchError) throw fetchError;
-
       if (action === 'activate') {
         if (!planId) {
           throw new Error("No plan selected");
@@ -58,64 +49,68 @@ export const useMemberships = () => {
         let membershipStartDate = startDate;
         let membershipEndDate = endDate;
 
-        // If dates aren't provided, calculate them based on the last membership
+        // Get all active memberships for the user
+        const { data: existingMemberships, error: fetchError } = await supabase
+          .from("user_memberships")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("status", "active");
+
+        if (fetchError) throw fetchError;
+
+        console.log("Existing memberships:", existingMemberships);
+
+        // If dates aren't provided, calculate them
         if (!startDate || !endDate) {
-          if (existingMembership) {
-            // If there's an existing membership, start from its end date
-            membershipStartDate = new Date(existingMembership.end_date);
-            membershipEndDate = new Date(existingMembership.end_date);
+          if (existingMemberships && existingMemberships.length > 0) {
+            // Get the latest end date from existing memberships
+            const latestEndDate = existingMemberships
+              .map(m => new Date(m.end_date))
+              .reduce((latest, current) => current > latest ? current : latest);
+            
+            membershipStartDate = latestEndDate;
+            membershipEndDate = new Date(latestEndDate);
             membershipEndDate.setMonth(membershipEndDate.getMonth() + 1);
           } else {
-            // If no existing membership, start from today
             membershipStartDate = new Date();
             membershipEndDate = new Date();
             membershipEndDate.setMonth(membershipEndDate.getMonth() + 1);
           }
         }
 
-        console.log("Calculated membership dates:", { 
-          membershipStartDate, 
-          membershipEndDate,
-          existingMembership 
-        });
-
-        if (existingMembership) {
-          // Update existing membership
-          const { error: updateError } = await supabase
-            .from("user_memberships")
-            .update({
-              plan_id: planId,
-              start_date: membershipStartDate.toISOString().split('T')[0],
-              end_date: membershipEndDate.toISOString().split('T')[0],
-              status: "active"
-            })
-            .eq("user_id", userId);
-
-          if (updateError) throw updateError;
-        } else {
-          // Create new membership if none exists
-          const { error: insertError } = await supabase
-            .from("user_memberships")
-            .insert({
-              user_id: userId,
-              plan_id: planId,
-              start_date: membershipStartDate.toISOString().split('T')[0],
-              end_date: membershipEndDate.toISOString().split('T')[0],
-              status: "active"
-            });
-
-          if (insertError) throw insertError;
-        }
-      } else {
-        // Deactivate membership if it exists
-        if (existingMembership) {
+        // Deactivate all existing active memberships
+        if (existingMemberships && existingMemberships.length > 0) {
           const { error: deactivateError } = await supabase
             .from("user_memberships")
             .update({ status: "inactive" })
-            .eq("user_id", userId);
+            .eq("user_id", userId)
+            .eq("status", "active");
 
           if (deactivateError) throw deactivateError;
         }
+
+        // Create new membership
+        const { error: insertError } = await supabase
+          .from("user_memberships")
+          .insert({
+            user_id: userId,
+            plan_id: planId,
+            start_date: membershipStartDate.toISOString().split('T')[0],
+            end_date: membershipEndDate.toISOString().split('T')[0],
+            status: "active"
+          });
+
+        if (insertError) throw insertError;
+
+      } else {
+        // Deactivate all active memberships for the user
+        const { error: deactivateError } = await supabase
+          .from("user_memberships")
+          .update({ status: "inactive" })
+          .eq("user_id", userId)
+          .eq("status", "active");
+
+        if (deactivateError) throw deactivateError;
       }
 
       // Invalidate queries to refresh the data
