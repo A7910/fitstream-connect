@@ -171,6 +171,66 @@ export const InvoiceTemplateDialog = () => {
     },
   });
 
+  const handleLogoUpload = async (file: File) => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('profile-pictures')
+        .upload(fileName, file, {
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(fileName);
+
+      await updateGymConfig.mutateAsync({ logo_url: publicUrl });
+      
+      toast({
+        title: "Logo uploaded",
+        description: "The gym logo has been uploaded successfully.",
+      });
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast({
+        title: "Error uploading logo",
+        description: "There was an error uploading the logo. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    try {
+      if (gymConfig?.logo_url) {
+        const fileName = gymConfig.logo_url.split('/').pop();
+        if (fileName) {
+          await supabase.storage
+            .from('profile-pictures')
+            .remove([fileName]);
+        }
+      }
+      
+      await updateGymConfig.mutateAsync({ logo_url: null });
+      
+      toast({
+        title: "Logo removed",
+        description: "The gym logo has been removed successfully.",
+      });
+    } catch (error) {
+      console.error("Error removing logo:", error);
+      toast({
+        title: "Error removing logo",
+        description: "There was an error removing the logo. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const onSubmit = (values: TemplateForm) => {
     if (!values.name.trim()) {
       toast({
@@ -202,8 +262,8 @@ export const InvoiceTemplateDialog = () => {
                 <FormControl>
                   <ImageUpload
                     value={gymConfig?.logo_url}
-                    onChange={(url) => updateGymConfig.mutate({ logo_url: url })}
-                    onRemove={() => updateGymConfig.mutate({ logo_url: null })}
+                    onChange={handleLogoUpload}
+                    onRemove={handleLogoRemove}
                   />
                 </FormControl>
               </FormItem>
