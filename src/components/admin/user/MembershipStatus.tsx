@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 
 interface MembershipStatusProps {
   membership: any;
@@ -35,9 +35,20 @@ export const getMembershipStatusColor = (membership: any) => {
   return "green";
 };
 
+export const getRemainingDays = (membership: any) => {
+  if (!membership || membership.status !== "active") return 0;
+  
+  const today = new Date();
+  const endDate = new Date(membership.end_date);
+  endDate.setHours(23, 59, 59, 999); // Set to end of day
+  
+  return Math.max(0, differenceInDays(endDate, today));
+};
+
 export const MembershipStatus = ({ membership }: MembershipStatusProps) => {
   const status = getMembershipStatus(membership);
   const statusColor = getMembershipStatusColor(membership);
+  const remainingDays = getRemainingDays(membership);
 
   return (
     <div className="flex items-center gap-2">
@@ -56,9 +67,12 @@ export const MembershipStatus = ({ membership }: MembershipStatusProps) => {
         </span>
       )}
       {membership && membership.status === "active" && (
-        <p className="text-sm text-muted-foreground">
-          Expires: {format(new Date(membership.end_date), "MMM dd, yyyy")}
-        </p>
+        <div className="text-sm text-muted-foreground">
+          <p>Expires: {format(new Date(membership.end_date), "MMM dd, yyyy")}</p>
+          <p className="text-xs">
+            {remainingDays} {remainingDays === 1 ? 'day' : 'days'} remaining
+          </p>
+        </div>
       )}
     </div>
   );
