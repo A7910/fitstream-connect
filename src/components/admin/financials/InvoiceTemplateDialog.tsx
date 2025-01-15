@@ -24,7 +24,7 @@ interface AdminConfig {
   updated_at: string;
 }
 
-export const InvoiceTemplateDialog = () => {
+const InvoiceTemplateDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -183,3 +183,5 @@ export const InvoiceTemplateDialog = () => {
     </Dialog>
   );
 };
+
+export default InvoiceTemplateDialog;
