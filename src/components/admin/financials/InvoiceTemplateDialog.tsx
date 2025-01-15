@@ -13,49 +13,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ui/image-upload";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 
-interface TemplateForm {
-  name: string;
-  is_default: boolean;
-  template_data: {
-    showLogo: boolean;
-    showGymDetails: boolean;
-    showMemberDetails: boolean;
-    showInvoiceDetails: boolean;
-    primaryColor: string;
-    secondaryColor: string;
-    termsAndConditions: string;
-  };
+interface AdminConfig {
+  id: string;
+  logo_url: string | null;
+  gym_name: string | null;
+  gym_address: string | null;
+  gym_phone: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
-const InvoiceTemplateDialog = () => {
+export const InvoiceTemplateDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const form = useForm<TemplateForm>({
-    defaultValues: {
-      name: "",
-      is_default: false,
-      template_data: {
-        showLogo: true,
-        showGymDetails: true,
-        showMemberDetails: true,
-        showInvoiceDetails: true,
-        primaryColor: "#000000",
-        secondaryColor: "#666666",
-        termsAndConditions: "",
-      },
-    },
-  });
 
   const { data: gymConfig } = useQuery({
     queryKey: ["admin_config"],
@@ -66,12 +38,12 @@ const InvoiceTemplateDialog = () => {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as AdminConfig;
     },
   });
 
   const updateGymConfig = useMutation({
-    mutationFn: async (updates: Partial<typeof gymConfig>) => {
+    mutationFn: async (updates: Partial<AdminConfig>) => {
       const { data, error } = await supabase
         .from("admin_config")
         .update(updates)
@@ -84,6 +56,10 @@ const InvoiceTemplateDialog = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin_config"] });
+      toast({
+        title: "Success",
+        description: "Gym configuration has been updated successfully.",
+      });
     },
     onError: (error) => {
       console.error("Error updating gym config:", error);
@@ -155,19 +131,6 @@ const InvoiceTemplateDialog = () => {
     }
   };
 
-  const onSubmit = (values: TemplateForm) => {
-    if (!values.name.trim()) {
-      toast({
-        title: "Error",
-        description: "Template name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    // Submit the template data to the server
-    updateGymConfig.mutateAsync(values);
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -177,109 +140,46 @@ const InvoiceTemplateDialog = () => {
         <DialogHeader>
           <DialogTitle>Manage Invoice Template</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Template Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter template name" />
-                    </FormControl>
-                  </FormItem>
-                )}
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Gym Logo</Label>
+              <ImageUpload
+                value={gymConfig?.logo_url}
+                onChange={handleLogoUpload}
+                onRemove={handleLogoRemove}
               />
-
-              <div className="space-y-2">
-                <Label>Gym Logo</Label>
-                <ImageUpload
-                  value={gymConfig?.logo_url}
-                  onChange={handleLogoUpload}
-                  onRemove={handleLogoRemove}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Gym Name</Label>
-                <Input
-                  value={gymConfig?.gym_name || ''}
-                  onChange={(e) => updateGymConfig.mutate({ gym_name: e.target.value })}
-                  placeholder="Enter gym name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Gym Address</Label>
-                <Input
-                  value={gymConfig?.gym_address || ''}
-                  onChange={(e) => updateGymConfig.mutate({ gym_address: e.target.value })}
-                  placeholder="Enter gym address"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Gym Phone</Label>
-                <Input
-                  value={gymConfig?.gym_phone || ''}
-                  onChange={(e) => updateGymConfig.mutate({ gym_phone: e.target.value })}
-                  placeholder="Enter gym phone number"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Terms and Conditions</Label>
-                <Input
-                  value={gymConfig?.template_data?.termsAndConditions || ''}
-                  onChange={(e) => updateGymConfig.mutate({ 
-                    template_data: { 
-                      ...gymConfig?.template_data, 
-                      termsAndConditions: e.target.value 
-                    } 
-                  })}
-                  placeholder="Enter terms and conditions"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Primary Color</Label>
-                <Input
-                  type="color"
-                  value={gymConfig?.template_data?.primaryColor || '#000000'}
-                  onChange={(e) => updateGymConfig.mutate({ 
-                    template_data: { 
-                      ...gymConfig?.template_data, 
-                      primaryColor: e.target.value 
-                    } 
-                  })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Secondary Color</Label>
-                <Input
-                  type="color"
-                  value={gymConfig?.template_data?.secondaryColor || '#666666'}
-                  onChange={(e) => updateGymConfig.mutate({ 
-                    template_data: { 
-                      ...gymConfig?.template_data, 
-                      secondaryColor: e.target.value 
-                    } 
-                  })}
-                />
-              </div>
             </div>
 
-            <div className="flex justify-end gap-2">
-              <Button type="submit">Save Template</Button>
+            <div className="space-y-2">
+              <Label>Gym Name</Label>
+              <Input
+                value={gymConfig?.gym_name || ''}
+                onChange={(e) => updateGymConfig.mutate({ gym_name: e.target.value })}
+                placeholder="Enter gym name"
+              />
             </div>
-          </form>
-        </Form>
+
+            <div className="space-y-2">
+              <Label>Gym Address</Label>
+              <Input
+                value={gymConfig?.gym_address || ''}
+                onChange={(e) => updateGymConfig.mutate({ gym_address: e.target.value })}
+                placeholder="Enter gym address"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Gym Phone</Label>
+              <Input
+                value={gymConfig?.gym_phone || ''}
+                onChange={(e) => updateGymConfig.mutate({ gym_phone: e.target.value })}
+                placeholder="Enter gym phone number"
+              />
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
 };
-
-export default InvoiceTemplateDialog;
