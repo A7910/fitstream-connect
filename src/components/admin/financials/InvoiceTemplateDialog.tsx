@@ -22,6 +22,7 @@ import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface TemplateForm {
   name: string;
@@ -106,6 +107,36 @@ export const InvoiceTemplateDialog = () => {
     },
   });
 
+  const updateGymConfig = useMutation({
+    mutationFn: async (values: {
+      gym_name?: string;
+      gym_address?: string;
+      gym_phone?: string;
+      logo_url?: string;
+    }) => {
+      const { error } = await supabase
+        .from("admin_config")
+        .update(values)
+        .eq("id", gymConfig?.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["gym-config"] });
+      toast({
+        title: "Gym details updated",
+        description: "The gym details have been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating gym details:", error);
+      toast({
+        title: "Error updating gym details",
+        description: "There was an error updating the gym details. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const createTemplateMutation = useMutation({
     mutationFn: async (values: TemplateForm) => {
       console.log("Submitting template with values:", values);
@@ -161,184 +192,239 @@ export const InvoiceTemplateDialog = () => {
         <DialogHeader>
           <DialogTitle>Invoice Template</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Template Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} required />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
 
-            <FormField
-              control={form.control}
-              name="isDefault"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between">
-                  <FormLabel>Set as Default</FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Gym Details</h3>
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Header</h3>
-              <FormField
-                control={form.control}
-                name="header.showLogo"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between">
-                    <FormLabel>Show Logo</FormLabel>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="header.showAddress"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between">
-                    <FormLabel>Show Address</FormLabel>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="header.showPhone"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between">
-                    <FormLabel>Show Phone</FormLabel>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Logo</FormLabel>
+                <FormControl>
+                  <ImageUpload
+                    value={gymConfig?.logo_url}
+                    onChange={(url) => updateGymConfig.mutate({ logo_url: url })}
+                    onRemove={() => updateGymConfig.mutate({ logo_url: null })}
+                  />
+                </FormControl>
+              </FormItem>
+              <FormItem>
+                <FormLabel>Gym Name</FormLabel>
+                <FormControl>
+                  <Input
+                    value={gymConfig?.gym_name || ""}
+                    onChange={(e) =>
+                      updateGymConfig.mutate({ gym_name: e.target.value })
+                    }
+                    placeholder="Enter gym name"
+                  />
+                </FormControl>
+              </FormItem>
+              <FormItem>
+                <FormLabel>Address</FormLabel>
+                <FormControl>
+                  <Textarea
+                    value={gymConfig?.gym_address || ""}
+                    onChange={(e) =>
+                      updateGymConfig.mutate({ gym_address: e.target.value })
+                    }
+                    placeholder="Enter gym address"
+                  />
+                </FormControl>
+              </FormItem>
+              <FormItem>
+                <FormLabel>Phone Number</FormLabel>
+                <FormControl>
+                  <Input
+                    value={gymConfig?.gym_phone || ""}
+                    onChange={(e) =>
+                      updateGymConfig.mutate({ gym_phone: e.target.value })
+                    }
+                    placeholder="Enter phone number"
+                  />
+                </FormControl>
+              </FormItem>
             </div>
+          </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Content</h3>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="body.showMemberDetails"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between">
-                    <FormLabel>Show Member Details</FormLabel>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="body.showPlanDetails"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between">
-                    <FormLabel>Show Plan Details</FormLabel>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Footer</h3>
-              <FormField
-                control={form.control}
-                name="footer.showTerms"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between">
-                    <FormLabel>Show Terms</FormLabel>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="footer.terms"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Terms Text</FormLabel>
+                    <FormLabel>Template Name</FormLabel>
                     <FormControl>
-                      <Textarea {...field} />
+                      <Input {...field} required />
                     </FormControl>
                   </FormItem>
                 )}
               />
-            </div>
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Style</h3>
               <FormField
                 control={form.control}
-                name="style.primaryColor"
+                name="isDefault"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Primary Color</FormLabel>
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>Set as Default</FormLabel>
                     <FormControl>
-                      <ColorPicker {...field} />
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="style.secondaryColor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Secondary Color</FormLabel>
-                    <FormControl>
-                      <ColorPicker {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
 
-            <Button type="submit" className="w-full">
-              Save Template
-            </Button>
-          </form>
-        </Form>
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Header</h3>
+                <FormField
+                  control={form.control}
+                  name="header.showLogo"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between">
+                      <FormLabel>Show Logo</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="header.showAddress"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between">
+                      <FormLabel>Show Address</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="header.showPhone"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between">
+                      <FormLabel>Show Phone</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Content</h3>
+                <FormField
+                  control={form.control}
+                  name="body.showMemberDetails"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between">
+                      <FormLabel>Show Member Details</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="body.showPlanDetails"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between">
+                      <FormLabel>Show Plan Details</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Footer</h3>
+                <FormField
+                  control={form.control}
+                  name="footer.showTerms"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between">
+                      <FormLabel>Show Terms</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="footer.terms"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Terms Text</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Style</h3>
+                <FormField
+                  control={form.control}
+                  name="style.primaryColor"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Primary Color</FormLabel>
+                      <FormControl>
+                        <ColorPicker {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="style.secondaryColor"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Secondary Color</FormLabel>
+                      <FormControl>
+                        <ColorPicker {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Button type="submit" className="w-full">
+                Save Template
+              </Button>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );
