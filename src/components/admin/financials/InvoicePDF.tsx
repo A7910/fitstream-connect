@@ -6,14 +6,21 @@ import {
   View,
   StyleSheet,
   PDFViewer,
+  Image,
 } from "@react-pdf/renderer";
 
 interface InvoicePDFProps {
   invoice: any;
   template: any;
+  gymDetails?: {
+    logo_url?: string;
+    gym_name?: string;
+    gym_address?: string;
+    gym_phone?: string;
+  };
 }
 
-export const InvoicePDF = ({ invoice, template }: InvoicePDFProps) => {
+export const InvoicePDF = ({ invoice, template, gymDetails }: InvoicePDFProps) => {
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -23,11 +30,28 @@ export const InvoicePDF = ({ invoice, template }: InvoicePDFProps) => {
         },
         header: {
           marginBottom: 20,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        },
+        logo: {
+          width: 100,
+          height: 50,
+          objectFit: "contain",
+        },
+        companyInfo: {
+          flex: 1,
+          marginLeft: 20,
         },
         companyName: {
           fontSize: 24,
           color: template?.style?.primaryColor || "#000000",
           marginBottom: 10,
+        },
+        companyDetails: {
+          fontSize: 10,
+          color: template?.style?.secondaryColor || "#666666",
+          marginBottom: 5,
         },
         invoiceTitle: {
           fontSize: 20,
@@ -44,9 +68,11 @@ export const InvoicePDF = ({ invoice, template }: InvoicePDFProps) => {
         },
         label: {
           color: template?.style?.secondaryColor || "#666666",
+          flex: 1,
         },
         value: {
           color: template?.style?.primaryColor || "#000000",
+          flex: 2,
         },
         footer: {
           marginTop: 40,
@@ -63,10 +89,38 @@ export const InvoicePDF = ({ invoice, template }: InvoicePDFProps) => {
       <Document>
         <Page size="A4" style={styles.page}>
           <View style={styles.header}>
-            <Text style={styles.companyName}>
-              {template?.header?.companyName || "Gym Name"}
-            </Text>
+            {template?.header?.showLogo && gymDetails?.logo_url && (
+              <Image src={gymDetails.logo_url} style={styles.logo} />
+            )}
+            <View style={styles.companyInfo}>
+              <Text style={styles.companyName}>
+                {gymDetails?.gym_name || template?.header?.companyName || "Gym Name"}
+              </Text>
+              {template?.header?.showAddress && gymDetails?.gym_address && (
+                <Text style={styles.companyDetails}>{gymDetails.gym_address}</Text>
+              )}
+              {template?.header?.showPhone && gymDetails?.gym_phone && (
+                <Text style={styles.companyDetails}>{gymDetails.gym_phone}</Text>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.section}>
             <Text style={styles.invoiceTitle}>Invoice #{invoice.invoice_number}</Text>
+            <View style={styles.row}>
+              <Text style={styles.label}>Date Created:</Text>
+              <Text style={styles.value}>
+                {new Date(invoice.created_at).toLocaleDateString()}
+              </Text>
+            </View>
+            {invoice.due_date && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Due Date:</Text>
+                <Text style={styles.value}>
+                  {new Date(invoice.due_date).toLocaleDateString()}
+                </Text>
+              </View>
+            )}
           </View>
 
           {template?.body?.showMemberDetails && (
@@ -83,6 +137,10 @@ export const InvoicePDF = ({ invoice, template }: InvoicePDFProps) => {
               <View style={styles.row}>
                 <Text style={styles.label}>Amount</Text>
                 <Text style={styles.value}>${invoice.amount}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Status</Text>
+                <Text style={styles.value}>{invoice.status}</Text>
               </View>
             </View>
           )}

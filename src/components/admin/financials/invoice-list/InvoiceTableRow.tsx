@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { InvoicePDF } from "../InvoicePDF";
 import { InvoiceStatusSelect } from "./InvoiceStatusSelect";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface InvoiceTableRowProps {
   invoice: any;
@@ -21,6 +23,18 @@ export const InvoiceTableRow = ({
   onStatusChange,
   template 
 }: InvoiceTableRowProps) => {
+  const { data: gymDetails } = useQuery({
+    queryKey: ["gym-config"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("admin_config")
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <TableRow>
       <TableCell>
@@ -52,7 +66,11 @@ export const InvoiceTableRow = ({
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl">
-            <InvoicePDF invoice={invoice} template={template} />
+            <InvoicePDF 
+              invoice={invoice} 
+              template={template}
+              gymDetails={gymDetails}
+            />
           </DialogContent>
         </Dialog>
       </TableCell>

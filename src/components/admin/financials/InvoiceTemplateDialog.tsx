@@ -21,15 +21,16 @@ import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { ColorPicker } from "@/components/ui/color-picker";
+import { Textarea } from "@/components/ui/textarea";
 
 interface TemplateForm {
   name: string;
   isDefault: boolean;
   header: {
-    logo: boolean;
+    showLogo: boolean;
     companyName: string;
-    companyAddress: string;
-    companyContact: string;
+    showAddress: boolean;
+    showPhone: boolean;
   };
   body: {
     showMemberDetails: boolean;
@@ -52,10 +53,10 @@ const defaultValues: TemplateForm = {
   name: "",
   isDefault: false,
   header: {
-    logo: true,
+    showLogo: true,
     companyName: "Gym Name",
-    companyAddress: "",
-    companyContact: "",
+    showAddress: true,
+    showPhone: true,
   },
   body: {
     showMemberDetails: true,
@@ -93,9 +94,21 @@ export const InvoiceTemplateDialog = () => {
     },
   });
 
+  const { data: gymConfig } = useQuery({
+    queryKey: ["gym-config"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("admin_config")
+        .select("*")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const createTemplateMutation = useMutation({
     mutationFn: async (values: TemplateForm) => {
-      console.log("Submitting template with values:", values); // Debug log
+      console.log("Submitting template with values:", values);
       const { error } = await supabase.from("invoice_templates").insert({
         name: values.name,
         is_default: values.isDefault,
@@ -144,7 +157,7 @@ export const InvoiceTemplateDialog = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Manage Templates</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Invoice Template</DialogTitle>
         </DialogHeader>
@@ -162,6 +175,7 @@ export const InvoiceTemplateDialog = () => {
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="isDefault"
@@ -182,7 +196,7 @@ export const InvoiceTemplateDialog = () => {
               <h3 className="text-lg font-semibold">Header</h3>
               <FormField
                 control={form.control}
-                name="header.logo"
+                name="header.showLogo"
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between">
                     <FormLabel>Show Logo</FormLabel>
@@ -197,12 +211,95 @@ export const InvoiceTemplateDialog = () => {
               />
               <FormField
                 control={form.control}
-                name="header.companyName"
+                name="header.showAddress"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>Show Address</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="header.showPhone"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>Show Phone</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Content</h3>
+              <FormField
+                control={form.control}
+                name="body.showMemberDetails"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>Show Member Details</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="body.showPlanDetails"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>Show Plan Details</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Footer</h3>
+              <FormField
+                control={form.control}
+                name="footer.showTerms"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>Show Terms</FormLabel>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="footer.terms"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Name</FormLabel>
+                    <FormLabel>Terms Text</FormLabel>
                     <FormControl>
-                      <Input {...field} required />
+                      <Textarea {...field} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -217,6 +314,18 @@ export const InvoiceTemplateDialog = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Primary Color</FormLabel>
+                    <FormControl>
+                      <ColorPicker {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="style.secondaryColor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Secondary Color</FormLabel>
                     <FormControl>
                       <ColorPicker {...field} />
                     </FormControl>

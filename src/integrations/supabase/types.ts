@@ -12,18 +12,27 @@ export type Database = {
       admin_config: {
         Row: {
           created_at: string
+          gym_address: string | null
+          gym_name: string | null
+          gym_phone: string | null
           id: string
           logo_url: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          gym_address?: string | null
+          gym_name?: string | null
+          gym_phone?: string | null
           id?: string
           logo_url?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          gym_address?: string | null
+          gym_name?: string | null
+          gym_phone?: string | null
           id?: string
           logo_url?: string | null
           updated_at?: string
