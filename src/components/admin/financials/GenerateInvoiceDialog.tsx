@@ -66,9 +66,8 @@ export const GenerateInvoiceDialog = () => {
 
       const { data: membership, error: membershipError } = await supabase
         .from("user_memberships")
-        .select()
+        .select("*, membership_plans(name)")
         .eq("user_id", values.userId)
-        .eq("plan_id", values.planId)
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .maybeSingle();
@@ -82,7 +81,12 @@ export const GenerateInvoiceDialog = () => {
 
       if (!membership) {
         console.error("No active membership found");
-        throw new Error("No active membership found for this user and plan");
+        throw new Error("No active membership found for this user");
+      }
+
+      if (membership.plan_id !== values.planId) {
+        const currentPlanName = membership.membership_plans?.name || "Unknown Plan";
+        throw new Error(`The user is currently subscribed to ${currentPlanName}, change the membership plan to the selected one above in order to generate an invoice for the selected membership plan`);
       }
 
       const { data: invoice, error: invoiceError } = await supabase
