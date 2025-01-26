@@ -7,6 +7,7 @@ interface Exercise {
   muscle_group: string;
   difficulty_level: string;
   sets: number;
+  image_url: string | null; // Added image_url to the interface
 }
 
 interface ExerciseListProps {

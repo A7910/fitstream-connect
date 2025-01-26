@@ -14,18 +14,25 @@ interface ExerciseCardProps {
     muscle_group: string;
     difficulty_level: string;
     sets: number;
+    image_url: string | null; // Added image_url to the interface
   };
   getExerciseImage: (muscleGroup: string) => string;
 }
 
 const ExerciseCard = ({ exercise, getExerciseImage }: ExerciseCardProps) => {
+  const imageUrl = exercise.image_url || getExerciseImage(exercise.muscle_group);
+
   return (
     <Card className="overflow-hidden bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
       <div className="relative h-48 w-full">
         <img
-          src={getExerciseImage(exercise.muscle_group)}
+          src={imageUrl}
           alt={exercise.name}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            console.error("Error loading image:", imageUrl);
+            e.currentTarget.src = getExerciseImage(exercise.muscle_group);
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       </div>
