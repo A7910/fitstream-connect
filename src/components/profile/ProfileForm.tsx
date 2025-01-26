@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { User } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface ProfileFormProps {
   profile: {
@@ -24,6 +25,9 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     if (profile) {
@@ -120,6 +124,41 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
     return true;
   };
 
+  const validatePassword = (password: string): boolean => {
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return false;
+    }
+    return true;
+  };
+
+  const updatePassword = async () => {
+    try {
+      if (!validatePassword(newPassword)) {
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        toast.error("New password and confirmation do not match");
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast.success("Password updated successfully");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error("Error updating password");
+    }
+  };
+
   const updateProfile = async () => {
     try {
       if (!validatePhoneNumber(phoneNumber)) {
@@ -209,6 +248,43 @@ export const ProfileForm = ({ profile, email, userId }: ProfileFormProps) => {
             >
               Update Profile
             </Button>
+
+            <Separator className="my-6" />
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Change Password</h3>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword" className="text-sm font-poppins text-gray-600">New Password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="font-poppins"
+                  placeholder="Enter new password"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-sm font-poppins text-gray-600">Confirm New Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="font-poppins"
+                  placeholder="Confirm new password"
+                />
+              </div>
+
+              <Button
+                onClick={updatePassword}
+                className="w-full bg-primary hover:bg-primary/90 text-white font-poppins"
+                disabled={!newPassword || !confirmPassword}
+              >
+                Update Password
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>
