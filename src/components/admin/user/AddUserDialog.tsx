@@ -25,28 +25,15 @@ const AddUserDialog = () => {
 
   const handleAddUser = async () => {
     try {
-      // Create user with admin API
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: newUserData.email,
-        email_confirm: false,
-        user_metadata: {
-          full_name: newUserData.fullName,
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: newUserData.email,
+          fullName: newUserData.fullName,
+          phoneNumber: newUserData.phoneNumber,
         },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("No user returned from auth signup");
-
-      // Update the profile with additional information
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: newUserData.fullName,
-          phone_number: newUserData.phoneNumber,
-        })
-        .eq('id', authData.user.id);
-
-      if (profileError) throw profileError;
+      if (error) throw error;
 
       toast({
         title: "User invited successfully",
@@ -57,7 +44,7 @@ const AddUserDialog = () => {
       setNewUserData({ email: "", fullName: "", phoneNumber: "" });
       queryClient.invalidateQueries({ queryKey: ["all-users"] });
     } catch (error) {
-      console.error("Error adding user:", error);
+      console.error("Error inviting user:", error);
       toast({
         title: "Error inviting user",
         description: "There was an error inviting the user. Please try again.",
