@@ -25,16 +25,19 @@ const AddUserDialog = () => {
 
   const handleAddUser = async () => {
     try {
-      // First create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Create user with admin API
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: newUserData.email,
-        password: Math.random().toString(36).slice(-8), // Generate random password
+        email_confirm: false,
+        user_metadata: {
+          full_name: newUserData.fullName,
+        },
       });
 
       if (authError) throw authError;
       if (!authData.user) throw new Error("No user returned from auth signup");
 
-      // Then update the profile
+      // Update the profile with additional information
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -46,8 +49,8 @@ const AddUserDialog = () => {
       if (profileError) throw profileError;
 
       toast({
-        title: "User added successfully",
-        description: "The user has been added to the system.",
+        title: "User invited successfully",
+        description: "An invitation email has been sent to the user.",
       });
 
       setIsOpen(false);
@@ -56,8 +59,8 @@ const AddUserDialog = () => {
     } catch (error) {
       console.error("Error adding user:", error);
       toast({
-        title: "Error adding user",
-        description: "There was an error adding the user. Please try again.",
+        title: "Error inviting user",
+        description: "There was an error inviting the user. Please try again.",
         variant: "destructive",
       });
     }
@@ -104,7 +107,7 @@ const AddUserDialog = () => {
               }
             />
           </div>
-          <Button onClick={handleAddUser}>Add User</Button>
+          <Button onClick={handleAddUser}>Invite User</Button>
         </div>
       </DialogContent>
     </Dialog>
