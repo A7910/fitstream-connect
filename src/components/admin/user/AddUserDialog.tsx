@@ -19,35 +19,60 @@ const AddUserDialog = () => {
     email: "",
     fullName: "",
     phoneNumber: "",
+    password: "",
+    confirmPassword: "",
   });
+  const [passwordError, setPasswordError] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const validatePasswords = () => {
+    if (newUserData.password.length < 6) {
+      setPasswordError("Password must be at least 6 characters long");
+      return false;
+    }
+    if (newUserData.password !== newUserData.confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return false;
+    }
+    setPasswordError("");
+    return true;
+  };
+
   const handleAddUser = async () => {
+    if (!validatePasswords()) return;
+
     try {
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: {
           email: newUserData.email,
           fullName: newUserData.fullName,
           phoneNumber: newUserData.phoneNumber,
+          password: newUserData.password,
         },
       });
 
       if (error) throw error;
 
       toast({
-        title: "User invited successfully",
-        description: "An invitation email has been sent to the user.",
+        title: "User created successfully",
+        description: "The user account has been created with the specified password.",
       });
 
       setIsOpen(false);
-      setNewUserData({ email: "", fullName: "", phoneNumber: "" });
+      setNewUserData({
+        email: "",
+        fullName: "",
+        phoneNumber: "",
+        password: "",
+        confirmPassword: "",
+      });
       queryClient.invalidateQueries({ queryKey: ["all-users"] });
     } catch (error) {
-      console.error("Error inviting user:", error);
+      console.error("Error creating user:", error);
       toast({
-        title: "Error inviting user",
-        description: "There was an error inviting the user. Please try again.",
+        title: "Error creating user",
+        description: "There was an error creating the user. Please try again.",
         variant: "destructive",
       });
     }
@@ -94,7 +119,32 @@ const AddUserDialog = () => {
               }
             />
           </div>
-          <Button onClick={handleAddUser}>Invite User</Button>
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={newUserData.password}
+              onChange={(e) =>
+                setNewUserData({ ...newUserData, password: e.target.value })
+              }
+            />
+          </div>
+          <div>
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={newUserData.confirmPassword}
+              onChange={(e) =>
+                setNewUserData({ ...newUserData, confirmPassword: e.target.value })
+              }
+            />
+            {passwordError && (
+              <p className="text-sm text-red-500 mt-1">{passwordError}</p>
+            )}
+          </div>
+          <Button onClick={handleAddUser}>Create User</Button>
         </div>
       </DialogContent>
     </Dialog>
