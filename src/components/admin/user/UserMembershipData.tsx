@@ -18,16 +18,12 @@ export const useUserMembershipData = ({ allUsers, memberships }: UserMembershipD
       const isActive = latestMembership?.status === "active" && 
         new Date(latestMembership.end_date) >= new Date();
       
-      // Get the plan name from the membership data
-      const planName = latestMembership?.plan?.name || "No Plan";
-      
       return {
         ...user,
-        membership: latestMembership ? {
+        membership: {
           ...latestMembership,
-          status: isActive ? "active" : "inactive",
-          plan_name: planName
-        } : null
+          status: isActive ? "active" : "inactive"
+        }
       };
     }) || [];
   }, [allUsers, memberships]);

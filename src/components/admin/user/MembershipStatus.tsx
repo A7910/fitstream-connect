@@ -9,10 +9,6 @@ export const getMembershipStatus = (membership: any) => {
   if (!membership) return "inactive";
   if (membership.status !== "active") return "inactive";
   
-  // Check if the plan is "No Plan"
-  const isNoPlan = membership.plan_id && membership.plan_name === "No Plan";
-  if (isNoPlan) return "inactive";
-  
   const today = new Date();
   const endDate = new Date(membership.end_date);
   endDate.setHours(23, 59, 59, 999); // Set to end of day
@@ -26,10 +22,6 @@ export const getMembershipStatus = (membership: any) => {
 
 export const getMembershipStatusColor = (membership: any) => {
   if (!membership || membership.status !== "active") return "red";
-  
-  // Check if the plan is "No Plan"
-  const isNoPlan = membership.plan_id && membership.plan_name === "No Plan";
-  if (isNoPlan) return "red";
   
   const today = new Date();
   const endDate = new Date(membership.end_date);
@@ -46,10 +38,6 @@ export const getMembershipStatusColor = (membership: any) => {
 export const getRemainingDays = (membership: any) => {
   if (!membership || membership.status !== "active") return 0;
   
-  // Check if the plan is "No Plan"
-  const isNoPlan = membership.plan_id && membership.plan_name === "No Plan";
-  if (isNoPlan) return 0;
-  
   const today = new Date();
   const endDate = new Date(membership.end_date);
   endDate.setHours(23, 59, 59, 999); // Set to end of day
@@ -61,7 +49,6 @@ export const MembershipStatus = ({ membership }: MembershipStatusProps) => {
   const status = getMembershipStatus(membership);
   const statusColor = getMembershipStatusColor(membership);
   const remainingDays = getRemainingDays(membership);
-  const isNoPlan = membership?.plan_id && membership.plan_name === "No Plan";
 
   return (
     <div className="flex items-center gap-2">
@@ -79,18 +66,13 @@ export const MembershipStatus = ({ membership }: MembershipStatusProps) => {
           Expiring soon
         </span>
       )}
-      {membership && membership.status === "active" && !isNoPlan && (
+      {membership && membership.status === "active" && (
         <div className="text-sm text-muted-foreground">
           <p>Expires: {format(new Date(membership.end_date), "MMM dd, yyyy")}</p>
           <p className="text-xs">
             {remainingDays} {remainingDays === 1 ? 'day' : 'days'} remaining
           </p>
         </div>
-      )}
-      {(status === "inactive" || isNoPlan) && (
-        <span className="text-sm text-muted-foreground">
-          Subscribe to a plan
-        </span>
       )}
     </div>
   );

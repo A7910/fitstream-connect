@@ -31,24 +31,6 @@ export const useMemberships = () => {
     },
   });
 
-  const { data: memberships, isLoading: isLoadingMemberships } = useQuery({
-    queryKey: ["all-memberships"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_memberships")
-        .select(`
-          *,
-          plan:plan_id (
-            id,
-            name
-          )
-        `);
-      
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const handleMembershipAction = async (
     userId: string, 
     planId: string | null, 
@@ -166,8 +148,7 @@ export const useMemberships = () => {
   return {
     membershipPlans,
     allUsers,
-    memberships,
-    isLoading: isLoadingPlans || isLoadingUsers || isLoadingMemberships,
+    isLoading: isLoadingPlans || isLoadingUsers,
     handleMembershipAction,
   };
 };
