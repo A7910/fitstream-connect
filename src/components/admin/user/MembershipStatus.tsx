@@ -8,6 +8,7 @@ interface MembershipStatusProps {
 export const getMembershipStatus = (membership: any) => {
   if (!membership) return "inactive";
   if (membership.status !== "active") return "inactive";
+  if (membership.plan?.name === "No Plan") return "inactive";
   
   const today = new Date();
   const endDate = new Date(membership.end_date);
@@ -21,7 +22,7 @@ export const getMembershipStatus = (membership: any) => {
 };
 
 export const getMembershipStatusColor = (membership: any) => {
-  if (!membership || membership.status !== "active") return "red";
+  if (!membership || membership.status !== "active" || membership.plan?.name === "No Plan") return "red";
   
   const today = new Date();
   const endDate = new Date(membership.end_date);
@@ -36,7 +37,7 @@ export const getMembershipStatusColor = (membership: any) => {
 };
 
 export const getRemainingDays = (membership: any) => {
-  if (!membership || membership.status !== "active") return 0;
+  if (!membership || membership.status !== "active" || membership.plan?.name === "No Plan") return 0;
   
   const today = new Date();
   const endDate = new Date(membership.end_date);
@@ -66,7 +67,12 @@ export const MembershipStatus = ({ membership }: MembershipStatusProps) => {
           Expiring soon
         </span>
       )}
-      {membership && membership.status === "active" && (
+      {status === "inactive" && (
+        <span className="text-xs text-muted-foreground">
+          Subscribe to a plan
+        </span>
+      )}
+      {membership && membership.status === "active" && status === "active" && (
         <div className="text-sm text-muted-foreground">
           <p>Expires: {format(new Date(membership.end_date), "MMM dd, yyyy")}</p>
           <p className="text-xs">

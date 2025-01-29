@@ -14,19 +14,21 @@ export const useUserMembershipData = ({ allUsers, memberships }: UserMembershipD
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0];
       
-      // Check if the membership is active and not expired
+      // Check if the membership is active and not "No Plan"
       const isActive = latestMembership?.status === "active" && 
-        new Date(latestMembership.end_date) >= new Date();
+        new Date(latestMembership.end_date) >= new Date() &&
+        latestMembership?.plan?.name !== "No Plan";
       
       return {
         ...user,
-        membership: {
+        membership: latestMembership ? {
           ...latestMembership,
           status: isActive ? "active" : "inactive"
-        }
+        } : null
       };
     }) || [];
   }, [allUsers, memberships]);
 
+  console.log("Users with membership data:", usersWithMembership);
   return usersWithMembership;
 };
