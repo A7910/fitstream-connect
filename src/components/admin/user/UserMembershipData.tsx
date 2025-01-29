@@ -14,7 +14,7 @@ export const useUserMembershipData = ({ allUsers, memberships }: UserMembershipD
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0];
       
-      // Check if the membership is active and not "No Plan"
+      // Check if the membership is active, not expired, and not "No Plan"
       const isActive = latestMembership?.status === "active" && 
         new Date(latestMembership.end_date) >= new Date() &&
         latestMembership?.plan?.name !== "No Plan";
