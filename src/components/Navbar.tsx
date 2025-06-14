@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -111,7 +112,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <span className="text-[25px] font-bebas">Obees Fitness</span>
+              <span className="text-[25px] font-bebas">Gym Fit</span>
             </Link>
           </div>
           
