@@ -1,20 +1,19 @@
-
 export const TrainingSection = () => {
   const trainingOptions = [
     {
       title: "PERSONAL TRAINING",
       image:
-        "https://images.unsplash.com/photo-1517960413843-0aee8e2d471c?auto=format&fit=crop&w=800&q=80", // Coach with client, training
+        "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=800&q=80", // Personal trainer working with client
     },
     {
       title: "GROUP FITNESS CLASS",
       image:
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80", // Group fitness workout class indoors
+        "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80", // Group fitness class with people exercising
     },
     {
       title: "FUNCTIONAL TRAINING",
       image:
-        "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80", // Man doing functional fitness/crossfit
+        "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=800&q=80", // Functional training with equipment
     },
   ];
 
