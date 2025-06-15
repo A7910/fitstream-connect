@@ -5,12 +5,14 @@ import { cn } from "@/lib/utils";
 import { ClubSection } from "./sections/ClubSection";
 import { TrainingSection } from "./sections/TrainingSection";
 import UserWorkoutPlan from "./workout/UserWorkoutPlan";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const [session, setSession] = useState(null);
   const [announcement, setAnnouncement] = useState("");
   const [displayText, setDisplayText] = useState("");
   const [messageType, setMessageType] = useState("info");
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for session
@@ -129,7 +131,11 @@ const Hero = () => {
           <p className="text-gray-600 max-w-2xl mx-auto mb-6">
             Whether you're a seasoned athlete or just starting out, our expert trainers are here to guide you through your fitness journey. We believe in creating an inclusive environment where everyone can thrive.
           </p>
-          <Button variant="outline" className="rounded-full">
+          <Button 
+            variant="outline" 
+            className="rounded-full"
+            onClick={() => navigate("/membership-plans")}
+          >
             JOIN TODAY
           </Button>
         </div>
