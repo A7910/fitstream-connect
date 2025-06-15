@@ -112,7 +112,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex items-center">
-              <span className="text-[25px] font-bebas">Gym Fit</span>
+              <span className="text-[25px] font-bebas">Fitcore</span>
             </Link>
           </div>
           
