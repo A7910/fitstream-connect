@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,18 @@ const MembershipPlans = () => {
         console.error("Error fetching plans:", error);
         throw error;
       }
-      return data;
+      
+      // Filter out "No Plan" and remove duplicates by name
+      const filteredPlans = data?.filter(plan => plan.name !== "No Plan") || [];
+      const uniquePlans = filteredPlans.reduce((acc: any[], current) => {
+        const existingPlan = acc.find(plan => plan.name === current.name);
+        if (!existingPlan) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+      
+      return uniquePlans;
     }
   });
 

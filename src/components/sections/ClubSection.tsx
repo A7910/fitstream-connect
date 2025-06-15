@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -19,7 +20,18 @@ export const ClubSection = () => {
         .order("price");
       
       if (error) throw error;
-      return data;
+      
+      // Filter out "No Plan" and remove duplicates by name
+      const filteredPlans = data?.filter(plan => plan.name !== "No Plan") || [];
+      const uniquePlans = filteredPlans.reduce((acc: any[], current) => {
+        const existingPlan = acc.find(plan => plan.name === current.name);
+        if (!existingPlan) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+      
+      return uniquePlans;
     }
   });
 
