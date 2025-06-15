@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,7 +157,10 @@ const Hero = () => {
           <p className="text-gray-400 max-w-2xl mx-auto mb-8">
             Take the first step towards a stronger, healthier you. Join our community and transform your life through fitness.
           </p>
-          <Button className="bg-white text-black hover:bg-gray-100">
+          <Button 
+            className="bg-white text-black hover:bg-gray-100"
+            onClick={() => navigate("/membership-plans")}
+          >
             GET STARTED
           </Button>
         </div>
